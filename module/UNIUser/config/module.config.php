@@ -6,12 +6,14 @@ return array(
     'router' => array(
         'routes' => array(
             'uniuser-register' => array(
-                'type'    => 'Literal',
+                'type' => 'Literal',
                 'options' => array(
-                    'route'         => '/register',
-                    '__NAMESPACE__' => 'UNIUser/Controller',
-                    'controller'    => 'Index',
-                    'action'        => 'register',
+                    'route' => '/register',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'UNIUser/Controller',
+                        'controller' => 'Index',
+                        'action' => 'register',
+                    )
                 )
             )
         )
@@ -36,5 +38,23 @@ return array(
         'template_path_stack' => array(
             __DIR__ . '/../view',
         ),
+    ),
+    // Doctrine configuration
+    'doctrine' => array(
+        'driver' => array(
+            __NAMESPACE__ . '_driver' => array(
+                'class' => 'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
+                'cache' => 'array',
+                'paths' => array(__DIR__ . '/../src/' . __NAMESPACE__ . '/Entity')
+            ),
+            'orm_default' => array(
+                'drivers' => array(
+                    __NAMESPACE__ . '\Entity' => __NAMESPACE__ . '_driver'
+                ),
+            ),
+        ),
+    ),
+    'data-fixture' => array(
+        'UNIUser_fixture' => __DIR__ . '/../src/UNIUser/Fixture',
     ),
 );
