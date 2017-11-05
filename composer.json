@@ -9,11 +9,9 @@
     "homepage": "http://framework.zend.com/",
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zendframework"  : "~2.4",
-        "doctrine/doctrine-orm-module" : "0.*",
-        "zendframework/zftool"         : "dev-master",
-        "hounddog/doctrine-data-fixture-module": "0.0.*",
-        "dino/dompdf-module": "dev-master",
-        "beberlei/DoctrineExtensions": "^1.0"
+        "zendframework/zendframework": "~2.4.11",
+        "doctrine/doctrine-orm-module": "0.*",
+        "zendframework/zftool": "dev-master",
+        "hounddog/doctrine-data-fixture-module":"dev-master"
     }
 }
