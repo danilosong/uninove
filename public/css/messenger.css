@@ -1,0 +1,157 @@
+/* 
+    Created on : 09/06/2015, 15:13:10
+    Author     : danilo
+*/
+.messenger{
+    width: 600px;
+    position: absolute;
+    right: 0px;
+    top:0px;
+    z-index: 99999;
+}
+
+#messenger-box{
+    width: 270px;
+    float: right;
+    border: 1px solid #ddd;
+    background-color: #eee;
+}
+
+#chat-contacts{
+    border: 1px solid #CCC;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+    background-color: #FFF;
+}
+
+#chat-contacts button{
+    margin: 0px;
+    border-radius: 0px;
+    text-align: left;
+}
+
+.text-center{
+    text-align: center;
+}
+
+#drop-chat{
+    border: 1px solid #aaa;
+    width: 30px;
+    height: 110px;
+    float: right;
+    margin-top: 100px;
+    border-radius: 50px 0px 0px 50px;
+    background-color: #bbb;
+    color: #fff;
+    cursor: pointer;
+    margin-right: 3px;
+}
+
+#drop-chat>*{
+    transform: rotate(270deg);
+    position: relative;
+    top: 40%;
+}
+
+#drop-chat.online{
+    background-color: #8CE88C;
+    border-left: 1px solid #5CB85C;
+    border-top: 1px solid #5CB85C;
+    border-bottom: 1px solid #5CB85C;
+}
+
+#drop-chat.busy{
+    background-color: #FF6F6A;
+    border-left: 1px solid #CC3F3A;
+    border-top: 1px solid #CC3F3A;
+    border-bottom: 1px solid #CC3F3A
+}
+
+#drop-chat.offline{
+    background-color: #FFD266; 
+    border-left: 1px solid #CCA236;
+    border-top: 1px solid #CCA236;
+    border-bottom: 1px solid #CCA236
+}
+
+.chat-view {
+    border: 1px solid #CCC;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+}
+
+.panel{
+    padding: 5px;
+    margin-bottom: 0px;
+    border-color: #fff;
+    border-radius: 5px;
+}
+
+.fa{
+    cursor: pointer;
+}
+
+
+.msg-me{
+    border-radius: 5px;
+    padding: 2px;
+    margin: 5px;
+    width: 75%;
+    margin-left:20%;
+    border: 1px solid #7A7 ;
+    background-color: #CFC ;
+    color: #484 ;
+    word-wrap: break-word;
+}
+
+.msg-me>em,.msg-0>em,
+.msg-1>em, .msg-2>em, .msg-3>em,
+.msg-4>em, .msg-5>em, .msg-6>em,
+.msg-7>em, .msg-8>em, .msg-9>em,
+.msg-10>em, .msg-11>em, .msg-12>em{
+    font-size: 11px;
+}
+
+.msg-0, .msg-1,
+.msg-2, .msg-3, .msg-4,.msg-5, 
+.msg-6, .msg-7, .msg8, .msg9, 
+.msg-10,.msg-11, .msg-12 {
+    border-radius: 5px;
+    padding: 2px;
+    margin: 5px;
+    width: 75%;
+    margin-left:5%;
+    word-wrap: break-word;
+}
+
+.msg-0 {
+    border: 1px solid #77A;
+    background-color: #CCF;
+    color: #448;
+}
+
+.msg-1 {
+    border: 1px solid #CFD40F;
+    background-color: #F4FF89;
+    color: #5F6E00;
+}
+
+.msg-2{
+    border: 1px solid #924D00;
+    background-color: #F8C685;
+    color: #6F4A00;
+}
+
+.msg-3{
+    border: 1px solid #500C65;
+    background-color: #C7A4E4;
+    color: #810593;
+}
+
+.msg-4{
+    border: 1px solid #AB1111;
+    background-color: #FFB4B4;
+    color: #A00;
+}

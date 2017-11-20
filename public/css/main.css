@@ -1,0 +1,419 @@
+@charset "UTF-8";
+/*!
+ *+=========================================+
+ *| Tecnomed CSS Definitions                |
+ *| Created: 09/06/2015, 15:13:10           |
+ *| Author: Danilo Dorotheu                 |
+ *+=========================================+ 
+ */
+/*===================================================
+ * Definições de tabelas
+ *===================================================*/
+
+/* Deixa o danger da tabela com uma cor mais viva */
+.table > tbody > tr.danger > td, 
+.table > tbody > tr.danger > th, 
+.table > tbody > tr > td.danger, 
+.table > tbody > tr > th.danger, 
+.table > tfoot > tr.danger > td, 
+.table > tfoot > tr.danger > th, 
+.table > tfoot > tr > td.danger, 
+.table > tfoot > tr > th.danger, 
+.table > thead > tr.danger > td, 
+.table > thead > tr.danger > th, 
+.table > thead > tr > td.danger, 
+.table > thead > tr > th.danger {
+    background-color: #fe9090;
+}
+
+/* Deixa o warning da tabela com uma cor mais viva */
+.table > tbody > tr.warning > td, 
+.table > tbody > tr.warning > th, 
+.table > tbody > tr > td.warning, 
+.table > tbody > tr > th.warning, 
+.table > tfoot > tr.warning > td, 
+.table > tfoot > tr.warning > th, 
+.table > tfoot > tr > td.warning, 
+.table > tfoot > tr > th.warning, 
+.table > thead > tr.warning > td, 
+.table > thead > tr.warning > th, 
+.table > thead > tr > td.warning, 
+.table > thead > tr > th.warning {
+    background-color: #ffe766;
+}
+
+/*===================================================
+ * Definições gerais
+ *===================================================*/
+.table{
+    background-color: #fff;
+}
+
+.autocomplete-suggestions {
+    border: 1px solid #999;
+    background: #FFF;
+    overflow: auto;
+}
+
+.autocomplete-suggestion {
+    padding: 2px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 12px;
+}
+
+.autocomplete-selected {
+    background: #F0F0F0;
+}
+
+.autocomplete-suggestions strong {
+    font-weight: normal;
+    color: #3399FF;
+}
+
+.autocomplete-group {
+    padding: 2px 5px;
+}
+
+.autocomplete-group strong {
+    display: block;
+    border-bottom: 1px solid #000;
+}
+
+.hideOn {
+    display: none;
+}
+
+#notify {
+    position: absolute;
+    top: 60px;
+    right: 30px;
+    botton: 10px;
+    width: 280px;
+    z-index: 99999999999;
+}
+
+.table th {
+    cursor: pointer;
+}
+
+.simple-list {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.middleButton {
+    border-radius: 0px;
+    border-left: 0px;
+}
+
+#changMsgStatus {
+    display: none;
+    margin-bottom: 20px;
+}
+
+#msgstatus {
+    font-style: italic;
+}
+/*===================================================
+ * Definições autocomplete
+ *===================================================*/
+.color-red{
+    background-color: #f00;
+    color: #fff;
+}
+
+/**
+ * Usuarios do grupo
+ */
+#chat-group-users {
+    text-align: -moz-center;
+    font-style: italic;
+}
+
+/**
+ * Alerta de mensagem
+ */
+.alertMsg {
+    color: #ff0;
+}
+
+.chat-view > div:first-child > div {
+    padding: 0px;
+}
+/*
+todo
+*/
+.navbar-fixed-top {
+    box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.15) inset, 0px 1px 5px rgba(0, 0, 0, 0.075);
+    z-index: 9999999;
+}
+
+.sidebar {
+    border-right: 1px solid #ddd;
+}
+
+body {
+    overflow-y: hidden;
+}
+
+#inter {
+    overflow: hidden;
+    padding-top: 20px;
+}
+
+.resp-table {
+    overflow-x: scroll;
+}
+
+.resp-table > table {
+    margin-bottom: 0px;
+}
+
+/*TODO: parametro de correção de bug da div #inter*/
+#page-wrapper {
+    height: 1px;
+    overflow-y: scroll;
+}
+
+.table th {
+    background-color: #eee;
+}
+
+#logo {
+    width: 250px;
+}
+
+#logo img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/*===================================================
+ * Menu
+ *===================================================*/
+#logo > img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/*.iconstop>a{
+    padding-left: 10px;
+    padding-right: 10px;
+}*/
+/*===================================================
+ * Messenger
+ *===================================================*/
+/*
+todo
+*/
+#messenger-container {
+    width: 22%;
+    height: 100%;
+    padding-top: 50px;
+    position: fixed;
+    right: 0px;
+    top: 0px;
+    z-index: 99999;
+    background-color: #eee;
+    border-left: 1px solid #ddd;
+}
+
+/*
+Aplica efeitos de espaçamento na mensagem (sendo .alert-0 as mensagens 
+dos contatos e .alert-1 para as minhas mensagens) 
+*/
+.alert-0, .alert-1 {
+    margin: 0;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+
+}
+
+.alert-0 {
+    margin-right: 20px;
+    margin-left: 5px;
+}
+
+.alert-1 {
+    margin-left: 20px;
+    margin-right: 5px;
+}
+/* ------------------- */
+
+#window-chat>.panel, #window-lista>.panel{
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+
+#area-mensagem{
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#area-mensagem, #area-lista{
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    min-height: 300px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    overflow-y: auto;
+}
+
+#header{
+    height: 100%;
+}
+
+#teste{
+    position: absolute;
+}
+
+#messenger-box {
+    width: 270px;
+    float: right;
+    border: 1px solid#ddd;
+    background-color: #eee;
+}
+
+#lista-contatos, 
+#lista-contatos-grupo {
+    border: 1px solid#CCC;
+    max-height: 250px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+    background-color: #FFF;
+}
+
+#lista-contatos>button ,
+#lista-contatos-grupo>button{
+    margin: 0px;
+    text-align: left;
+    border-radius: 0px;
+
+}
+
+.text-center {
+    text-align: center;
+}
+
+.chat-view {
+    border: 1px solid#CCC;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+}
+
+.msg-me {
+    border-radius: 5px;
+    padding: 2px;
+    margin: 5px;
+    width: 75%;
+    margin-left: 20%;
+    border: 1px solid#7A7;
+    background-color: #CFC;
+    color: #484;
+    word-wrap: break-word;
+}
+
+.msg, .msg-0, .msg-1, .msg-2, .msg-3, .msg-4, .msg-5, .msg-6, .msg-7, .msg-8, .msg-9, .msg-10, .msg-11, .msg-12 {
+    border-radius: 5px;
+    padding: 2px;
+    margin: 5px;
+    width: 75%;
+    margin-left: 5%;
+    word-wrap: break-word;
+}
+.msg em, .msg-0 em, .msg-1 em, .msg-2 em, .msg-3 em, .msg-4 em, .msg-5 em, .msg-6 em, .msg-7 em, .msg-8 em, .msg-9 em, .msg-10 em, .msg-11 em, .msg-12 em {
+    font-size: 10;
+}
+
+.msg-0 {
+    border: 1px solid#77A;
+    background-color: #CCF;
+    color: #448;
+}
+
+.msg-1 {
+    border: 1px solid#CFD40F;
+    background-color: #F4FF89;
+    color: #5F6E00;
+}
+
+.msg-2 {
+    border: 1px solid#924D00;
+    background-color: #F8C685;
+    color: #6F4A00;
+}
+
+.msg-3 {
+    border: 1px solid#500C65;
+    background-color: #C7A4E4;
+    color: #810593;
+}
+
+.msg-4 {
+    border: 1px solid#AB1111;
+    background-color: #FFB4B4;
+    color: #A00;
+}
+
+/*
+ ===============================================================================
+*/
+.modal {
+    margin-top: 70px;
+}
+/*
+ ===============================================================================
+                    CONTROLE DE BORDAS NOS ELEMENTOS
+ ===============================================================================
+*/
+.border{
+    border: 1px solid black;
+}
+.border-top{
+    border-top: 1px solid black;
+}
+.border-bottom{
+    border-bottom: 1px solid black;
+}
+.border-right{
+    border-right: 1px solid black;
+}
+.border-left{
+    border-left: 1px solid black;
+}
+.border-top-left{
+    border-top : 1px solid black;
+    border-left: 1px solid black;
+}
+.border-bottom-left{
+    border-bottom: 1px solid black;
+    border-right : 1px solid black;
+}
+.border-0{
+    border: 0px solid black;
+}
+.border-top-0{
+    border-top: 0px;
+}
+.border-bottom-0{
+    border-bottom: 0px;
+}
+.border-right-0{
+    border-right: 0px;
+}
+.border-left-0{
+    border-left: 0px;
+}
+.border-top-left-0{
+    border-top : 0px;
+    border-left: 0px;
+}
+.border-bottom-left-0{
+    border-bottom: 0px;
+    border-right : 0px;
+}

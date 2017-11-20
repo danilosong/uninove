@@ -1,0 +1,241 @@
+/*!
+ *+=========================================+
+ *| Tecnomed CSS Definitions                |
+ *| Created: 09/06/2015, 15:13:10           |
+ *| Author: Danilo Dorotheu                 |
+ *+=========================================+ 
+ */
+
+$border-default: 1px solid;
+
+@function setBorder($color){
+    @return $border-default + $color; 
+}
+
+/*===================================================
+ * Definições gerais
+ *===================================================*/
+.autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
+.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+.autocomplete-selected { background: #F0F0F0; }
+.autocomplete-suggestions strong { font-weight: normal; color: #3399FF; }
+.autocomplete-group { padding: 2px 5px; }
+.autocomplete-group strong { display: block; border-bottom: 1px solid #000; }
+
+.hideOn{
+    display: none;
+}
+
+#notify{
+    position: absolute; 
+    top:60px;
+    right:30px; 
+    botton: 10px; 
+    width: 280px;
+    z-index: 99999999999;
+}
+
+//Modifica cursor no th
+.table th{
+    cursor: pointer;
+}
+
+.simple-list{
+    list-style-type: none;
+    padding-left: 10px; 
+}
+
+//Corrige o erro do botao clean, quando este está acompanhado de 
+//outro botao
+.middleButton{
+    border-radius: 0px;
+    border-left: 0px;
+}
+
+#changMsgStatus{
+    display: none;
+    margin-bottom: 20px;
+}
+#msgstatus{
+    font-style: italic;    
+}
+/**
+ * Usuarios do grupo
+ */
+#chat-group-users{
+    text-align: -moz-center;
+    font-style: italic;
+}
+/**
+ * Alerta de mensagem
+ */
+.alertMsg{
+    color: #ff0;
+}
+.chat-view>div:first-child>div{
+    padding:0px;
+}
+
+.navbar-fixed-top{
+    box-shadow: 0px 1px 0px rgba(255, 255, 255, 0.15) inset, 0px 1px 5px rgba(0, 0, 0, 0.075);
+}
+.sidebar {
+    border-right: 1px solid #ddd;
+}
+body{
+    overflow-y: hidden;
+}
+#inter{
+    overflow: hidden;
+    padding-top: 20px;
+}
+.resp-table{
+    overflow-x: scroll;
+}
+.resp-table>table{
+    margin-bottom: 0px;
+}
+/*TODO: parametro de correção de bug da div #inter*/
+#page-wrapper{
+    height: 1px;
+    overflow-y: scroll;
+}
+.table th{
+    background-color: #eee;
+}
+#logo{
+    width: 250px;
+}
+#logo img{
+    margin-left: auto;
+    margin-right: auto;
+}
+/*===================================================
+ * Menu
+ *===================================================*/
+
+#logo>img{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/*.iconstop>a{
+    padding-left: 10px;
+    padding-right: 10px;
+}*/ 
+
+/*===================================================
+ * Messenger
+ *===================================================*/
+#messenger{
+    width: 20%;
+    position: absolute;
+    right: 0px;
+    top:0px;
+    z-index: 99999;
+}
+
+#messenger-box{
+    width: 270px;
+    float: right;
+    border: setBorder(#ddd);
+    background-color: #eee;
+}
+
+#chat-contacts{
+    border: setBorder(#CCC);
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+    background-color: #FFF;
+}
+
+#chat-contacts button{
+    margin: 0px;
+    border-radius: 0px;
+    text-align: left;
+}
+
+.text-center{
+    text-align: center;
+}
+
+.chat-view {
+    border: setBorder(#CCC);
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+}
+
+.panel{
+    padding: 5px;
+    margin-bottom: 0px;
+    border-color: #fff;
+    border-radius: 5px;
+}
+
+.fa{
+    cursor: pointer;
+}
+
+
+.msg-me{
+    border-radius: 5px;
+    padding: 2px;
+    margin: 5px;
+    width: 75%;
+    margin-left:20%;
+    border: setBorder(#7A7) ;
+    background-color: #CFC ;
+    color: #484 ;
+    word-wrap: break-word;
+}
+
+.msg {
+    border-radius: 5px;
+    padding: 2px;
+    margin: 5px;
+    width: 75%;
+    margin-left:5%;
+    word-wrap: break-word;
+
+    em{ 
+        font-size: 10;
+    }
+}
+
+@for $i from 0 through 12 {
+    .msg-#{$i} {
+        @extend .msg;
+    }
+}
+
+.msg-0 {
+    border: setBorder(#77A);
+    background-color: #CCF;
+    color: #448;
+}
+
+.msg-1 {
+    border: setBorder(#CFD40F);
+    background-color: #F4FF89;
+    color: #5F6E00;
+}
+
+.msg-2{
+    border: setBorder(#924D00);
+    background-color: #F8C685;
+    color: #6F4A00;
+}
+
+.msg-3{
+    border: setBorder(#500C65);
+    background-color: #C7A4E4;
+    color: #810593;
+}
+
+.msg-4{
+    border: setBorder(#AB1111);
+    background-color: #FFB4B4;
+    color: #A00;
+}
