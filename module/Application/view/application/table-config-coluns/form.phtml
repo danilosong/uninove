@@ -1,0 +1,61 @@
+<?php
+/** ===========================================================================|
+ * FORM - TableConfigColun
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 13-07-2016
+ * 
+ * IncludeView - v1
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+$form = $this->form;
+$partial = $this->partialObj('application');
+
+echo '<h3>', $title, '</h3>';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit('Cadastro');
+$fh->setHorizontal(TRUE);
+$fh->getIdFor('idTableConfigColun');
+$fh->openCol(6)->select('tableConfig')->closeCol();
+$fh->openCol(6)->text('trLine'  )->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('label'   )->closeCol();
+$fh->openCol(6)->text('tdLine'  )->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('order'   )->closeCol();
+$fh->openCol(6)->text('thOption')->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('param'   )->closeCol();
+$fh->openCol(6)->text('thJs'    )->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('method'  )->closeCol();
+$fh->openCol(6)->text('thCss'   )->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->checkbox('default')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(12)->Submit('submit')->closeCol();
+$fh->setHorizontal(FALSE);
+$fh->formEnd();
+?>
+<br>
+<br>
+<script lang="javascript">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

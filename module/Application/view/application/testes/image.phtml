@@ -1,0 +1,17 @@
+<h1>Teste do helper image </h1>
+<p>Que deverá trazer uma imagem para tela.</p>
+<p><? echo $this->path; ?></p>
+
+<?php
+$path = "/var/www/tcmed/data/asoImages/asoVV.png";
+/* @var $img \Application\View\Helper\Image */
+$img = $this->Image();
+
+$src = $this->Image($path);
+//$src = $this->Image($this->path);
+
+echo "<img src='{$src}' />";
+
+
+?>
+<h2>Fim de Testes.</h2>

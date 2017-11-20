@@ -1,0 +1,84 @@
+<?php
+/* @var $param \Application\View\Helper\Param */
+$param      = $this->Param();
+/* @var $param \Application\View\Helper\Image */
+$image      = $this->Image();
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+?>
+<h1>Users</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>'usuarios','action'=>'new')); ?>">Novo</button>
+</p>
+<?php
+    $table->setLambda(function($value, $data){
+        echo "\t<td nowrap>",
+                '<span class="hand" onClick="edit(\'', $value, '\')" title="Editar"><i class="fa fa-pencil"></i> Edit','</span>&nbsp;', PHP_EOL,
+                '<span class="hand" onClick="changePasswd(\'', $value, '\')" title="Senha"><i class="fa fa-user-secret"></i> Senha','</span>&nbsp;', PHP_EOL,
+                '<span class="hand" onClick="del(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> Del</span>',
+             "</td>", PHP_EOL;  
+    });
+    $table->openTable(TRUE)  ; 
+    $table->renderThead([
+        'Foto',
+        'ID',
+        'Nome',
+        'Login',
+        'Email',
+        'Status',
+        'Lembrete',
+        'Tipo',
+        'Papel',
+        'Activado',
+        'Activado key',
+        'Ação',
+    ]);  
+    $path = $param('all', 'usuarioDir');
+    foreach($this->data as $entity){
+        /* @var $entity \Application\Entity\Usuario */
+        $data = [];
+        if(!empty($entity->getPathFoto())){
+            $data[]= '<img src="' . $image($path . $entity->getPathFoto()) . '" style="width: 150px" />' ;       
+        }else{
+            $data[]= '';       
+        }
+        $data[]= $entity->getIdUsuario();
+        $data[]= $entity->getNomeUsuario();
+        $data[]= $entity->getNickname();
+        $data[]= $entity->getEmailUsuario();
+        $data[]= $entity->getSituacao();
+        $data[]= $entity->getLembreteSenha();
+        $data[]= $entity->getTipo();
+        $data[]= $entity->getRole();
+        $data[]= $entity->getActive()? 'ativado' : 'pendente';       
+        $data[]= $entity->getActivationKey();       
+        $data[]= $entity->getIdUsuario();       
+        $table->renderLine($data);
+    } 
+    $table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data,'Sliding','partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">      
+    function edit(key){
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>'usuarios','action'=>'edit'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }
+    function del(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        if(!confirm(msg)){
+            return;
+        }
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>'usuarios','action'=>'delete'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }  
+    var changePasswd = function(key){
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>'usuarios','action'=>'changePasswd'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);        
+    }
+</script>

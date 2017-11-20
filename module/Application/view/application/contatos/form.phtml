@@ -1,0 +1,163 @@
+<h3><?php 
+    $controller = 'contatos';
+    echo $this->dataView['titulo']; ?></h3>
+    <br />
+    <?php
+    /* @var $fh \Application\View\Helper\FormHelp */
+    $fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=> $controller, 'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+    $fh->setHorizontal(true);
+    $fh->formInit('Cadastro User');
+    
+    $opt = ['js' => 'autoCompUser()','icone' => 'search', 'span_id' => 'popUser','class' => '','style'=>'position:absolute;z-index: 9999999;'];
+    $fh->openCol('12')->icone('userUser_nome',$opt)->closeCol();
+    $fh->lineDown();
+    
+    $opt2 = ['js' => 'autoCompGrupo()','icone' => 'search', 'span_id' => 'popGrupo','class' => '','style'=>'position:absolute;z-index: 99999999;'];
+    $fh->openCol('12')->icone('grupoGrupo_nome',$opt2)->closeCol();
+    $fh->lineDown();
+    
+    $opt3 = ['js' => 'autoCompContato()','icone' => 'search', 'span_id' => 'popContato','class' => '','style'=>'position:absolute;z-index: 99999999;'];
+    $fh->openCol('12')->icone('contatoUser_nome',$opt3)->closeCol();
+    $fh->lineDown();
+    
+    $fh->openCol('12')->Submit('submit')->closeCol();
+    $fh->closeLine()->formEnd();
+    ?>
+
+    <script lang="javascript">   
+        $(function(){
+            
+            action.autoComp("#userUser_nome", {
+                //URL do servidor
+                serviceUrl: "<?php echo $this->url('app/default',array('controller'=>'users','action'=>'autoComp'),[],FALSE,FALSE);?>",   
+                //Tabela principal
+                primary: "nome",            
+                //Parametros extras
+                params:{                    
+                    subOpcao: "tipo2",
+                },
+                //Oculta colunas de exibicao
+                hideCols:[
+                    "id"
+                ],
+                //Replicar resposta
+                responseTo:{
+                    "id":[
+                        "#userUser"
+                    ],
+                }
+            });
+
+            action.autoComp("#grupoGrupo_nome", {
+                //URL do servidor
+                serviceUrl: "<?php echo $this->url('app/default',array('controller'=>'grupos','action'=>'autoComp'),[],FALSE,FALSE);?>",   
+                //Tabela principal
+                primary: "nome",      
+                //Parametros extras
+                params:{                    
+                    subOpcao: "tipo2"
+                },
+                //Replicar Resposta
+                responseTo:{
+                    "id":[
+                        "#grupoGrupo"
+                    ],
+                }
+            });
+
+            action.autoComp("#contatoUser_nome", {
+                //URL do servidor
+                serviceUrl: "<?php echo $this->url('app/default',array('controller'=>'users','action'=>'autoComp'),[],FALSE,FALSE);?>",
+                //Tabela principal
+                primary: "nome",
+                //Parametros extras
+                params:{
+                    subOpcao: "tipo2"
+                },
+                //Replicar Resposta
+                responseTo:{
+                    "id":[
+                        "#contatoUser"
+                    ],
+                }
+            });
+/*
+            $("#userUser").val('');
+document.getElementById('autoComp').value = 'userUser_nome';
+var filtros = 'userUser_nome,autoComp';
+
+
+TODO: Utilizar este tipo de url
+var servico = "<?php echo $this->url('app/default',array('controller'=>'users','action'=>'autoComp'),[],FALSE,FALSE);?>";
+
+
+
+var returns = Array('userUser','userUser_nome');
+var functionCall = '';
+}
+*/
+
+        });
+
+        function isValid(){
+            if($("#userUser_nome").val() == ""){
+                $("#userUser").val('');
+            }
+            if($("#grupoGrupo_nome").val() == ""){
+                $("#grupoGrupo").val('');
+            }
+            if($("#contatoUser_nome").val() == ""){
+                $("#contatoUser").val('');
+            }
+            if($("#contatoUser").val() == ""){
+                $("#contatoUser").focus();
+                alert("Contato e uma campo obrigatorio");
+                return false;
+            }
+            if($("#userUser").val() != "" && $("#grupoGrupo").val() != ""){
+                alert("Selecione User ou Grupo nao e permitido selecionar os dois!!!");            
+                return false;
+            }
+            if($("#userUser").val() == "" && $("#grupoGrupo").val() == ""){
+                alert("Selecione User ou Grupo nao e permitido deixar os dois em branco!!!");            
+                return false;
+            }
+            return true;
+        }
+
+        function autoCompUser(){
+//        if(statusLocatario == 'ini'){            
+//            $('#nwLocatario').show();
+//            statusLocatario = '';
+//        }            
+//        if ($('#locatarioNome').prop('disabled') && op != 'lupa'){
+//            return;
+//        }
+$("#userUser").val('');
+document.getElementById('autoComp').value = 'userUser_nome';
+var filtros = 'userUser_nome,autoComp';
+var servico = "<?php echo $this->url('app/default',array('controller'=>'users','action'=>'autoComp'),[],FALSE,FALSE);?>";
+var returns = Array('userUser','userUser_nome');
+var functionCall = '';
+}
+
+function autoCompGrupo(){
+    $("#grupoGrupo").val('');
+    document.getElementById('autoComp').value = 'grupoGrupo_nome';
+    var filtros = 'grupoGrupo_nome,autoComp';
+    var servico = "<?php echo $this->url('app/default',array('controller'=>'grupos','action'=>'autoComp'),[],FALSE,FALSE);?>";
+    var returns = Array('grupoGrupo','grupoGrupo_nome');
+    var functionCall = '';
+}
+
+function autoCompContato(){
+    $("#contatoUser").val('');
+    document.getElementById('autoComp').value = 'contatoUser_nome';
+    var filtros = 'contatoUser_nome,autoComp';
+    var servico = "<?php echo $this->url('app/default',array('controller'=>'users','action'=>'autoComp'),[],FALSE,FALSE);?>";
+    var returns = Array('contatoUser','contatoUser_nome');
+    var functionCall = '';
+}
+
+
+</script>

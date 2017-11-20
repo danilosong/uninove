@@ -1,0 +1,279 @@
+<style>
+    td.tdColor{
+        color: red;
+    }
+</style>
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+$entity       = $this->entity;
+/* @var $form \Adm\Form\PedidoItem */
+$form         = $this->form;
+$id           = $form->getValue('id', 0);
+$partial      = $this->partialObj('application');
+$tcmedPartial = $this->partialObj('tcmed');
+/* @var $pedido \Adm\Entity\Pedido */
+$pedido       = $this->resul;
+$pedidoId     = $pedido->getId();
+$setor = $pedido->getFornecedor('setor');
+?>
+<button id="btn-refresh-pedido-item" class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit', 'id' => $pedidoId)); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+    <table class="table table-striped table-bordered">
+        <tr>
+            <th>Fornecedor         </th>
+            <th>Data de entrega    </th>
+            <th>Observação         </th>
+            <th>Setor              </th>
+            <th>Quantidade de Itens</th>
+        </tr>
+        <tr>
+           <?php echo '<td>', $pedido->getFornecedor('nomeFornec'),   '</td>'; ?>
+           <?php echo '<td>', $pedido->getDataEntrega(),              '</td>'; ?>
+           <?php echo '<td>', $pedido->getObs(),                      '</td>'; ?>
+           <?php echo '<td>', $pedido->getFornecedor('setor'),        '</td>'; ?>
+           <?php echo '<td>', $pedido->getQtd(),                      '</td>'; ?>
+        </tr>
+    </table>
+<?php 
+echo '<hr/>';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+$inpProduto = $fh->getIdFor('produto');
+$fh->openCol(3)->renderInputText('produtoNome', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+    ])->closeCol();
+$inpProdutoNome = $fh->getLastId();
+
+$fh->openCol(3)->renderInputNumber('qtd')->closeCol();
+$inpQtd = $fh->getLastId();
+
+$fh->openCol(3)->renderInputMoeda('valor')->closeCol();
+$inpValor = $fh->getLastId();
+
+$fh->openCol(3)->renderInputMoeda('total')->closeCol();
+$inpTotal = $fh->getLastId();
+$fh->lineDown();
+
+$fh->openCol(1,5)->renderInputSubmit('submit')->closeCol();
+$fh->openCol(2)->renderInputButton(['type' => 'button', 'id' => 'btn-voltar'],'Voltar','btn btn-primary')->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+$fh->lineDown();
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpProduto'
+    ,'inpProdutoNome'
+    ,'inpValor'
+    ,'inpQtd'
+    ,'inpTotal'
+    ,'setor'
+    ,'pedidoId'    
+);
+?>
+<div id="show-pedido-item-index"></div>
+<!--TABELA DESCONTO, FRETE E TOTAL-->
+<div class="col-md-8"></div>
+<div class="col-md-4">
+<table class="table table-striped table-bordered" >
+    <tr data-inp="desconto">
+        <td align=right><b>Desconto:              </b></td>
+        <?php echo '<td align=right class="tdColor inputVlr">', $pedido->getDesconto(), '</td>'; ?>
+    </tr>
+    <tr data-inp="frete">
+        <td align=right><b>Frete:              </b></td>
+        <?php echo '<td align=right class="inputVlr">', $pedido->getFrete(),    '</td>'; ?>
+    </tr>
+    <tr>
+        <td align=right><b>Total:              </b></td>
+        <?php echo '<td align=right>', $pedido->getTotal(),    '</td>'; ?>
+    </tr>
+</table>
+</div>
+<?php     
+$fh->openCol('12')->renderInputMoeda('valor',['noLabel' => true,'extra' => ['icon' => 'save', 'js' => "saveValorResposta()"]],['id' => 'valorResposta'])->closeCol(); // oculto 
+?>
+<script lang="javascript">
+//Função do auto-complete
+    function isValid(){
+        return true;
+    };
+    
+    $(function(){
+        //conversão do php para Jquery
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        //função para filtrar os pedidos no formulario do produto
+        $$(transp.inpProdutoNome).auto({
+            primary: "nomeProd",
+            width : 500,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'produtos', 'action' => 'autoComp'), 
+                         [], FALSE, FALSE); ?>",
+            noCache: true,
+            filters: function (data) {
+                data.rules = {
+                    "setor": transp.setor
+                };
+                return data;
+            },
+            responseTo: {
+                id         : [transp.inpProduto]
+                ,valorProd : [transp.inpValor]
+            },
+            showCols: ["valorProd","nomeProd","id"]
+        });
+        //reseta o valor que foi carregado na memória do produto
+        $$(transp.inpProdutoNome).change(function(){
+            $$(transp.inpProduto).val("");
+        });
+        
+        $.processa({
+            url  : '<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>'
+            ,type : 'POST'
+            ,ret  : '#show-pedido-item-index'
+            ,data : {
+                ret     : '#show-pedido-item-index'
+            }
+        });
+        var calcTotal = function(){
+            var valor = $$(transp.inpValor).val();
+            valor = valor.replace(/[^0-9,]/g,'');
+            valor = valor.replace(",",".");
+            var qtd   = $$(transp.inpQtd).val();
+            var total = (valor*qtd)+"";
+            $$(transp.inpTotal).val(total.replace(".",","));
+        };
+        $$(transp.inpQtd).blur(calcTotal);
+        $$(transp.inpQtd).change(calcTotal);
+        $$(transp.inpValor).change(calcTotal);
+    });
+    
+    $(function() {
+        $('#btn-voltar').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => 'pedidos', 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : false,
+                type : 'POST'
+            });            
+        });  
+    });
+    
+    var transp = <?php echo json_encode($transp) ?>;
+    var targetInp = '';
+    var oldTdValorResposta = '';
+    var oldTdValorRespostaVlr = '';
+    var editValorResposta = function(){
+        var $td = $(this);
+        var inp = $td.closest('tr').data('inp');
+        var $valorResposta = $('#valorResposta');
+        if(targetInp === inp){
+            return;
+        }
+        if(oldTdValorResposta != ''){
+            oldTdValorResposta.html(oldTdValorRespostaVlr);
+        }
+        oldTdValorResposta = $td;
+        oldTdValorRespostaVlr = $td.html();
+        targetInp = inp;
+        var desconto = $td.html();
+        if(desconto == '0'){
+            desconto = $td.next().html();
+        }
+        $valorResposta.val(desconto);
+        $td.html('');
+        $valorResposta.closest('.form-group').parent().show().appendTo($td); 
+        $valorResposta.focus().select();
+    };
+    
+    var saveValorResposta = function(){
+        var $valorResposta = $('#valorResposta');        
+        $valorResposta.closest('.form-group').parent().hide().appendTo($('#inter'));  
+        oldTdValorResposta.html($valorResposta.val());
+        if ($valorResposta.val() > oldTdValorResposta.next().html()){
+            gModal.alert('Não pode inserir um valor Maior que o comprado!!!', 1);
+            oldTdValorResposta.html(oldTdValorRespostaVlr);
+            return;
+        }
+        if(oldTdValorRespostaVlr !== $valorResposta.val()){
+            var data = {
+                id          : transp.pedidoId
+            };
+            data[targetInp] = $valorResposta.val();
+            $.processa({
+                url : "<?php echo $this->url($route, array('controller' => 'pedidos', 'action' => 'save'), [], FALSE, FALSE); ?>",
+                type : 'POST',
+                ret : 'ajaxResul',
+                savePage : false,
+                last : false,
+                data : data,
+                callback: function (data, defaults) {
+                    data = JSON.parse(data);
+                    $.flashMessenger(data.messenger);
+                    if(data["result"] == 'ok'){
+                        oldTdValorResposta.html(data.valor);
+                        $('#ajaxResul').html(data);
+                        $('#btn-refresh-pedido-item').click();
+                    }else{
+                        oldTdValorResposta.html(oldTdValorRespostaVlr);
+                    }
+                }
+            });
+        }
+    };
+    
+    var nextRespostaTarget = function(opt){
+        if(opt){
+            var $valorResposta = $('#valorResposta');        
+            $valorResposta.closest('.form-group').parent().hide().appendTo($('#inter'));  
+            oldTdValorResposta.html($valorResposta.val());
+        }
+        
+        var $auxTdOld = oldTdValorResposta;
+        oldTdValorResposta = '';
+        targetInp = '';
+        switch(opt){
+        case null: 
+        case 'dow': 
+            $auxTdOld.parent().next('TR').find('.inputVlr').click();   
+            break;
+        case 'up': 
+            $auxTdOld.parent().prev('TR').find('.inputVlr').click();   
+            break;
+        }      
+    };
+    
+    $('#valorResposta').keyup(function(e) {
+        switch(e.which){
+        case 13: 
+            saveValorResposta();
+            break;
+        case 38: 
+            nextRespostaTarget('up');
+            break;
+        case 40: 
+            nextRespostaTarget('dow');
+            break;
+        }
+    });
+    
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $('#valorResposta').closest('.form-group').parent().hide();
+        $('.inputVlr').click(editValorResposta);
+    });
+</script>

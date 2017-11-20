@@ -1,0 +1,88 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+$entity       = $this->entity;
+/* @var $form \Tcmed\Form\Fornecedor*/
+$form         = $this->form;
+$id           = $form->getValue('id', 0);
+$partial      = $this->partialObj('application');
+/**
+ * @var Object Partials (pedacos) de outras entidades presentes neste form
+ */
+$tcmedPartial = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3><br />';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+$fh->openCol(4)->renderInputText('nomeFornec')->closeCol();
+$fh->openCol(4)->renderInputText('nomeFantasia')->closeCol();
+$fh->openCol(4)->renderInputText('homePage')->closeCol();
+$fh->lineDown();
+$fh->openCol(3)->renderInputText('contato')->closeCol();
+$fh->openCol(3)->renderInputText('email')->closeCol();
+$fh->openCol(3)->renderInputText('telefone')->closeCol();
+$inpTelefone = $fh->getLastId();
+$fh->openCol(3)->renderInputText('celular')->closeCol();
+$inpCelular = $fh->getLastId();
+$fh->lineDown();
+$fh->openCol(3)->renderInputCnpj('cnpj')->closeCol();
+$fh->openCol(3)->renderInputNumber('inscricaoEstadual')->closeCol();
+$fh->openCol(3)->renderInputSelect('setor')->closeCol();
+$fh->openCol(3)->renderInputSelect('status')->closeCol();
+
+
+// === ENDERECO ================================================================
+$fh->closeLine();
+$fh->renderFieldsetIni('Endereço', ['notOpenLine' => TRUE]);
+$tcmedPartial->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
+$fh->renderFieldsetFim();
+$fh->openLine();
+// ===================================================================== FIM ===
+
+
+$fh->openCol(4,4)->renderInputSubmit('submit')->closeCol();
+$fh->closeLine();
+
+$fh->formEnd();
+
+//if($this->getUsuario('usuario') == null){
+//    echo "Preencha o usuário.";
+//}
+
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpTelefone'
+    ,'inpCelular'
+);
+?>
+<script lang="javascript">
+    function isValid(){
+        return true;
+    }
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+
+        
+        //mascara de horas
+        $$(transp.inpTelefone).mask("(99) 9999-9999");
+        
+        $$(transp.inpCelular).mask("(99)9 9999-9999");
+    });
+</script>

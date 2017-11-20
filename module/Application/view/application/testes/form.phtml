@@ -1,0 +1,300 @@
+<h3><?php echo $this->dataView['titulo']; ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+/* @var $acl \Application\View\Helper\Acl */
+$fh = $this->formHelp($this, $this->form, $this->url('app/default', array('controller' => 'testes', 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$usr = $this->UserIdentity();
+$acl = $this->Acl($usr);
+
+
+
+//echo '<pre>user atual tem excluir ', var_dump($acl('Excluir','Visualizar')), '</pre>';
+//echo '<pre>Visitante tem excluir ', var_dump($acl('Excluir','Visualizar','Visitante')), '</pre>';
+//echo '<pre>Visitante tem posts ', var_dump($acl('Posts','Visualizar','Visitante')), '</pre>';
+echo '<pre>', var_dump($usr), '</pre>';
+
+
+
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro para testes');
+//Insp
+//$fh->openCol('12')->text('campo1', [
+//    'spanLabel' => 'col-md-2 control-label',
+//    'labelWidth' => '2',
+//    'extra' => [
+//        "type" => "button",
+//        "text" => " hello",
+//        "icon" => "user",
+//        "js" => "funcao"
+//    ]
+//])->closeCol();
+//$fh->lineDown();
+$fh->openCol('6')->text('campo1')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('campo2')->closeCol();
+$fh->openCol('6')->text('campo3')->closeCol();
+//$fh->lineDown();
+//$fh->openCol('6')->text('campo2',['spanLabel' => true],['options' => ['label' => 'teste'], 'disabled' => true])->closeCol();
+//$fh->openCol('6')->select('campo3',['noLabel' => true],['disabled' => true])->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->calend('datetime', ['spanLabel' => true])->closeCol();
+$fh->closeLine();
+
+$fh->setHorizontal(false);
+$fh->renderFieldsetIni('Dados do Endereço:');
+    $style = 'position:absolute;z-index:999999;width:700px;background-color:#fff;';
+    $fh->openCol('3')->icone('cep',['span_id' => 'span_cep', 'style' => $style, 'extra' => ['icon'=>'search', 'js'=>'buscarCep()']])->closeCol();
+    $cep = $fh->getLastId();
+$fh->lineDown();
+    $fh->openCol('2')->text('tipoLogradouro')->closeCol();
+    $tRua = $fh->getLastId();
+    $fh->openCol('5')->text('logradouro',['span_id' => 'span_rua', 'style' => $style . "overflow-y:scroll;", 'extra' => ['icon'=>'search', 'js'=>'buscarRua()']],['onKeyUp' => 'buscarRua()'])->closeCol();
+    $rua = $fh->getLastId();
+    $fh->openCol('2')->text('numero')->closeCol();
+    $fh->openCol('3')->text('complemento')->closeCol();
+$fh->lineDown();
+    $fh->openCol('3')->text('bairro')->closeCol();
+    $fh->openCol('3')->text('cidade')->closeCol();
+    $fh->openCol('3')->text('estado')->closeCol();
+    $fh->openCol('3')->text('pais')->closeCol();
+$fh->renderFieldsetFim();
+
+//$fh->setPreFix('parametros');
+//    $fh->renderFieldsetIni('Parametros');
+//        $fh->openCol('6')->text('conteudo', [],['value' => 'true'])->closeCol();
+//        $fh->openCol('6')->text('descricao',[],['value' => 'false'])->closeCol();
+//    $fh->lineDown();
+//        $fh->openCol('6')->text('conteudo', [],['disabled' => true])->closeCol();
+//        $fh->openCol('6')->text('descricao',[],['disabled' => true])->closeCol();
+//    $fh->closeLine();    
+//    $fh->renderFieldsetFim();
+//$fh->removePreFix();
+
+$fh->lineDown();
+    $fh->openCol('3')->button(['onClick' => "alert('ok');",'class' => "btn-block"],'teste','primary')->closeCol();
+    
+$fh->lineDown();
+    $fh->openCol('12')->buttonOnly('altBtn',['onClick' => "alert('ok');"])->closeCol();
+    
+$fh->lineDown();
+    $fh->openCol('12')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-xs btn-default"])->closeCol();
+    
+$fh->lineDown();
+    $fh->openCol('12')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-sm btn-primary"])->closeCol();
+    
+$fh->lineDown();
+    $fh->openCol('12')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-lg btn-danger"])->closeCol();
+    
+$fh->lineDown();
+    $fh->openCol('4')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-xs btn-default"])->closeCol();
+    $fh->openCol('4')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-sm btn-default"])->closeCol();
+    $fh->openCol('4')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-lg btn-default"])->closeCol();
+    
+$fh->lineDown();
+    $fh->openCol('3')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-xs btn-primary"])->closeCol();
+    $fh->openCol('3')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-sm btn-info"])->closeCol();
+    $fh->openCol('3')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-lg btn-warning"])->closeCol();
+    $fh->openCol('3')->buttonOnly('altBtn',['onClick' => "alert('ok');",'class' => "btn btn-block btn-lg btn-danger"])->closeCol();
+    
+$fh->lineDown();
+$fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+<br />
+<br />
+<br />
+<br />
+<script lang="javascritp">
+
+    function isValid() {
+        return true;
+    }
+    
+    
+    
+    
+    //DEFINIR CAMPOS DA TELA A SEREM PREENCHIDOS
+    if(CepJaCarregado == null){     
+        var ExibirMsg = true;
+        var timeForWhait = 1500;
+        var timeForEnter = false;
+        var campo = new Array(
+            "tipoLogradouro", 
+            "logradouro", 
+            "bairro", 
+            "cidade", 
+            "estado", 
+            "pais", 
+            "cep", 
+            "numero" 
+        );
+        var closeJanRua = function(){
+            $("#span_rua").css('height','0px');
+            $("#span_rua").html('');
+            setMsgCep('');
+        };
+        
+//        actionEvents.clickOut('#span_rua',closeJanRua);
+        
+        var setCampos = function(tipo,rua,bairro,cidade,estado,pais,cep,num){
+            campo[0] = tipo ;
+            campo[1] = rua ;
+            campo[2] = bairro ;
+            campo[3] = cidade ;
+            campo[4] = estado ;
+            campo[5] = pais ;
+            campo[6] = cep ;
+            campo[7] = num ;
+        };   
+        var buscarRua = function(){
+            var rua = "#<?php echo $rua; ?>";
+            var tRua = "#<?php echo $tRua; ?>";
+            if($(rua).val() == ""){
+                return;
+            }        
+            setMsgCep("Buscando endereço! Aguarde! Pesquisando Logradouro " + $(tRua).val());
+            if(timeForEnter != false){
+                setMsgCep("Aguardando digitação do usuario");
+                clearTimeout(timeForEnter);
+            }
+            timeForEnter = setTimeout("startBuscarRua('" + tRua + "','" + rua + "')",timeForWhait);
+        };
+
+        var startBuscarRua = function(tRua,rua){
+            action.requestServer({
+                url : '/end/completes/buscaRua',
+                type : 'GET',
+                data : {
+                    tipoLogradouro : $(tRua).val(),
+                    logradouro : $(rua).val(),
+                    format : 'json'
+                }
+            }).success(function (data){            
+                setMsgCep("Encontrado com sucesso");
+                $("#span_rua").css('height','250px');
+                $("#span_rua").html(data);
+                setTimeout("setMsgCep('')", 2000);
+            });        
+        };
+
+        //<========================================================================>
+        var buscarCep = function(){
+            var cep = "#<?php echo $cep; ?>";
+            if($(cep).prop("readOnly")){
+                return;
+            }
+            if($(cep).val().length < 8){
+                return;
+            }
+            setMsgCep("Buscando endereço! Aguarde! Pesquisando CEP " + $(cep).val());
+            action.requestServer({
+                url : '/end/completes/buscaCep',
+                type : 'GET',
+                data : {
+                    cep : $(cep).val(),
+                    format : 'json'
+                }
+            }).success(function (data){            
+                setMsgCep("Encontrado ");
+                setCepInForm(JSON.parse(data));
+            });
+        };
+
+        var setMsgExibir = function(op){
+            ExibirMsg = op ;
+        };
+
+        var setMsgCep = function(msg){
+            if(!ExibirMsg){
+                return ;
+            }
+            $("#span_cep").html(msg);
+        };
+
+        var setCepInForm = function(d,close){
+            switch(d.resultado){
+            case '1':
+                $('#'+campo[0]).val(d.tipo_logradouro);
+                var logradouro = d.logradouro;
+                if(logradouro.search(",") == -1){
+                    $('#'+campo[1]).val(d.logradouro);                
+                }else{
+                    var res = logradouro.split(",");
+                    $('#'+campo[1]).val(res.shift());                
+                    $('#'+campo[7]).val(res.join(' '));                
+                }
+                $('#'+campo[2]).val(d.bairro);
+                $('#'+campo[3]).val(d.cidade);
+                setSelect(campo[4],d.uf);
+                setSelect(campo[5],d.pais);         
+                $('#'+campo[6]).val(d.cep);
+                setMsgCep("Encontrado com Sucesso!!" + d.ajax);
+                break;
+            case '2':
+                $('#'+campo[3]).val(d.cidade);
+                setSelect(campo[4],d.uf);
+                setSelect(campo[5],d.pais);
+                setMsgCep("Encontrado com Sucesso!! Cep de Cidade com logradouro único" + d.ajax);
+                break;
+            default:
+                setMsgCep("CEP não encontrado!");
+                break;
+            }
+            $('#'+campo[0]).toUp()
+            $('#'+campo[1]).toUp()
+            $('#'+campo[2]).toUp()
+            $('#'+campo[3]).toUp()
+            setTimeout("setMsgCep('')", 3000);
+            if(close){     
+                closeJanRua();
+            }
+
+        };
+
+
+        var setSelect = function(ide,vlr){
+            var Select = document.getElementById(ide);  
+            if($(Select).prop("tagName") == 'INPUT'){
+                $(Select).val(vlr);
+                return;
+            }
+            qtd  = Select.options.length ;
+            for (i = 0; i < qtd; i++) {
+                if(Select.options[i].label == vlr){
+                    Select.selectedIndex = i;
+                    break;
+                }
+            }    
+        };
+
+        var getAbevLog = function(tipo){
+            switch(tipo){
+                case "Avenida":             tipo2 = "Av.";      break;
+                case "Rua":                 tipo2 = "R.";       break;
+                case "Alameda":             tipo2 = "Al.";      break;
+                case "Praça":               tipo2 = "Pç.";      break;
+                case "Estação":             tipo2 = "Esta.";    break;
+                case "Estrada":             tipo2 = "Estr.";    break;
+                case "Aeroporto":           tipo2 = "Aer.";     break;
+                case "Condomínio":          tipo2 = "Cond.";    break;
+                case "Conjunto":            tipo2 = "Conj.";    break; 
+                case "Distrito":            tipo2 = "Dist.";    break;
+                case "Esplanada":           tipo2 = "Espl.";    break;
+                case "Favela":              tipo2 = "Fav.";     break;
+                case "Travessa":            tipo2 = "Tv.";      break;
+                case "Largo":               tipo2 = "Lg.";      break;
+                case "Jardim":              tipo2 = "Jd.";      break;
+                case "Praia":               tipo2 = "Pr.";      break;
+                case "Viaduto":             tipo2 = "Vd.";      break;
+                case null:                  tipo2 = "Error.";   break;
+                default :                   tipo2 = tipo;
+            } 
+            return tipo2;
+        };
+    }
+    
+    var CepJaCarregado = true;
+    
+    
+</script>

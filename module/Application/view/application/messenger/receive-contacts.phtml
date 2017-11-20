@@ -1,0 +1,41 @@
+<?php
+
+$array = [];
+
+/* @var $contato \Application\Entity\Contato */
+/* @var $contatoGrupo \Application\Entity\Contato */
+foreach ($this->data as $key => $contato) { 
+    if(is_array($contato)){
+        continue;
+    }
+    if(!$contato instanceof \Application\Entity\Grupo){
+        $array['us'. $contato->getContatoUser()->getId()] = [
+            "name" => $contato->getContatoUser()->getNome(),
+            "type" => "user",
+            "status" => $contato->getContatoUser()->getStatusChat(),
+            "msgstatus" => $contato->getContatoUser()->getStatusMsg()
+        ];
+        continue;
+    }
+    $array['gr'. $contato->getId()] = [
+        "name" => $contato->getNome(),
+        "type" => "group",
+        "status" => "group",
+        "msgstatus" => $contato->getStatusMsg(),
+    ];
+    $arrayGrupo = [];
+    foreach ($this->data['grupos' . $contato->getId()] as $contatoGrupo){
+        if($contatoGrupo->getContatoUser()->getId() == $this->user->getId()){
+            continue;
+        }
+        $arrayGrupo['us'. $contatoGrupo->getContatoUser()->getId()] = [
+            "name" => $contatoGrupo->getContatoUser()->getNome(),
+            "type" => "user",
+            "status" => $contatoGrupo->getContatoUser()->getStatusChat() ,           
+            "msgstatus" => $contatoGrupo->getContatoUser()->getStatusMsg(),          
+        ];
+    }
+    $array['gr'. $contato->getId()]['contatosDoGrupo'] = $arrayGrupo;
+}
+
+echo json_encode($array);

@@ -1,0 +1,34 @@
+Olá 
+<?php 
+/* @var $usuario \Application\Entity\Usuario */
+$usuario = $this->data['usuario'];
+
+    echo $usuario->getNome(); 
+
+    $url = $this->url(
+        'user-reset', 
+        array('key' => $usuario->getActivationKey()), 
+        array('force_canonical' => true), 
+        FALSE, 
+        FALSE
+    );
+    
+?>
+<br />
+<br />
+
+<h4>
+    Foi solicitado via sistema a redefinição de sua senha no sistema.
+</h4>
+<h4>
+    Caso não tenha feito essa solicitação comunique o administrador ou gerente do sistema avisando do ocorrido.
+</h4>
+
+<h4>
+    O lembrete de sua senha é "<?= $usuario->getLembreteSenha();?>" se mesmo assim não lembrar redifina sua senha no link abaixo.
+</h4>
+
+<br />
+<p>    
+    Para redefinir sua senha, acesse <a href="<?php echo $url ?>"><?php echo $url ?></a>
+</p>

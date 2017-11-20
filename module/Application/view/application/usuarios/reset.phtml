@@ -1,0 +1,96 @@
+<?php 
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$entity     = $this->entity;
+$form       = $this->form;
+$formId     = 'formResetPasswd';
+$form->setAttribute('id', $formId);
+$_POST['formId'] = $formId;
+?>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3 text-center">
+            <img src="/img/logo_tecnomed.png" style="width: 260px; margin-top: 50px;">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3" style="border: #000 solid 1px;">
+            
+            <h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+            <br />
+            <?php
+            if(is_array($this->resul) and isset($this->resul[0]) and $this->resul[0] === FALSE){
+                foreach ($this->resul[1] as $key => $vlr){
+                    echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr , '</h4>';
+                }
+            }
+            /* @var $fh \Application\View\Helper\FormHelp */
+            $fh = $this->formHelp($this,$this->form,$this->url('user-reset',[],['force_canonical' => true],FALSE,FALSE));
+            $fh->setHorizontal(true);
+            $fh->formInit('');
+                $fh->openCol('12')->password('senhaUsuario')->closeCol();
+            $fh->lineDown();                                      
+                $fh->openCol('12')->password('confirmation')->closeCol();
+            $fh->lineDown();                                      
+                $fh->openCol('12')->text('lembreteSenha')->closeCol();
+            $fh->lineDown();
+                $fh->openCol('12')->Submit('submit',['value' => 'Redefinir Senha'])->closeCol();
+            $fh->closeLine()->formEnd();
+
+            ?>
+            <br />
+        </div>
+    </div>
+</div>
+
+
+<script lang="javascritp">  
+    $(function () {
+        
+        $('#<?= $formId;?>').on('submit', function(e){
+            if(!isValid()){
+                return false;
+            }
+        });
+        
+        $('.clean').click(function () {
+            var obj = $(this).parent().parent();
+            var $txt = obj.find('input[type=text]').eq(0);
+            $txt.val('');
+            if (!$txt.hasClass('calendario')) {
+                $txt.focus();
+            }
+            obj.find('textarea').val('').focus();
+            obj.find('input[type=password]').val('');
+            obj.find('input[type=checkbox]').removeAttr('checked').focus();
+            obj.find('input[type=radio]').removeAttr('checked').focus();
+            var select = obj.find('select');
+            if (select) {
+                select.val($('options:first', select).val()).focus();
+            }
+        });
+        
+    }); 
+    
+    function isValid(){
+        if($('#senhaUsuario').val() === ''){
+            alert('Digite a senha por favor!!');
+            return false;
+        }
+        if($('#confirmation').val() === ''){
+            alert('Confirme a senha por favor!!');
+            return false;
+        }
+        if($('#confirmation').val() !== $('#senhaUsuario').val()){
+            alert('A senha digitada não é igual a senha da confirmação!!');
+            return false;
+        }
+        return true;
+    }
+    
+    
+    
+</script>

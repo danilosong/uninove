@@ -1,0 +1,51 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$controller = 'enviados';
+?>
+<h1>Enviado</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default', array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<?php
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Controller', 'Action', 'Data', 'Ip', 'Tabela', 'Id Da Tabela', 'De - Para', 'Obs', 'Usuario', 'Ação']);
+/* @var $entity \Application\Entity\AppLog */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getController(),
+        $entity->getAction(),
+        $entity->getData(),
+        $entity->getIp(),
+        $entity->getTabela(),
+        $entity->getIdDaTabela(),
+        $entity->getDePara(),
+        $entity->getObs(),
+        $entity->getUsuario()->getId(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    function edit(key) {
+        var data = {url: "<?php echo $this->url('app/default', array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        action.processa(data);
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url('app/default', array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        action.processa(data);
+    }
+</script>

@@ -1,0 +1,439 @@
+
+<script lang="javascript">
+
+    /**
+     * Classe para controlar modal basicos para interagir com usuadio
+     * - Confirm
+     * - Alert(sucess, warning, danger)
+     * - Prompt
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.5
+     * @since 02-11-2016
+     * @param {string} divId  id da div do modal que esta operando
+     * @returns {modalController class}
+     */
+    function modalController(divId){
+        /**
+         *
+         * @type string com id da div do modal operante
+         */
+        this.divId = divId;
+        /**
+         *
+         * @type object jquery com id da div modal
+         */
+        var $modal;
+
+        /**
+         *
+         * @type String contendo o id do botao ok
+         */
+        var btOk;
+
+        /**
+         *
+         * @type String contendo o id do botao ng
+         */
+        var btNg;
+
+        /**
+         * Guarda a função a ser executada ao clicar em ok
+         * @type {function}
+         */
+        var clickOk;
+
+        /**
+         * Guarda a função a ser executada ao clicar em ng
+         * @type {function}
+         */
+        var clickNg;
+
+        /**
+         * Guarda as classes possiveis para titulo
+         * @type arrat
+         */
+        var headClass;
+
+        /**
+         * Guarda a classe atual do head do modal
+         * @type int
+         */
+        var headClassAtual;
+
+        /**
+         * Metodo construtor faz as configurações iniciais
+         *
+         * @param {jQuery} modal Com objeto jQuery do Modal
+         * @returns {modalController class}
+         */
+        this.init = function(){
+            this.showHtml();
+            this.setModal();
+            this.headClass = [
+                'btn-primary'
+                ,'btn-warning'
+                ,'btn-success'
+                ,'btn-danger'
+            ];
+            this.btOk = 'salvar-modal'  + this.divId;
+            this.btNg = 'excluir-modal' + this.divId;
+            this.headClassAtual = 0 ;
+            var modal = this;
+            this.getModal().find('#' + this.btOk).click(function(){
+                modal.exeClickOk();
+            });
+            this.getModal().find('#' + this.btNg).click(function(){
+                modal.exeClickNg();
+            });
+            this.reset();
+            return this;
+        };
+
+        /**
+         * Metodo responsavel por renderizar o html do modal sistema
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0
+         * @since 02-11-2016
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.2
+         * @since 01-03-2017  Remoção da tag form conflita com outras tags caso realmente necessite fazer parametrização.
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0
+         * @since 18-07-2016  Inclusão do atributo divId e melhorias na instacia e elementos
+         * @returns {nothing}
+         */
+        this.showHtml = function(){
+            var $has = $('#' + this.divId);
+            if($has.length){
+                $has.remove();
+            }
+            var html  = '<div class="modal fade" id="'+ this.divId +'" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" data-id="0">';
+                html +=   '    <div class="modal-dialog" role="document">';
+                html +=   '        <div class="modal-content">';
+                html +=   '            <div class="modal-header btn-primary" id="head-modal'+ this.divId +'">';
+                html +=   '                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+                html +=   '                <h4 class="modal-title" id="exampleModalLabel'+ this.divId +'">Confirmação:</h4>';
+                html +=   '            </div>';
+                html +=   '            <div class="modal-body">';
+                html +=   '                <div class="form-group">';
+                html +=   '                    <label id="menssage-modal'+ this.divId +'" for="message-text" class="control-label">Deseja Realmente Excluir este Registro?</label>';
+                html +=   '                    <div id="add-inputs'+ this.divId +'"></div>';
+                html +=   '                </div>';
+                html +=   '            </div>';
+                html +=   '            <div class="modal-footer">';
+                html +=   '                <div class="form-group">';
+                html +=   '                <div class="row">';
+                html +=   '                    <div class="col-md-4" style="text-align: left">';
+                html +=   '                        <button id="salvar-modal'+ this.divId +'" type="button" class="btn btn-primary" data-dismiss="modal">Sim</button>';
+                html +=   '                    </div>';
+                html +=   '                    <div class="col-md-4" style="text-align: center">';
+                html +=   '                        <button id="fechar-modal'+ this.divId +'" type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>';
+                html +=   '                    </div>';
+                html +=   '                    <div class="col-md-4">';
+                html +=   '                        <button id="excluir-modal'+ this.divId +'" type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>';
+                html +=   '                    </div>';
+                html +=   '                </div>';
+                html +=   '                </div>';
+                html +=   '            </div>';
+                html +=   '        </div>';
+                html +=   '    </div>';
+                html +=   '</div>';
+                $('BODY').append(html);
+        };
+
+        /**
+         * Altera o backgroundo padrao do modal
+         * 0 primary
+         * 1 warning
+         * 2 success
+         * 3 danger
+         * @param {int} int
+         * @returns {modalController class}
+         */
+        this.setHeadBackGround = function(int){
+            if(int == this.headClassAtual){
+                return;
+            }
+            this.getModal().find('#head-modal' + this.divId).removeClass(this.headClass[this.headClassAtual]).addClass(this.headClass[int]);
+            this.headClassAtual = int;
+            return this;
+        };
+
+        /**
+         * Reseta tudos os valor defaults do objeto.
+         * @param {string} type indicado o tipo de modal alert, confirm, prompt
+         * @param {int}    color Cor da janela
+         * @returns {modalController class}
+         */
+        this.reset = function(type, color){
+            if(type == null){
+                type = 'confirm';
+            }
+            this.getModal().find('#fechar-modal' + this.divId).hide();
+            this.getModal().find('#' + this.btNg).show();
+            this.setLabelNg('Cancelar');
+            this.setInputs('');
+            this.setHeadBackGround(0);
+            this.setSizeModal(false);
+            switch(type){
+            case 'alert':
+                this.setLabelOk('Ok','text-align: right');
+                this.setHeadBackGround(2);
+                this.getModal().find('#' + this.btNg).hide();
+                this.setMsg('Aviso!!!');
+                this.setTit('Aviso:');
+                break;
+            case 'confirm':
+                this.setLabelOk('Sim','text-align: left');
+                this.setMsg('Deseja Realmente Excluir este Registro?');
+                this.setTit('Confirmação:');
+                break;
+            case 'prompt':
+                this.setLabelOk('Enviar','text-align: left');
+                this.setMsg('Por Favor inserir a informação Solicitada');
+                this.setTit('Preenchimento:');
+                break;
+            }
+            if(color !== null){
+                this.setHeadBackGround(color);
+            }
+            this.clickOk = function(){
+                console.log('ok');
+            };
+            this.clickNg = function(){
+                console.log('ng');
+            };
+            return this;
+        };
+
+        /**
+         * Exibe o modal na tela
+         * @returns {modalController class}
+         */
+        this.showModal = function(){
+            this.$modal.modal();
+            return this;
+        };
+
+        /**
+         * Seta o valor da variavel $modal
+         * @param {jQuery} $vlr description {Objeto jQuery com a div do modal}
+         * @returns {modalController class}
+         */
+        this.setModal = function(){
+            this.$modal = $('#' + this.divId);
+            return this;
+        };
+
+        /**
+         * Retorna variavel $modal
+         * @returns {jQuery}
+         */
+        this.getModal = function(){
+            return this.$modal;
+        };
+
+        /**
+         * Seta um função para ser executada ao clicar em Ok
+         * @param {function} clicked
+         * @returns {modalController class}
+         */
+        this.setClickOk = function(clicked){
+            this.clickOk = clicked;
+            return this;
+        };
+
+        /**
+         * Executa a função definida na varial ClickOk
+         * @returns {undefined} Opcional o que a função apos executar retornar
+         */
+        this.exeClickOk = function(){
+            return setTimeout(this.clickOk, 500);
+        };
+
+        /**
+         * Seta um função para ser executada ao clicar em Ng
+         * @param {function} clicked
+         * @returns {modalController class}
+         */
+        this.setClickNg = function(clicked){
+            this.clickNg = clicked;
+            return this;
+        };
+
+        /**
+         * Executa a função definida na varial ClickNg
+         * @returns {undefined} Opcional o que a função apos executar retornar
+         */
+        this.exeClickNg = function(){
+            return setTimeout(this.clickNg, 500);
+        };
+
+        /**
+         * Alterar a mensagem padrão da confirmação do item
+         * @param {string} msg
+         * @returns {modalController class}
+         */
+        this.setMsg = function(msg){
+            this.getModal().find('#menssage-modal' + this.divId).html(msg)
+            return this;
+        };
+
+        /**
+         * Alterar a mensagem padrão da confirmação do item
+         * @param {string} tit
+         * @returns {modalController class}
+         */
+        this.setTit = function(tit){
+            this.getModal().find('#exampleModalLabel' + this.divId).html(tit);
+            return this;
+        };
+
+        /**
+         * Alterar a descrição padrão do botao ok da Tela
+         * @param {string} label
+         * @param {string} pos
+         * @param {string} stilos
+         * @returns {modalController class}
+         */
+        this.setLabelOk = function(label, pos, stilos){
+            var $btOk = this.getModal().find('#' + this.btOk);
+            $btOk.html(label);
+            if(stilos){
+                $btOk.attr('style', stilos);
+            }
+            if(pos){
+                $btOk.parent().attr('style', pos);
+            }
+            return this;
+        };
+
+        /**
+         * Alterar a descrição padrão do botao ng da Tela
+         * @param {string} label
+         * @param {string} pos
+         * @param {style} stilos
+         * @returns {modalController class}
+         */
+        this.setLabelNg = function(label, pos, stilos){
+            var $btNg = this.getModal().find('#' + this.btNg);
+            $btNg.html(label);
+            if(stilos){
+                $btNg.attr('style', stilos);
+            }
+            if(pos){
+                $btNg.parent().attr('style', pos);
+            }
+            return this;
+        };
+
+        /**
+         * Insere na div um html definido pelo desenvolvedor
+         * @param {string} inputs Com o Html das item a serem preenchidos pelo usuario.
+         * @returns {modalController class}
+         */
+        this.setInputs = function(inputs){
+            this.getModal().find('#add-inputs' + this.divId).html(inputs);
+            return this;
+        };
+
+        /**
+         * Insere uma funcão a ser executado quando fecha a janela do modal.
+         * @param {function} fnt
+         * @returns {modalController}
+         */
+        this.setCloseModal = function(fnt){
+            this.getModal().on('hidden.bs.modal', fnt);
+            return this;
+        };
+
+        /**
+         * Define o tamanho do modal (normal, sm e lg)
+         * @author  Danilo dorotheu <danilo.dorotheu@live.com>
+         * @since   23-03-2017
+         * @param   {string} opt
+         * @returns {modalController}
+         */
+        this.setSizeModal = function(opt) {
+            var $mdl = this.getModal().find('.modal-dialog');
+            if("lg" == opt || "sm" == opt) {
+                $mdl.addClass('modal-' + opt);
+                return this;
+            }
+
+            $mdl.hasClass('modal-lg') && $mdl.removeClass('modal-lg');
+            $mdl.hasClass('modal-sm') && $mdl.removeClass('modal-sm');
+
+            return this;
+        };
+        
+        /**
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.5
+         * @since 23-05-2017
+         * @param {string} msg
+         * @param {function} call
+         * @param {int} color
+         * @returns {modalController}
+         */
+        this.confirm = function(msg,call,color){
+            if(color == null){
+                color = 2 ;
+            }
+            this.reset('confirm',color);
+            if(msg){
+                this.setMsg(msg);
+            }
+            if(call){
+                this.setClickOk(call);
+            }
+            this.showModal();
+            return this;
+        };
+        
+        /**
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.5
+         * @since 23-05-2017
+         * @param {string} msg
+         * @param {int} color
+         * @returns {modalController}
+         */
+        this.alert = function(msg,color){
+            if(color == null){
+                color = 2 ;
+            }
+            this.reset('alert',color);
+            if(msg){
+                this.setMsg(msg);
+            }
+            this.showModal();
+            return this;
+        };
+
+    };
+
+    /**
+     *
+     * @type modalController Objeto global para maninular os Alertas.
+     */
+    if(gModal){
+        console.log('gModal já foi carregago!!');
+    }else{
+        var gModal = new modalController('modal-sistema');
+        gModal.init();
+    }
+
+    if(gModal2 == null){
+        var gModal2 = new modalController('modal-sistema2');
+        gModal2.init();
+    }
+
+    if(gModal3 == null){
+        var gModal3 = new modalController('modal-sistema3');
+        gModal3.init();
+    }
+
+</script>

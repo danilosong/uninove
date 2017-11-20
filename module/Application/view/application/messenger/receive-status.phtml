@@ -1,0 +1,18 @@
+<?php
+
+$array = [];
+
+/* @var $contato \Application\Entity\Contato */
+foreach ($this->data as $key => $contato) { 
+    if(is_array($contato)){
+        continue;
+    }        
+    $array['us'. $contato->getContatoUser()->getId()] = [
+        "name" => $contato->getContatoUser()->getNome(),
+        "type" => "user",
+        "status" => $contato->getContatoUser()->getStatusChat(),
+        "msgstatus" => $contato->getContatoUser()->getStatusMsg()
+    ];
+}
+
+echo json_encode($array);

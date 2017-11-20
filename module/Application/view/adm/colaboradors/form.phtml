@@ -1,0 +1,102 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+$entity       = $this->entity;
+/* @var $form \Tcmed\Form\Colaborador */
+$form         = $this->form;
+$id           = $form->getValue('id', 0);
+$partial      = $this->partialObj('application');
+$tcmedPartial = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3><br />';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+$inpUsuario = $fh->getIdFor('usuario');
+
+$fh->openCol(6,3)->renderInputText('usuarioNome')->closeCol();
+$inpUsuarioNome = $fh->getLastId();
+$fh->lineDown();
+
+$fh->openCol(3,3)->renderInputCalend('perIni')->closeCol();
+
+$fh->openCol(3)->renderInputCalend('perFim')->closeCol();
+$fh->lineDown();
+        
+$fh->openCol(3,3)->renderInputText('horIni')->closeCol();
+$inpHorIni = $fh->getLastId();
+
+$fh->openCol(3)->renderInputText('horFim')->closeCol();
+$inpHorFim = $fh->getLastId();
+$fh->lineDown();
+
+$fh->openCol(3,3)->renderInputNumber('almoco')->closeCol();
+
+$fh->openCol(3)->renderInputSelect('status')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(4,4)->renderInputSubmit('submit')->closeCol();
+$fh->closeLine();
+
+$fh->formEnd();
+
+//if($this->getUsuario('usuario') == null){
+//    echo "Preencha o usuário.";
+//}
+
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpUsuarioNome'    
+    ,'inpUsuario'    
+    ,'inpHorIni'    
+    ,'inpHorFim'    
+);
+?>
+<script lang="javascript">
+//Função do auto-complete
+    function isValid(){
+        return true;
+    }
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.inpUsuarioNome).auto({
+            primary: "nomeUsuario",
+            width : 800,
+            serviceUrl: "<?php echo $this->url('app/default', array('controller' => 'usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                idUsuario: [transp.inpUsuario]
+            },
+            showCols: ["nomeUsuario","emailUsuario","idUsuario"]
+        });
+        
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpUsuarioNome).change(function(){
+            $$(transp.inpUsuario).val("");
+        });
+        
+        //mascara de horas
+        $$(transp.inpHorIni).mask("99:99");
+        
+        $$(transp.inpHorFim).mask("99:99");
+
+    });
+
+</script>

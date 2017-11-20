@@ -1,0 +1,19 @@
+<?php
+
+$mensagens = $this->data;
+
+$array = [];
+foreach ($mensagens as $mensagem) {
+    $toGrupo = ($mensagem->getToGrupo()) ? $mensagem->getToGrupo()->getId() : FALSE;
+
+    $array[] = [
+        "fromId" => $mensagem->getFromUser()->getId(),
+        "toId" => $mensagem->getToUser()->getId(),
+        "toGrupo" => $toGrupo,
+        "mensagem" => $mensagem->getMensagemMensagem()->getTexto(),
+        "dataEnviado" => $mensagem->getDateEnviado(FALSE),
+        "horaEnviado" => $mensagem->getDateEnviado("H:i:s"),
+    ];
+}
+
+echo json_encode($array);

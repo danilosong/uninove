@@ -1,0 +1,127 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$orderBy    = $this->dataView['orderBy'   ];
+
+/* @var $param \Application\View\Helper\Param  */
+$param      = $this->Param();
+
+/* @var $form \Adm\Form\Pedido */
+$form       = $this->form;
+
+/* @var $entity \Adm\Entity\Pedido */
+$entity     = $this->entity;
+
+/* @var $pedidoItems array of \Adm\Entity\PedidoItem */
+$pedidoItems= $entity->listPedidoItems();
+$partial    = $this->partialObj('tcmed');
+$user       = $this->UserIdentity();
+
+/* @var $param \Application\View\Helper\Image  */
+$image      = $this->Image();
+$path       = $param('path','cartao_ponto_logo');
+$src        = $image($path);
+
+?>
+<table class="table table-bordered">
+    <tr>
+        <td align="center" colspan="2"><img src="<?= $src; ?>" alt="não encontrado <?= $path;?>" width="130" height="50"/></td>
+    </tr>
+    <tr>
+        <td class="active" align="center" ><?php echo "<h4><b>Nome: {$entity->getUsuario('nome')}</b></h4>"; ?> </td>
+    </tr>
+</table>
+<table class="table table-bordered">
+    <tr>
+        <td class="active" colspan="2"><b>Fornecedor:</b> <?php echo $entity->getFornecedor('nomeFornec'); ?>   </td>
+        <td class="active" colspan="3"><b>Data de entrega:</b> <?php echo $entity->getDataEntrega(); ?>         </td>
+    </tr>
+    <tr>
+        <td><b>Endereço: </b> <?php echo $entity->getFornecedor('endereco',['format',['l, n']]); ?></td> 
+        <td><b>Telefone: </b> <?php echo $entity->getFornecedor('telefone'); ?>                    </td>
+        <td><b>Email:    </b> <?php echo $entity->getFornecedor('email'); ?>                       </td>
+        <td><b>Site:     </b> <?php echo $entity->getFornecedor('homePage'); ?>                    </td>
+    </tr>
+    <tr>
+        <td colspan="2"><b>Observação: </b> <?php echo $entity->getObs(); ?>                       </td>
+        <td><b>Vendedor: </b> <?php echo $entity->getVendedor(); ?>                    </td>
+        <td><b>Setor:</b> <?php echo $entity->getFornecedor('setor'); ?>                           </td>
+    </tr>
+</table>
+<?php
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+$fh->openCol(12);
+$fh->openCol(4)->closeCol();
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setOrderList($this->dataView['orderBy']);
+$table->setEditLine(FALSE);
+$table->renderThead([
+    ['label' => 'ID'                   ],
+    ['label' => 'Produto'              ],
+    ['label' => 'Status'               ],
+    ['label' => 'Quantidade'           ],
+    ['label' => 'Unidade'              ],
+    ['label' => 'Valor'                ],
+    ['label' => 'Total'                ],
+    ['label' => 'Data'                 ],
+]);
+/* @var $pedidoItem \Adm\Entity\PedidoItem */
+foreach ($pedidoItems as $pedidoItem) {
+    $table->renderLine([
+        $pedidoItem->getId(),
+        $pedidoItem->getProduto('nomeProd'),
+        $pedidoItem->getStatus(),
+        $pedidoItem->getQtd(),
+        $pedidoItem->getProduto('unidadeEntrada'),
+        $pedidoItem->getValor(),
+        $pedidoItem->getTotal(),
+        $pedidoItem->getCreatedAt(),
+    ]);
+}
+    $table->renderCloseTable();
+
+$fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+echo $this->partial('partials/modal');
+?>
+<br />
+<div class="col-md-9"></div>
+<div class="col-md-3">
+    <table class="table table-bordered">
+        <tr>
+            <td><b>
+                    Total: <input id="money" value="R$<?php echo $entity->getTotal(); ?>" class="form-control input-md" readonly>
+                </b>
+            </td>
+        </tr>
+    </table>
+</div>
+<center>
+    <button class="btn btn-primary" id="btn-gera-ponto-pdf"><i class='fa fa-print'></i> Imprimir em PDF</button>
+</center>
+
+<script lang="javascript">
+    $(function(){
+        $('#btn-gera-ponto-pdf').click(function(){
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showPdf'), [], FALSE, FALSE); ?>"
+            });
+        });
+    });
+</script>

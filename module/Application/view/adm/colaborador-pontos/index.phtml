@@ -1,0 +1,192 @@
+<?php
+/* @var $form Adm\Form\ColaboradorPonto */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+$user       = $this->UserIdentity();
+
+echo '<h3>', $title, '</h3>';
+?>
+
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>"><i class='fa fa-plus'></i> Incluir</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+</p>
+
+
+<?php
+// $ret        = $form->getValue('ret', '#inter');
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$lambda = function ($acao){
+     echo '<td nowrap>'
+        . '</td>', PHP_EOL;
+};
+
+$fh->formInit();
+    $inpColaborador = $fh->setPreFix('colaboradorPonto')->getIdFor('colaborador');
+    if($user['isAdmin']){
+        $fh->openCol(3)->renderInputText('colaboradorNome', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->removePreFix('colaboradorPonto')->closeCol();
+    }
+        $inpColaboradorNome = $fh->getLastId();
+        if($user['isAdmin']){
+            $fh->openCol(3)->renderInputCalend('filtro1')->closeCol();
+            $fh->openCol(3)->renderInputCalend('filtro2')->closeCol();
+            echo "<br />";
+            $fh->openCol(1)->renderInputButton(['type' => 'button', 'id' => 'btn-pesquisa'],'pesquisa','success')->closeCol();
+            $fh->openCol(2)->renderInputButton(['type' => 'button', 'id' => 'btn-relatorio'],'Gerar relatório','btn btn-info')->closeCol();
+        }
+  
+$fh->lineDown();
+    $fh->openCol(12);
+        $table->openTable(TRUE);
+        if(!$user['isAdmin']){
+            $table->setLambda($lambda);
+        }
+        $table->setOrderList($this->dataView['orderBy']);
+        $table->renderThead([
+            ['label' => 'ID'                   ],
+            ['label' => 'Usuário'              ],
+            ['label' => 'Data'                 ],
+            ['label' => 'Hora'                 ],
+            ['label' => 'Criado por'           ],
+            ['label' => 'Criado em'            ],
+            ['label' => 'Ip'                   ],
+            ['label' => 'Origem'               ],
+            ['label' => 'Tipo'                 ],
+            ['label' => 'Alterado por'         ],
+            ['label' => 'Alterado em'          ],
+            ['label' => 'Obs'                  ],
+            ['label' => 'status'               ],
+            ['label' => 'Ação'                 ],
+
+        ]);
+
+        /* @var $entity \Adm\Entity\ColaboradorPonto */
+        foreach ($this->data as $entity) {
+            $table->renderLine([
+                $entity->getId(),
+                $entity->getColaborador('usuario',['nome']),
+                $entity->getData(),
+                $entity->getHora(),
+                $entity->getCreatedBy('nome'),
+                $entity->getCreatedAt('full'),
+                $entity->getIp(),
+                $entity->getOrigem(),
+                $entity->getTipo(),
+                $entity->getUpdatedBy('nome'),
+                $entity->getUpdatedAt('full'),
+                $entity->getObs(),
+                $entity->getStatus(),       
+                $entity->getId(),
+
+            ]); 
+        }
+        $table->renderCloseTable();
+
+    $fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+
+echo $this->partial('partials/modal');
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpColaboradorNome'    
+    ,'inpColaborador'
+); 
+?>
+<script lang="javascript">
+    
+    //Função do auto-complete
+    function isValid(){
+        return true;
+    }
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.inpColaboradorNome).auto({
+            primary: "nomeUsuario",
+            width : 800,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'colaboradors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                id: [transp.inpColaborador]
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });
+            },        
+            showCols: ["nomeUsuario","emailUsuario","id"]
+        });
+        
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpColaboradorNome).change(function(){
+            $$(transp.inpColaborador).val("");
+        });
+    });
+
+    $(function() {  
+        $('#btn-pesquisa').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });            
+        });  
+    });
+    
+    $(function() {  
+        $('#btn-relatorio').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'relatorio'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });            
+        });  
+    });
+    
+    function edit(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+        
+    }
+    function del(key) {
+        gModal.reset('confirm',2).setMsg('Deseja mesmo excluir este registro?').setClickOk(function(){
+            var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+            $.processa(data);
+        }).showModal();
+    }
+    
+</script>

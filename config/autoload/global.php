@@ -12,5 +12,16 @@
  */
 
 return array(
-    // ...
+    'mail' => array(
+        'name' => 'smtp.tcmed.com.br',
+        'host' => 'smtp.tcmed.com.br',
+        'connection_class' => 'login',
+        'port' => 587,
+        'connection_config' => array(
+            'username' => 'paulo@tcmed.com.br',
+            'password' => 'japa12!!',
+//            'ssl' => 'tls',
+            'from' => 'paulo@tcmed.com.br'
+        )
+    )
 );

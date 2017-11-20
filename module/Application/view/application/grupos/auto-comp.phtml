@@ -1,0 +1,67 @@
+<?php 
+
+if($this->resultSet){
+    $array = [];
+
+    if($this->subOpcao =='tipo2') {
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+            "id" => $entity->getId(),
+            "nome" => $entity->getNome(),
+            ];
+        }
+    }
+
+    if($this->subOpcao =='Pesquisar') {
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+            "id" => $entity->getId(),
+            "nome" => $entity->getNome(),
+            "documento" => $entity->getCpf()
+            ];
+        }
+    }
+
+    echo json_encode($array);
+}
+
+/*
+if($this->resultSet){
+    
+    echo "ok|s|";
+    if($this->subOpcao =='Pesquisar'){
+        echo 'X|c|',
+             'X|c|',
+             'Id|c|',
+             'Nome|c|',
+             'Documento|c|',
+             "|s|";
+    }
+    if($this->subOpcao =='tipo2'){
+        echo 'X|c|',
+             'X|c|',
+             'Id|c|',
+             'Nome|c|',
+             "|s|";
+    }
+    $cont = 0;
+    foreach($this->resultSet as $entity){
+        if($cont > 0)echo "|s|";
+        $cont++;
+        if($this->subOpcao =='Pesquisar'){
+            echo $entity->getId(), "|c|"; 
+            echo $entity->getNome(), "|c|"; 
+            echo $entity->getId(), "|c|"; 
+            echo $entity->getNome(), "|c|"; 
+            echo $entity->getCpf(), $entity->getCnpj(), "|c|"; 
+        }
+        if($this->subOpcao =='tipo2'){
+            echo $entity->getId(), "|c|"; 
+            echo $entity->getNome(), "|c|"; 
+            echo $entity->getId(), "|c|"; 
+            echo $entity->getNome(), "|c|"; 
+        }
+    }
+}else
+    echo "vazio|s|";
+    */

@@ -1,0 +1,59 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+/* @var $img \Application\View\Helper\Image */
+/* @var $grp \Application\View\Helper\GraphBar */
+$img = $this->Image();
+$grp = $this->GraphBar();
+$path = '/var/www/bern/data/imagens/graphBar.png';
+//$path = '/var/www/bern/data/imagens/graphBar.jpg';
+//$grp->getGraphExemplo($path);
+
+$link = $img->generateSrcCrypt($path);
+
+// Grafico parametrizado com dados da view.
+        $data1y=array(80,80,40,116,135);
+        $data2y=array(61,30,82,105,65);
+        $data3y=array(115,50,70,93,95);
+        // Create the graph. These two calls are always required
+        $graph = $grp->newGraph(350, 250);
+        $graph->SetScale("textlin");
+
+        $theme_class = $grp->newUniversalTheme();
+        $graph->SetTheme($theme_class);
+
+        $graph->yaxis->SetTickPositions(array(0,30,60,90,120,150), array(15,45,75,105,135));
+        $graph->SetBox(false);
+
+        $graph->ygrid->SetFill(false);
+        $graph->xaxis->SetTickLabels(array('A','B','C','D','E'));
+        $graph->yaxis->HideLine(false);
+        $graph->yaxis->HideTicks(false,false);
+
+        // Create the bar plots
+        $grp->newBarPlot($data1y, 'a', function($bar){
+            $bar->SetColor("white");
+            $bar->SetFillColor("#cc1111");
+        });
+        $grp->newBarPlot($data2y, 'b', function($bar){
+            $bar->SetColor("white");
+            $bar->SetFillColor("#11cccc");
+        });
+        $grp->newBarPlot($data3y, 'c', function($bar){
+            $bar->SetColor("white");
+            $bar->SetFillColor("#1111cc");
+        });
+
+        // Create the grouped bar plot and add it to the graPH
+        $grp->newGroupBarPlot();
+
+        $graph->title->Set("Bar Plots");
+
+        // Display the graph
+        $link2 = $grp->getGraph('/var/www/bern/data/imagens/graphBar2.png', $img);
+
+?>
+<img src="<?php echo $link ;?>" />
+<img src="<?php echo $link2 ;?>" />

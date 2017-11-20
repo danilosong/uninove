@@ -1,0 +1,223 @@
+<?php
+/* @var $form Adm\Form\Saida */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+$user       = $this->UserIdentity();
+
+echo '<h3>', $title, '</h3>';
+?>
+
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>"><i class='fa fa-plus'></i> Novo</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+</p>
+
+
+<?php
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+
+
+    $fh->setPreFix('saida');
+    
+    $inpUsuario = $fh->getIdFor('usuario');
+    $fh->openCol(4)->renderInputText('usuarioNome', [
+        "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ,"dt-clear" => $inpUsuario,
+    ])->closeCol();
+    $inpUsuarioNome = $fh->getLastId();
+   
+    $inpProduto = $fh->getIdFor('produto');
+    $fh->openCol(4)->renderInputText('produtoNome', [
+        "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ,"dt-clear" => $inpProduto,
+    ])->closeCol();
+    $inpProdutoNome = $fh->getLastId();
+    
+    $fh->openCol(4)->renderInputSelect('conjunto')->closeCol();
+    $inpConjunto = $fh->getLastId();
+    
+    $fh->removePreFix('saida');
+    
+    $fh->lineDown();
+    $fh->openCol(3)->renderInputCalend('filtro1',[],['label' => 'De:'])->closeCol();
+    $fh->openCol(3)->renderInputCalend('filtro2',[],['label' => 'Até:'])->closeCol();
+    echo "<br />";
+    $fh->openCol(1)->renderInputButton(['type' => 'button', 'id' => 'btn-pesquisa'],'pesquisa','btn btn-primary')->closeCol();
+if($user['isAdmin']){
+    $fh->openCol(2)->renderInputButton(['type' => 'button', 'id' => 'btn-relatorio'],'Gerar relatório','btn btn-info')->closeCol();
+}
+
+$fh->lineDown();
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+
+$table->setOrderList($this->dataView['orderBy']);
+$table->renderThead([
+    ['label' => 'Id'                   ],
+    ['label' => 'Usuario'              ],
+    ['label' => 'Produto'              ],
+    ['label' => 'Quantidade'           ],
+    ['label' => 'Conjunto'             ],
+    ['label' => 'Data Saída'           ],
+    ['label' => 'Obs'                  ],
+    ['label' => 'Status'               ],
+    ['label' => 'Ação'                 ],
+]);
+/* @var $entity \Adm\Entity\Saida */
+foreach ($this->data as $entity) {
+
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getUsuario('nome'),
+        $entity->getProduto('nomeProd'),
+        $entity->getQtd(),
+        $entity->getConjunto(),
+        $entity->getCreatedAt(),
+        $entity->getObs(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ]);
+} 
+    $table->renderCloseTable();
+
+$fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+echo $this->partial('partials/modal');
+
+?>
+<br />
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpUsuarioNome'
+    ,'inpUsuario'
+    ,'inpProduto'
+    ,'inpProdutoNome'
+    ,'inpConjunto'
+); 
+?>
+<script lang="javascript">
+    
+    //Função do auto-complete
+    function isValid(){
+        return true;
+    }
+
+    function edit(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+        
+    }
+    
+    function del(key) {
+        gModal.reset('confirm',2).setMsg('Deseja mesmo excluir este registro?').setClickOk(function(){
+            var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+            $.processa(data);
+        }).showModal();
+    }
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.inpUsuarioNome).auto({
+            primary: "nomeUsuario",
+            width : 500,
+            serviceUrl: "<?php echo $this->url('app/default', array('controller' => 'usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                idUsuario: [transp.inpUsuario]
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+                });
+            },        
+            showCols: ["idUsuario", "nomeUsuario"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpUsuarioNome).change(function(){
+            $$(transp.inpUsuario).val("");
+        });
+        
+        //Carrega os produtos no textBox
+        $$(transp.inpProdutoNome).auto({
+            primary: "nomeProd",
+            width : 400,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'produtos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                id: [transp.inpProduto]
+            },
+            //filtros para carregar os conjunto na selectBox        
+            filters: function (data) {
+                data.rules = {
+                    "conjunto": $$(transp.inpConjunto).val()
+                };
+                return data;
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });
+            },        
+            showCols: ["id", "nomeProd", "setor"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpProdutoNome).change(function(){
+            $$(transp.inpProduto).val("");
+        });
+        
+        
+        //Botão para ativar as funcionalidades dos filtros
+        $('#btn-pesquisa').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'                
+            });
+        });
+    });
+    $(function() {
+        $('#btn-relatorio').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showPdf'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });            
+        });  
+    });
+</script>

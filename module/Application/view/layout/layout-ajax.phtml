@@ -1,0 +1,181 @@
+<?php echo $this->doctype(); ?>
+<html lang="pt">
+
+    <head>
+        <meta charset="utf-8">
+
+        <?php echo $this->headTitle('Uninove')->setSeparator(' - ')->setAutoEscape(false) ?>
+
+        <?php
+        echo $this->headMeta()
+                ->appendName('viewport', 'width=device-width, initial-scale=1.0')
+                ->appendHttpEquiv('X-UA-Compatible', 'IE=edge')
+        ?>
+
+        <!-- Le styles -->
+        <!-- MetisMenu CSS -->
+        <!-- Custom CSS -->
+        <!-- Meu CSS -->
+        <!-- Custom Fonts -->
+        <?php
+        echo $this->headLink(array('rel' => 'shortcut icon', 'type' => 'image/vnd.microsoft.icon', 'href' => $this->basePath() . '/img/favicon.ico'))
+                ->prependStylesheet($this->basePath('css/main.css'))
+                ->prependStylesheet($this->basePath('css/mycss.min.css'))
+                ->prependStylesheet($this->basePath('css/bootstrap-datepicker3.standalone.css'))
+                ->prependStylesheet($this->basePath('css/pagination.min.css'))
+                ->prependStylesheet($this->basePath('css/sb-admin-2.min.css'))
+                ->prependStylesheet($this->basePath('css/metisMenu.min.css'))
+                ->prependStylesheet($this->basePath('css/font-awesome.min.css'))
+                ->prependStylesheet($this->basePath('css/bootstrap.min.css'))
+        ?>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <!-- Scripts -->
+        <!-- jQuery -->
+        <!-- Meu script -->
+        <?php
+        echo $this->headScript()
+                //->prependFile($this->basePath('js/ajaxAutoComp.js'))
+                //->prependFile($this->basePath('js/jqueryAutoComp.js'))
+                ->prependFile($this->basePath('js/jquery.tablesorter.min.js'))
+                ->prependFile($this->basePath('js/jquery.autocomplete.js'))
+                ->prependFile($this->basePath('js/ajax.js'))
+                ->prependFile($this->basePath('js/jquery.maskMoney.js'))
+                ->prependFile($this->basePath('js/jquery.maskedinput.js'))
+                ->prependFile($this->basePath('locales/bootstrap-datepicker.pt-BR.min.js'))
+                ->prependFile($this->basePath('js/metisMenu.min.js'))
+                ->prependFile($this->basePath('js/bootstrap-datepicker.js'))
+                ->prependFile($this->basePath('js/myscript.js'))
+                ->prependFile($this->basePath('js/Actions.js'))
+                ->prependFile($this->basePath('js/Modules.js'))
+                ->prependFile($this->basePath('js/ActionEvents.js'))
+                ->prependFile($this->basePath('bootstrap/dist/js/bootstrap.min.js'))
+                ->prependFile($this->basePath('js/main.min.js'))
+        ;
+        ?>
+
+
+    </head>
+    <body>  
+        <div id="loaderGif" style="position: absolute; left: 50%;top: 50%;z-index: 999999999; display: none"><img src="/img/ajax-loader.gif"></div>  
+        <div id="notify"><!-- Notificador do sistema --></div>
+        <script type="text/javascript">
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+//INICIO 11/11/2017
+//QUANDO HOUVER ALTERAÇÃO NESSE TRECHO FAVOR ALTERAR TB O INDEX.PHTML DE INDEXCONTROLLER
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+    var globalLogonUser = {};
+    
+    globalLogonUser.waitForRequestAllow = function(lambda, param){
+        if (!globalLogonUser.abas) {//navegador IE ou Edge
+            return true;
+        }
+        // Verifica se tem alguem usando o request e esperar ate liberar
+        var request = module.Cookie.get('REQUEST');
+        if(request == "0"){
+            setTimeout(function(){
+                lambda(param);
+            },500);
+            return false;
+        }   
+        module.Cookie.set({name : 'REQUEST', value : "0", expires : '0'});
+        console.log('segurou');       
+        return true;
+    };
+    
+    globalLogonUser.AllowRequest = function(){
+        // Libera o requesta para outro usar 
+        module.Cookie.set({name : 'REQUEST', value : "1", expires : '0'}); 
+        console.log('soltou');       
+    };
+    
+    globalLogonUser.changeAllCookieForMyLogin = function(){
+        module.Cookie.set({
+            name : 'SESSAO'
+            , value : globalLogonUser.sessao 
+            , expires : '0'
+        });
+        module.Cookie.set({
+            name : 'LOGIN'
+            , value : globalLogonUser.login
+            , expires : '0'
+        });
+        module.Cookie.set({
+            name : 'PHPSESSID'
+            , value : globalLogonUser.sessao + 'param' + globalLogonUser.login
+            , expires : '0'
+        });
+    };
+    
+    globalLogonUser.setAllParams = function(param){
+        var navegador = action.ObterBrowserUtilizado();
+        // Verificar se navegador é a porcaria do Internet Explorer ou Edge
+        if(navegador == 'Internet Explorer' || navegador == 'Edge'){
+            globalLogonUser.abas = false;
+        }else{
+        // não é a porcaria da M$ entao habilita login em varias abas
+            globalLogonUser.abas = true;
+        }
+        // Neste ponto o sistema registra globalmente a sessao nova ou ja existente e o login do usuario que sera usado todo o tempo
+        var se = module.Cookie.get('PHPSESSID');
+        //retira o loginName do cookie PHPSESSID se houver e guarda globalmente o login e sessao
+        aux = se.split("param");
+        globalLogonUser.login = module.Cookie.get('LOGIN');;
+        globalLogonUser.sessao = aux[0];
+    };
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+//FIM 11/11/2017
+//QUANDO HOUVER ALTERAÇÃO NESSE TRECHO FAVOR ALTERAR TB O INDEX.PHTML DE INDEXCONTROLLER
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+            var auth = false;
+            var login = false;
+        </script>
+        <?php 
+        if ($this->UserIdentity() != FALSE AND !isset($this->login)): ?>
+            <script type="text/javascript">
+                auth = true;
+            </script>
+
+            <div id="wrapper">
+                <?php echo $this->content; ?>
+                <!-- Page Content -->
+                <div id="page-wrapper">
+                    <div class="container-fluid">
+                        <div id="messenger-container"></div>
+                        <div id="inter">
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </div>
+                <!-- /#page-wrapper -->   
+            </div>
+            <!-- /#wrapper -->      
+        <?php else: ?>
+            <?php echo $this->content; ?>
+        <?php endif; ?>
+<script type="text/javascript">
+    /**
+     * Scripts de Inicializaçao pos login
+     */
+    $(function () {
+        if(auth && !login){
+            action.load();
+        }
+        setTimeout(function(){
+            $('#messenger').click();
+        },500);
+    });        
+        
+</script>
+        <?php // echo $this->inlineScript() ?>
+    </body>
+</html>

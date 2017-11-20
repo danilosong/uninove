@@ -1,0 +1,88 @@
+<?php
+/* @var $entity \Application\Entity\Parametros */
+/* @var $table \Application\View\Helper\Table */
+/* @var $fh    \Application\View\Helper\FormHelp */
+/* @var $partial    \Application\View\Helper\PartialObj */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$table   = $this->table();
+$fh      = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj();
+
+// Lê as mensagens do servidor através do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p id="parametrosIndexMenu">
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route,array('controller'=>$controller,'action'=>'new')); ?>">Novo</button>
+</p>
+<?php
+
+$fh->formInit();
+$fh->openCol(12);
+    $table->openTable(TRUE)  ; 
+    $table->setEditLine('first');
+    $table->renderThead([
+         'Ação'
+        ,['label' => 'Chave'         , 'order' => 'chave'] 
+        ,['label' => 'Conteudo'      , 'order' => 'conteudo'] 
+        ,['label' => 'Descrição'     , 'order' => 'descricao'] 
+        ,['label' => 'Status'        , 'order' => 'status'] 
+        ,['label' => 'ID'            , 'order' => 'idParame'] 
+    ]);     
+    foreach($this->data as $entity){
+        $data = [];
+        $data[]= $entity->getIdParame();
+        $data[]= $entity->getChave();
+        $data[]= $entity->getConteudo();
+        $data[]= $entity->getDescricao();       
+        $data[]= $entity->getStatus();       
+        $data[]= $entity->getIdParame();
+        $table->renderLine($data);
+    } 
+    $table->renderCloseTable();
+$fh->closeCol()->closeLine();
+$fh->formEnd();
+// === TRANSPORTE ==============================================================
+$fields = [
+    'ret' => $fh->getForm()->get('ret')->getValue()
+];
+// ===================================================================== FIM ===
+// carregar modal 
+echo $this->partial('partials/modal',[]);
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data,'Sliding','partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">    
+    var fieldsParametros = <?php echo json_encode($fields) ?>;  
+    function edit(key){
+        $.processa({
+            url : "<?php echo $this->url($route,array('controller'=>$controller,'action'=>'edit'),[],FALSE,FALSE);?>" + "/" + key 
+        });
+    }
+    function del(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        gModal.confirm(msg, function(){
+            $.processa({
+                url     : "<?php echo $this->url($route,array('controller'=>$controller,'action'=>'delete'),[],FALSE,FALSE);?>" + "/" + key 
+                , ret   : fieldsParametros.ret
+                , type  : 'POST'
+                , data  : {
+                    ret : fieldsParametros.ret
+                }
+            });
+        });
+    }    
+    
+    // Esconder menu superior do index
+    if('#inter' !== fieldsParametros.ret){
+        $('#parametrosIndexMenu').hide();
+    }
+</script>

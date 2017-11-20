@@ -1,0 +1,14 @@
+<?php
+
+/* @var $mensagem \Application\Entity\Enviado */
+$mensagem = $this->result;
+$toGrupo = ($mensagem->getToGrupo()) ? $mensagem->getToGrupo()->getId() : FALSE;
+
+echo json_encode([
+    "fromId" => $mensagem->getFromUser()->getId(),
+    "toId" => $mensagem->getToUser()->getId(),
+    "toGrupo" => $toGrupo,
+    "mensagem" => $mensagem->getMensagemMensagem()->getTexto(),
+    "dataEnviado" => $mensagem->getDateEnviado(FALSE),
+    "horaEnviado" => $mensagem->getDateEnviado("H:i:s"),
+]);

@@ -1,0 +1,58 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $menu \Application\View\Helper\Menu */
+$table = $this->table();
+$menu = $this->menu();
+$controller = 'Testes';
+?>
+<h1><?php echo $this->dataView['titulo']; ?></h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'new')); ?>">Novo</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'testgraph')); ?>">Grafico</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'email')); ?>">Email</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'generate')); ?>">Generate</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'image')); ?>">Image</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'testeGraphBar')); ?>">Graph Bar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'testeGraphPie')); ?>">Graph Pie</button>
+</p>
+<?php
+
+    $table->openTable(TRUE)  ; 
+    $table->renderThead(['ID','CAMPO1','CAMPO2','CAMPO3','Ação'])  ;     
+    /* @var $entity \Application\Entity\Teste */
+    foreach($this->data as $entity){
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getCampo1(),
+            $entity->getCampo2(),
+            $entity->getCampo3(),
+            $entity->getId(),
+        ]);
+    } 
+    $table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data,'Sliding','partials/paginator'); ?>    
+</center>
+<?
+
+echo "<pre>Array para geração de menu", var_dump($menu);
+
+?>
+<script lang="javascript">      
+    function edit(key){
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'edit'),[],FALSE,FALSE);?>" + "/" + key };
+        processa(data);
+    }
+    function del(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        if(!confirm(msg)){
+            return;
+        }
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'delete'),[],FALSE,FALSE);?>" + "/" + key };
+        processa(data);
+    }    
+</script>

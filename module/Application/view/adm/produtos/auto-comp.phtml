@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Inicia resultados
+ */
+if ($this->resultSet) {
+    $array = [];
+    switch ($this->subOpcao) {
+        default :
+            /* @var $entity \Adm\Entity\Produto */
+            $array[] = [
+                "menu_id"            => "ID do Pedido",
+                "menu_nomeProd"      => "Produto",
+                "menu_valorProd"     => "Valor do Produto",
+                "menu_estoqueAtual"  => "Estoque atual",
+                "menu_unidadeEntrada"=> "Unidade",
+                "menu_setor"         => "Setor",
+            ];
+            foreach ($this->resultSet as $entity) {
+                $array[] = [
+                    "id"                => $entity->getId(),
+                    "nomeProd"          => $entity->getNomeProd(),
+                    "valorProd"         => $entity->getValorProd(),
+                    "estoqueAtual"      => $entity->getEstoqueAtual(),
+                    "unidadeEntrada"    => $entity->getUnidadeEntrada(),
+                    "setor"             => $entity->getSetor(),
+                ];
+            }
+            break;
+    }
+
+    echo json_encode($array);
+}

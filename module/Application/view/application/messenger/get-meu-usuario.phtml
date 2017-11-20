@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Retorna os dados do usuário do chat
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ */
+/* @var $user Application\Entity\User */
+$user = $this->meuUsuario;
+if ($user instanceof Application\Entity\User) {
+
+    $array = [
+        "idUser" => $user->getId(),
+        "nome" => $user->getNome(),
+        "status" => $user->getStatusChat()
+    ];
+
+    echo json_encode($array);
+}
+
+die;

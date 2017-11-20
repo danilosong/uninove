@@ -1,0 +1,25 @@
+<?php
+/* @var $entity \Adm\Entity\Produto */
+$entity  = $this->data['entity'];
+$hr = date(" H "); 
+$saudacao = ($hr <= 12)?'Bom dia!':'Boa tarde!';
+?>
+<p><?= $saudacao;?>!!!</p>
+<p></p>
+    <h1>Alerta!</h1>
+<p>
+    O produto <?= $entity->getNomeProd();?> atingiu sua quantidade minima cadastrada no estoque.
+</p>
+<p>
+    Quantidade Atual:                      <?= $entity->getEstoqueAtual();?> .
+</p>
+
+<p>
+    Quantidade Minima:                     <?= $entity->getEstoqueMinimo();?> .
+</p>
+
+<p>
+Atenciosamente,<br>
+Sistema.
+</p>
+

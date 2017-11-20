@@ -1,0 +1,36 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$controller = 'completes';
+$route = 'end/default';
+?>
+<!--
+<h1>Resultado para <?php echo $this->tipoLogradouro, ' ', $this->logradouro; ?></h1>
+-->
+<?php
+$lambda = function($value, &$data) {
+    echo "\t", 
+         '<td nowrap class="hand" onClick="setCepInForm(', $value, ',true)" title="Selecionar">',
+            '<span><i class="fa fa-check"></i> Sel','</span>&nbsp;', PHP_EOL,
+         '</td>', PHP_EOL;
+};
+
+
+
+$table->openTable('" style="font-size: 12px');
+$btClose = ' <span class="hand" onClick="closeJanRua()"><i class="fa fa-close"></i></span> ';
+$table->renderThead([$btClose . 'Ação', 'CEP', 'tipo', 'Logradouro', 'bairo', 'cidade' . $btClose], '',[],[],['nowrap']);
+$table->setEditLine('first');
+$table->setLambda($lambda);
+foreach ($this->data as $data) {
+    $table->renderLine([
+        str_replace('"',"'",json_encode($data)),
+        $data['cep'],
+        $data['tipo_logradouro'],
+        $data['logradouro'],
+        $data['bairro'],
+        $data['cidade'],
+    ]);
+}
+$table->renderCloseTable();
+?>

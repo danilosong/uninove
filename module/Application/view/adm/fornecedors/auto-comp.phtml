@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * Inicia resultados
+ */
+if ($this->resultSet) {
+    $array = [];
+    switch ($this->subOpcao) {
+        default :
+            /* @var $entity \Adm\Entity\Fornecedor */
+            $array[] = [
+                "menu_id"           => "ID do Fornecedor",
+                "menu_nomeFornec"   => "Fornecedor",
+                "menu_telefone"     => "Telefone",
+            ];
+            foreach ($this->resultSet as $entity) {
+                $array[] = [
+                    "id"            => $entity->getId(),
+                    "nomeFornec"    => $entity->getNomeFornec(),
+                    "telefone"      => $entity->getTelefone(),
+                ];
+            }
+
+            break;
+    }
+
+    echo json_encode($array);
+}

@@ -1,0 +1,30 @@
+<h3><?php echo $this->dataView['titulo']; ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=>'users','action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro User');
+    $fh->openCol('12')->text('nome')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('usuarioId')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('statusMsg')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('status')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('statusChat')->closeCol();
+$fh->lineDown()->setHorizontal(FALSE);
+    $fh->openCol('12')->multiCheckbox('contatos', ['position' => FALSE])->closeCol();
+$fh->lineDown()->setHorizontal(TRUE);
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

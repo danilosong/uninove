@@ -1,0 +1,27 @@
+<h3><?php echo $this->dataView['titulo']; ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=>'mensagems','action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Mensagens');
+    $fh->openCol('12')->textArea('texto')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('link')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        var vazio = $('#texto').val();
+        if(vazio === ""){
+            alert('preencher por favor');
+            return false;
+        }
+        return true;
+    }
+    
+</script>

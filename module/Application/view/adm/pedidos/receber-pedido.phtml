@@ -1,0 +1,243 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$orderBy    = $this->dataView['orderBy'   ];
+
+/* @var $param \Application\View\Helper\Param  */
+$param      = $this->Param();
+
+/* @var $form \Adm\Form\Pedido */
+$form       = $this->form;
+
+/* @var $entity \Adm\Entity\Pedido */
+$entity     = $this->entity;
+
+/* @var $pedidoItems array of \Adm\Entity\PedidoItem */
+$pedidoItems= $entity->listPedidoItems();
+$partial    = $this->partialObj('tcmed');
+$user       = $this->UserIdentity();
+
+/* @var $param \Application\View\Helper\Image  */
+$image      = $this->Image();
+$path       = $param('path','cartao_ponto_logo');
+$src        = $image($path);
+
+?>
+<table class="table table-bordered">
+    <tr>
+        <td align="center" ><img src="<?= $src; ?>" alt="não encontrado <?= $path;?>" width="130" height="50"/></td>
+        <td align="center" ><h3><b>Recebimento de pedido</b></h3></td>
+    </tr>
+    <tr>
+        <td class="active" align="center" colspan="2"><h5><b><?php echo $entity->getUsuario('nome'); ?> </b></h5></td>
+    </tr>
+</table>
+<table class="table table-bordered">
+    <tr>
+        <td class="active" colspan="2"><b>Fornecedor:</b> <?php echo $entity->getFornecedor('nomeFornec'); ?>   </td>
+        <td class="active" colspan="3"><b>Data de entrega:</b> <?php echo $entity->getDataEntrega(); ?>         </td>
+    </tr>
+    <tr>
+        <td><b>Endereço: </b> <?php echo $entity->getFornecedor('endereco',['format',['l, n']]); ?></td> 
+        <td><b>Telefone: </b> <?php echo $entity->getFornecedor('telefone'); ?>                    </td>
+        <td><b>Email:    </b> <?php echo $entity->getFornecedor('email'); ?>                       </td>
+        <td><b>Site:     </b> <?php echo $entity->getFornecedor('homePage'); ?>                    </td>
+    </tr>
+    <tr>
+        <td colspan="2"><b>Observação: </b> <?php echo $entity->getObs(); ?>                       </td>
+        <td><b>Vendedor: </b> <?php echo $entity->getVendedor(); ?>                    </td>
+        <td><b>Setor:</b> <?php echo $entity->getFornecedor('setor'); ?>                           </td>
+    </tr>
+</table>
+<?php
+// $form->setAttribute('target', $ret);
+/* @var $table \Application\View\Helper\Table  */
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setOrderList($this->dataView['orderBy']);
+$table->setEditLine(FALSE);
+$table->setTdopt([
+    ''
+    ,''
+    ,''
+    ,'class="inputVlr"'
+    ,''
+    ,''
+    ,''
+    ,''
+    ,''
+]);
+$table->renderThead([
+    ['label' => 'ID'                   ],
+    ['label' => 'Produto'              ],
+    ['label' => 'Status'               ],
+    ['label' => 'Recebido'             ],
+    ['label' => 'Pedido'               ],
+    ['label' => 'Unidade'              ],
+    ['label' => 'Valor'                ],
+    ['label' => 'Total'                ],
+    ['label' => 'Data'                 ],
+]);
+/* @var $pedidoItem \Adm\Entity\PedidoItem */
+foreach ($pedidoItems as $pedidoItem) {
+    $table->renderLine([
+        $pedidoItem->getId(),
+        $pedidoItem->getProduto('nomeProd'),
+        $pedidoItem->getStatus(),
+        $pedidoItem->getQtdReceb(),
+        $pedidoItem->getQtd(),
+        $pedidoItem->getProduto('unidadeEntrada'),
+        $pedidoItem->getValor(),
+        $pedidoItem->getTotal(),
+        $pedidoItem->getCreatedAt(),
+    ], 'data-id="' . $pedidoItem->getId() . '"');
+}
+    $table->renderCloseTable();
+
+$fh->closeCol();
+
+$fh->lineDown();
+
+    $fh->openCol('12')->renderInputMoeda('valor',['noLabel' => true,'extra' => ['icon' => 'save', 'js' => "saveValorResposta()"]],['id' => 'valorResposta'])->closeCol(); // oculto 
+
+$fh->closeLine();
+
+$fh->formEnd();
+echo $this->partial('partials/modal');
+
+// === TRANSPORTE ==============================================================
+$transp = [];
+// ===================================================================== FIM ===
+?>
+<br />
+<div class="col-md-9"></div>
+<div class="col-md-3">
+    <table class="table table-bordered">
+        <tr>
+            <td><b>
+                    Total: <input id="money" value="R$<?php echo $entity->getTotal(); ?>" class="form-control input-md" readonly>
+                </b>
+            </td>
+        </tr>
+    </table>
+</div>
+<script lang="javascript">
+
+    var idPedidoItem = '';
+    var oldTdValorResposta = '';
+    var oldTdValorRespostaVlr = '';
+    var editValorResposta = function(){
+        var $td = $(this);
+        var id = $td.closest('tr').data('id');
+        var $valorResposta = $('#valorResposta');
+        if(idPedidoItem === id){
+            return;
+        }
+        if(oldTdValorResposta != ''){
+            oldTdValorResposta.html(oldTdValorRespostaVlr);
+        }
+        oldTdValorResposta = $td;
+        oldTdValorRespostaVlr = $td.html();
+        idPedidoItem = id;
+        var qtdReceb = $td.html();
+        if(qtdReceb == '0'){
+            qtdReceb = $td.next().html();
+        }
+        $valorResposta.val(qtdReceb);
+        $td.html('');
+        $valorResposta.closest('.form-group').parent().show().appendTo($td); 
+        $valorResposta.focus().select();
+    };
+    
+    var saveValorResposta = function(){
+        var $valorResposta = $('#valorResposta');        
+        $valorResposta.closest('.form-group').parent().hide().appendTo($('#inter'));  
+        oldTdValorResposta.html($valorResposta.val());
+        if ($valorResposta.val() > oldTdValorResposta.next().html()){
+            gModal.alert('Não pode inserir um valor Maior que o comprado!!!', 1);
+            oldTdValorResposta.html(oldTdValorRespostaVlr);
+            return;
+        }
+        if(oldTdValorRespostaVlr !== $valorResposta.val()){
+            $.processa({
+                url : "<?php echo $this->url($route, array('controller' => 'pedidoItems', 'action' => 'save'), [], FALSE, FALSE); ?>",
+                type : 'POST',
+                ret : 'ajaxResul',
+                savePage : false,
+                last : false,
+                data : {
+                    id        : idPedidoItem
+                    ,qtdReceb : $valorResposta.val()
+                },
+                callback: function (data, defaults) {
+                    data = JSON.parse(data);
+                    if(data["result"] == 'ok'){
+                        oldTdValorResposta.html(data.valor);
+                        $('#ajaxResul').html(data);
+                    }else{
+                        oldTdValorResposta.html(oldTdValorRespostaVlr);
+                    }
+                    nextRespostaTarget(null);
+                    $.flashMessenger(data.messenger);
+                }
+            });
+        }else{
+            nextRespostaTarget(null);
+        }
+    };
+    
+    var nextRespostaTarget = function(opt){
+        if(opt){
+            var $valorResposta = $('#valorResposta');        
+            $valorResposta.closest('.form-group').parent().hide().appendTo($('#inter'));  
+            oldTdValorResposta.html($valorResposta.val());
+        }
+        
+        var $auxTdOld = oldTdValorResposta;
+        oldTdValorResposta = '';
+        idPedidoItem = '';
+        switch(opt){
+        case null: 
+        case 'dow': 
+            $auxTdOld.parent().next('TR').find('.inputVlr').click();   
+            break;
+        case 'up': 
+            $auxTdOld.parent().prev('TR').find('.inputVlr').click();   
+            break;
+        }      
+    };
+    
+    $('#valorResposta').keyup(function(e) {
+        switch(e.which){
+        case 13: 
+            saveValorResposta();
+            break;
+        case 38: 
+            nextRespostaTarget('up');
+            break;
+        case 40: 
+            nextRespostaTarget('dow');
+            break;
+        }
+    });
+    
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $('#valorResposta').closest('.form-group').parent().hide();
+        $('.inputVlr').click(editValorResposta);
+    });
+</script>

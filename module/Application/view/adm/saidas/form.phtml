@@ -1,0 +1,87 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+$entity       = $this->entity;
+/* @var $form \Adm\Form\Saida */
+$form         = $this->form;
+$id           = $form->getValue('id', 0);
+$partial      = $this->partialObj('application');
+$tcmedPartial = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3><br />';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+
+$fh->openCol(3,2)->renderInputCalend('createdAt')->closeCol();
+$fh->getIdFor('usuario');
+$fh->openCol(5)->renderInputText('usuarioNome')->closeCol();
+$fh->getLastId();
+$fh->lineDown();
+
+$inpProduto = $fh->getIdFor('produto');
+$fh->openCol(4,2)->renderInputText('produtoNome',["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+    ])->closeCol();
+$inpProdutoNome = $fh->getLastId();
+
+$fh->openCol(2)->renderInputNumber('qtd')->closeCol();
+$inpQtd = $fh->getLastId();
+
+$fh->openCol(2)->renderInputSelect('conjunto')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(12)->renderInputText('obs')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(4,4)->renderInputSubmit('submit')->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpProdutoNome'
+    ,'inpProduto'
+    ,'inpQtd'
+
+);
+?>
+<script lang="javascript">
+//Função do auto-complete
+    function isValid(){
+        return true;
+    }
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.inpProdutoNome).auto({
+            primary: "nomeProd",
+            width : 600,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'produtos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                id: [transp.inpProduto]
+            },
+            showCols: ["nomeProd","estoqueAtual","id", "unidadeEntrada"]
+        });
+        
+        //reseta o valor que foi carregado na memória do fornecedor
+        $$(transp.inpProdutoNome).change(function(){
+            $$(transp.inpProduto).val("");
+        });
+    });
+</script>

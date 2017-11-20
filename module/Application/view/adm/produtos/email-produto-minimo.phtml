@@ -1,0 +1,31 @@
+<?php
+/* @var $entity \Adm\Entity\Produto */
+$entity  = $this->data['entity'];
+$hr = date(" H "); 
+$saudacao = ($hr <= 12)?'Bom dia!':'Boa tarde!';
+$user       = $this->UserIdentity();
+
+?>
+<p><?= $saudacao;?>!!!</p>
+<p></p>
+    <h1>Alerta!</h1>
+<p>
+    O produto <?= $entity->getNomeProd();?> atingiu sua quantidade minima cadastrada no estoque.
+</p>
+<? if($entity->getEstoqueAtual() == '-'){ ?>
+<p>
+    Quantidade Atual:                      <?= '0 '.$entity->getUnidadeEntrada();?>(s).
+</p>
+<? }else{ ?>
+    Quantidade Atual:                      <?= $entity->getEstoqueAtual().' '.$entity->getUnidadeEntrada();?>(s).
+<? } ?>
+
+<p>
+    Quantidade Minima:                     <?= $entity->getEstoqueMinimo().' '.$entity->getUnidadeEntrada();?>(s).
+</p>
+
+<p>
+    Atenciosamente, <?= $user['nomeUsuario']; ?><br>
+Sistema Erp TecnoMed.
+</p>
+<center><b><?= date('d/m/Y H:i') ?></b></center>

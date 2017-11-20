@@ -1,0 +1,22 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+
+echo '<h1>olá mundo</h1>';
+
+echo '<pre>', var_dump($this->data), '</pre>';
+
+$table = $this->table();
+
+
+
+    $table->openTable(TRUE)  ; 
+    $table->renderThead(['ID','CAMPO1','CAMPO2','CAMPO3','Ação'])  ;     
+    /* @var $entity \Application\Entity\Teste */
+    foreach($this->data as $array){
+        $table->renderLine($array);
+    } 
+    $table->renderCloseTable();
+
+
+echo '<img src="teste.jpg">';
+echo '<p>ok</p>';

@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Renderiza a lista de contatos e grupos do chat
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ */
+/* @var $contatos \Application\Entity\User */
+/* @var $grupos \Application\Entity\Grupo */
+$users = $this->usuarios;
+$grupos = $this->grupos;
+$array = [];
+
+/* @var $usuario \Application\Entity\User */
+foreach ($users as $usuario) {
+    //Monta o usuario
+    $array[] = [
+        "id" => $usuario->getId(),
+        "nome" => $usuario->getNome(),
+        "status" => $usuario->getStatusChat(),
+        "tipo" => "usuario",
+    ];
+}
+/* @var $grupo \Application\Entity\Grupo */
+/* @var $usuario \Application\Entity\User */
+foreach ($grupos as $grupo) {
+
+    //Monta a lista de usuários do grupo
+    $listaUsuarios = $grupo->listarUsers();
+    $usuarios = [];
+    foreach ($listaUsuarios as $usuario) {
+        $usuarios[] = [
+            "id" => $usuario->getId(),
+            "nome" => $usuario->getNome(),
+            "status" => $usuario->getStatusChat(),
+        ];
+    }
+
+    //Monta o grupo
+    $array[] = [
+        "id" => $grupo->getId(),
+        "nome" => $grupo->getNome(),
+        "status" => "grupo",
+        "tipo" => "grupo",
+        "usuarios" => $usuarios
+    ];
+}
+
+echo json_encode($array);
+die;

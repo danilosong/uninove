@@ -1,0 +1,29 @@
+<h3><?php echo $this->dataView['titulo']; 
+$controller = 'countrys';
+$route = 'end/default';
+?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Paises:');
+    $fh->openCol('12')->text('iso')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('iso3')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('numcode')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('nome')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

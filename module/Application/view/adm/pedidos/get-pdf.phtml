@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <?
+/**
+ * layout com o CSS do pdf do colaborador ponto.
+ * @author Danilo Song <danilosong@outlook.com>
+ * @version 1.0  
+ * @since 29-06-2017 
+ */
+
+?>
+<!-- Incluindo o CSS do Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<style type="text/css">
+    td{
+        font: 9px/25px Georgia, serif;
+        width: 50px;
+        white-space: nowrap;
+    }
+    td.b{
+        font: bold 12px/50px Georgia, serif;
+        white-space: nowrap;
+    }
+    td.b1{
+        font: bold 8px/25px Arial, serif;
+        text-align:  center;
+        white-space: nowrap;
+    }
+    td.b3{
+        font: bold 8px/25px Arial, serif;
+    }
+    td.alinhar{
+        text-align:  center;
+        white-space: nowrap;
+    }
+    td.alr{
+        text-align:  right;
+        white-space: nowrap;
+    }
+    .mytab tr:nth-child(odd) {
+        background-color:#ffffff;
+        width: 50px;
+        white-space: nowrap;
+    }  
+    .mytab tr:nth-child(even) {
+        background-color:#e6e6e6;
+        width: 50px;
+        white-space: nowrap;
+    } 
+</style>
+    </head>
+  <body>
+
+
+<? 
+/**
+ * @todo Para exibir a data em portugues o servidor devera ter instaldo o locale do pt_br exemplo para instalacao ubuntu sudo locale-gen pt_BR.utf8 para listar use sudo locale -a
+ */
+//
+//setlocale(LC_ALL, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
+date_default_timezone_set('America/Sao_Paulo');
+
+
+$controller = $dataView['controller'];
+$action     = $dataView['action'    ];
+$route      = $dataView['route'     ];
+$orderBy    = $dataView['orderBy'   ];
+/* @var $param \Application\View\Helper\Param  */
+/* @var $form \Adm\Form\Pedido */
+
+
+/* @var $param \Application\View\Helper\Image  */
+$path = $param('path','cartao_ponto_logo');
+/* @var $entity \Adm\Entity\Pedido */
+/* @var $pedidoItems array of \Adm\Entity\PedidoItem */
+$pedidoItems = $entity->listPedidoItems();
+
+
+?>
+<table class="table table-bordered">
+    <tr>
+        <td class="alinhar"><img src="<?= $path; ?>" alt="não encontrado <?= $path; ?>" width="130" height="50"/></td>
+        <td class="b alinhar"><h4>Pedido de compra</h4>                                                          </td>
+    </tr>
+</table>
+<table class="table table-bordered">
+    <tr>
+        <td class="b1 alinhar"><?php echo $entity->getUsuario('nome')?></td>
+    </tr>
+</table>
+<table class="table table-bordered">
+    <tr>
+        <td class="b3">Fornecedor: <?php echo $entity->getFornecedor('nomeFornec'); ?>      </td>
+        <td>Telefone:         <?php echo $entity->getFornecedor('telefone'); ?>             </td>
+        <td>Data de entrega: <?php echo $entity->getDataEntrega(); ?>                       </td>
+    </tr>
+    <tr>
+        <td>Endereço:  <?php echo $entity->getFornecedor('endereco',['format',['l, n']]); ?></td> 
+        <td>Email:     <?php echo $entity->getFornecedor('email'); ?>                       </td>
+        <td>Site:      <?php echo $entity->getFornecedor('homePage'); ?>                    </td>
+    </tr>
+    <tr>
+        <td>Observação:  <?php echo $entity->getObs(); ?>                                   </td>
+        <td>Vendedor:  <?php echo $entity->getVendedor(); ?>                                </td>
+        <td>Setor:       <?php echo $entity->getFornecedor('setor'); ?>                     </td>
+    </tr>
+</table>
+<table class="table-bordered mytab" width="100%">
+    <tr>
+        <td class="b1">id            </td>
+        <td class="b1">Produto       </td>
+        <td class="b1">Data          </td>
+        <td class="b1">Status        </td>
+        <td class="b1">Quantidade    </td>
+        <td class="b1">Unidade       </td>
+        <td class="b1">Valor         </td>
+        <td class="b1">Total         </td>
+    </tr>
+        <?php
+        /* @var $pedidoItem array of \Adm\Entity\PedidoItem */
+        foreach ($pedidoItems as $pedidoItem) {
+            ?>
+    <tr>
+        <td class="alinhar"><?php echo $pedidoItem->getId();?>                       </td>
+        <td class="alinhar"><?php echo $pedidoItem->getProduto('nomeProd');?>        </td>
+        <td class="alinhar"><?php echo $pedidoItem->getCreatedAt();?>                </td>
+        <td class="alinhar"><?php echo $pedidoItem->getStatus();?>                   </td>
+        <td class="alinhar"><?php echo $pedidoItem->getQtd();?>                      </td>
+        <td class="alinhar"><?php echo $pedidoItem->getProduto('unidadeEntrada');?>  </td>
+        <td class="alr"><?php echo $pedidoItem->getValor();?>                        </td>
+        <td class="alr"><?php echo $pedidoItem->getTotal();?>                        </td>
+    </tr>
+        <?php } ?>
+    <tr>
+        <td class="alinhar">                                                               </td>
+        <td class="alinhar">                                                               </td>
+        <td class="alinhar">                                                               </td>
+        <td class="alinhar">                                                               </td>
+        <td class="alinhar">                                                               </td>
+        <td class="alinhar">                                                               </td>
+        <td class="b3 alr" bgcolor="white">Total:                                          </td>
+        <td class="b3 alr" bgcolor="white">R$<?php echo $entity->getTotal(); ?>            </td>
+    </tr>
+</table>
+
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<?php
+/* @var $form Adm\Form\PedidoItem */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+
+// $ret        = $form->getValue('ret', '#inter');
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+$fh->openCol(12);
+$fh->openCol(4)->closeCol();
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setEditLine(0);
+$table->setOrderList($this->dataView['orderBy']);
+$table->renderThead([
+    ['label' => 'Ação'                 ],
+    ['label' => 'Produto'              ],
+    ['label' => 'Status'               ],
+    ['label' => 'Quantidade'           ],
+    ['label' => 'Valor'                ],
+    ['label' => 'Total'                ],
+    ['label' => 'Data'                 ],
+    ['label' => 'ID'                   ],
+]);
+/* @var $entity \Adm\Entity\PedidoItem */
+foreach ($this->data as $entity) {
+
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getProduto('nomeProd'),
+        $entity->getStatus(),
+        $entity->getQtd(),
+        $entity->getValor(),
+        $entity->getTotal(),
+        $entity->getCreatedAt(),
+        $entity->getId(),
+    ]);
+}
+    $table->renderCloseTable();
+
+$fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+echo $this->partial('partials/modal');
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+); 
+?>
+<script lang="javascript">
+    
+    //Função do auto-complete
+    function isValid(){
+        return true;
+    }
+
+    function edit(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+        
+    }
+    function del(key) {
+        gModal.reset('confirm',2).setMsg('Deseja mesmo excluir este registro?').setClickOk(function(){
+            var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+            $.processa(data);
+        }).showModal();
+    }
+    
+</script>

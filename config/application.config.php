@@ -1,14 +1,16 @@
 <?php
 return array(
+    // This should be an array of module namespaces used in the application.
     'modules' => array(
-        'Application',
+        'Application',    
+//        'SONUser',    
         'DoctrineModule',
         'DoctrineORMModule',
         'DoctrineDataFixtureModule',
-        'UNIBase',
-        'UNIUser',
+//        'DOMPDFModule',
     ),
-   // These are various options for the listeners attached to the ModuleManager
+
+    // These are various options for the listeners attached to the ModuleManager
     'module_listener_options' => array(
         // This should be an array of paths in which modules reside.
         // If a string key is provided, the listener will consider that a module
@@ -63,5 +65,5 @@ return array(
 
    // Initial configuration with which to seed the ServiceManager.
    // Should be compatible with Zend\ServiceManager\Config.
-   // 'service_manager' => array(),
+   // 'service_manager' => array(),  
 );

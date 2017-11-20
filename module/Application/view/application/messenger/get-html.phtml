@@ -1,0 +1,174 @@
+<?php
+/**
+ * Constroi a tela principal do chat
+ */
+/* @var $user \Application\Entity\User */
+$user = $this->user;
+?>
+
+<div id="window-index" class="col-md-12">
+    <div id="top-messenger" class="row">
+        <div id="header" class="col-md-12">
+
+            <!-- =========================================================== -->
+            <!-- =================== SECTION TOPO ========================== -->
+            <!-- =========================================================== -->
+
+            <div id="section-topo">
+                <div id="topo-index" class="row">
+                    <div class="col-md-2">
+                        <br>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                                <i class="fa fa-bars"></i> 
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                <li role="presentation" class="dropdown-header">Funcoes</li>
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="#"><i class="fa fa-user-plus"></i> Adicionar</a></li>
+                                <li role="presentation"><a id="changeStatus" role="menuitem" tabindex="-1"><i class="fa fa-cogs"></i></i> Perfil</a></li>
+                                <li role="presentation" class="divider"></li>
+                                <li role="presentation" class="dropdown-header">Status</li>
+                                <li role="presentation"><a class="setOnline"><i class="fa fa-check-circle-o"></i> Online</a></li>
+                                <li role="presentation"><a class="setBusy"><i class="fa fa-ban"></i> Ocupado</a></li>
+                                <li role="presentation"><a class="setOffline"><i class="fa fa-circle-o"></i> Ausente</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row text-center">
+                            <br>
+                            <img class="img-circle" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Generic placeholder image" height="110" width="110">
+                        </div>
+                    </div>
+                </div> 
+
+                <div id="text-index" class="row">
+                    <h3 id="username" class="text-center"><?php echo $user->getNome() ?></h3>
+                    <h4 id="msgstatus" class="text-center"><?php echo $user->getStatusMsg() ?></h4>  
+                </div>
+
+                <div id="pesquisa-index" class="row">
+                    <div class="col-md-12">
+                        <input type="text" id="changMsgStatus" class="form-control" placeholder="Procurar...">
+                    </div>
+                </div>
+
+                <div id="options-index" class="row" style="margin: 10px;">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <input type="text" id="text-search" class="form-control" placeholder="Procurar...">
+                            <span class = "input-group-btn">
+                                <button id="btn-search" class="btn btn-primary" type="button"><i class="fa fa-search"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div id="lista-index" class="row" style="margin: 10px">
+                    <div class="btn-group btn-group-justified show-users" role="group" aria-label="...">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default active view-all">Todos</button>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default view-online">Online</button>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default view-groups">Grupos</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================== -->
+            <!-- =================== SECTION LISTA ========================= -->
+            <!-- =========================================================== -->
+
+            <div id="section-listagem" class="row">
+                <div class="col-md-12">
+                    <div id="lista-contatos"></div>
+                </div>
+            </div>
+            <!-- =========================================================== -->
+        </div>
+    </div>
+
+</div>
+
+<!-------------------------------------------------------------------------- -->
+
+<div id="window-chat">
+    <div class="status-topo panel panel-danger">
+
+        <div class="panel-heading">
+            <i class="fa fa-user"></i>
+            <em class="nome-topo">Nome do contato</em>
+            <i id="fechar-chat" class="fa fa-times pull-right"></i>
+        </div>
+
+        <div class="panel-body">
+            <div class="col-md-12">
+                <div id="options-area" class="row">
+                    <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                        <div class="btn-group" role="group">
+                            <button id="view-dia" type="button" class="show-date btn btn-default">Dia</button>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button id="view-semana" type="button" class="show-date btn btn-default">Semana</button>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button id="view-mes" type="button" class="show-date btn btn-default">Mês</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="area-mensagem" class="row">
+                </div>
+
+                <div id="text-area" class="row">
+                    <textarea id="msg-text" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div id="button-area" class="row">
+                    <button id="enviar" type="button" class="btn btn-block btn-primary">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--
+<div id="window-lista">
+    <div class="panel panel-primary">
+
+        <div class="panel-heading">
+            <i class="fa fa-user"></i>
+            <em class="nome-topo">Nome do contato</em>
+            <i id="fechar-lista" class="fa fa-times pull-right"></i>
+        </div>
+
+        <div class="panel-body">
+            <div class="col-md-12">
+                <div class="row">
+
+                    <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default"><i class="fa fa-user-plus"></i> Adicionar</button>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-default"><i class="fa fa-sign-out"></i> Sair do Grupo</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div id="lista-contatos-grupo">
+                         lista de contatos 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>-->

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <?
+/**
+ * layout com o CSS do pdf do colaborador ponto.
+ * @author Danilo Song <danilosong@outlook.com>
+ * @version 1.0  
+ * @since 12-06-2017 
+ */
+
+?>
+<!-- Incluindo o CSS do Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<style type="text/css">
+    td{
+        font: 9px/25px Georgia, serif;
+        width: 50px;
+        white-space: nowrap;
+    }
+    td.b{
+        font: bold 12px/50px Georgia, serif;
+        white-space: nowrap;
+    }
+    td.b1{
+        font: bold 8px/25px Arial, serif;
+        white-space: nowrap;
+    }
+    .mytab tr:nth-child(odd) {
+        background-color:#ffffff;
+        width: 50px;
+        white-space: nowrap;
+    }  
+    .mytab tr:nth-child(even) {
+        background-color:#e6e6e6;
+        width: 50px;
+        white-space: nowrap;
+    } 
+</style>
+    </head>
+  <body>
+
+
+<? 
+/**
+ * @todo Para exibir a data em portugues o servidor devera ter instaldo o locale do pt_br exemplo para instalacao ubuntu sudo locale-gen pt_BR.utf8 para listar use sudo locale -a
+ */
+//
+//setlocale(LC_ALL, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
+date_default_timezone_set('America/Sao_Paulo');
+
+
+$controller = $dataView['controller'];
+$action     = $dataView['action'    ];
+$route      = $dataView['route'     ];
+$orderBy    = $dataView['orderBy'   ];
+/* @var $param \Application\View\Helper\Param  */
+/* @var $form \Adm\Form\ColaboradorPonto */
+/* @var $ini \DateTime */
+/* @var $fim \DateTime */
+$coluns     = $form->getSelectStatus();
+$nome = [];
+
+/* @var $param \Application\View\Helper\Image  */
+$path = $param('path','cartao_ponto_logo');
+
+?>
+      <div class="row">
+          <div class="col-md-1"></div>
+          <div class="col-md-10">
+              <table class="table-bordered mytab" width="100%">
+                  <tr>
+                      <td align="center"><img src="<?= $path; ?>" alt="não encontrado <?= $path; ?>" width="130" height="50"/></td>
+                      <? if($ini->format('d/m/Y') == date('d/m/Y') AND $fim->format('d/m/Y') == date('d/m/Y')){?>
+                      <td class="b" align="center"><b>Cartão de ponto (Sem filtro de data)</b></td>
+                      <? }else{ ?>
+                      <td class="b" align="center"><b>Cartão de ponto
+                          <?= $ini->format('d/m/Y')?> Até <?= $fim->format('d/m/Y') ?></b></td>
+                      <? } ?>
+                  </tr>
+                  <tr>
+                      <td colspan="2" class="b" align="center" ><?php echo "<b>Nome: " .$user['nomeUsuario']. "</b>"; ?></td>
+                  </tr>
+              </table>
+
+              <table class="table-bordered mytab" width="100%">
+                  <tr>
+                      <td align="center" class="b1">DATA</td>
+                      <?
+                      /* Tabela com as partes das colunas */
+                      foreach ($coluns as $colun) {
+                          echo "<td align=\"center\" class=\"b1\">$colun</td>";
+                      }
+                      ?>
+                      <td align="center" class="b1">SEMANA</td>
+                  </tr>
+                  <?php
+                  /* @var $entity \Adm\Entity\ColaboradorPonto */
+                  $data = '';
+                  foreach ($resul as $entity) {
+                      $data[$entity->getData()][$entity->getTipo()] = $entity->getHora();
+                  }
+                  $interval = new \DateInterval('P1D');
+                  while ($ini <= $fim):
+                      if ($ini->format('w') == 0) {
+                          $ini->add($interval);
+                          continue;
+                      }
+                      $dia = $ini->format('d/m/Y');
+                      ?> 
+    <tr>
+        <td align="center"><?php
+                echo $dia;
+                ?></td>
+        
+            <?php
+            foreach ($coluns as $colun) {
+                if (isset($data[$dia][$colun])) {
+                    echo "<td align=\"center\">{$data[$dia][$colun]}</td>";
+                } else {
+                    echo "<td>&nbsp;</td>";
+                }
+            }
+            ?>
+        <td align="center"><?php
+                echo $param($ini->format('w'), 'week_day');
+                ?></td>
+    </tr>
+        <?    
+                $ini->add($interval);
+    endwhile;
+    ?> 
+              </table>
+<br/>
+                  <table class="table table-bordered">
+                      <tr>
+                          <td align="center" class="b"><b>
+                                  Concordo:________________________________________________________________________
+                                  <?php echo " Data: " . date('d/m/Y') . " Horário: " . date('H:i') ?>
+                              </b></td>
+                      </tr>
+                  </table>
+          </div>
+          <div class="col-md-1"></div>
+      </body>
+</html>

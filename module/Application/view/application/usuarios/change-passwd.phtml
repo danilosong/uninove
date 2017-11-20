@@ -1,0 +1,49 @@
+<?php 
+$controller = 'usuarios';
+$rota = 'app/default';
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<br />
+<?php
+if(is_array($this->resul) and $this->resul[0] === FALSE){
+    foreach ($this->resul[1] as $key => $vlr){
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr , '</h4>';
+    }
+}
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=>'usuarios','action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Usuario');
+    $fh->openCol('12')->password('senhaUsuario')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->password('confirmation')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->text('lembreteSenha')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        if($('#senhaUsuario').val() === ''){
+            $('#senhaUsuario').removeAlert();
+            $('#senhaUsuario').addAlertByForm('Digite a nova senha');
+            return false;
+        }
+        if($('#confirmation').val() === ''){
+            $('#senhaUsuario').removeAlert();
+            $('#senhaUsuario').addAlertByForm('Confirme a nova senha');
+            return false;
+        }
+        if($('#confirmation').val() !== $('#senhaUsuario').val()){
+            $('#senhaUsuario').removeAlert();
+            $('#senhaUsuario').addAlertByForm('Senha digitada diferente da confirmação');
+            return false;
+        }
+        return true;
+    }
+    
+</script>

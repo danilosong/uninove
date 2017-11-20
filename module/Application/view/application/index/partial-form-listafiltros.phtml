@@ -1,0 +1,46 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh         = $d['fh'      ];
+$controller = $d['dataView']['controller'];
+$action     = $d['dataView']['action'    ];
+$route      = $d['dataView']['route'     ];
+$title      = $d['dataView']['titulo'    ];
+$orderBy    = $d['dataView']['orderBy'   ];
+
+$fh->setHorizontal(TRUE);
+$fh->openCol(6)->renderInputCheckbox("showInativo")->closeCol();
+$showInativo = $fh->getLastId();
+$fh->openCol(4,2)->select('limitePag',['labelWidth' => 6])->closeCol();
+$limitPage   = $fh->getLastId();
+
+// Var de transferencia PHP to JS
+$transp = compact('showInativo', 'limitPage');
+?>
+<script type="text/javascript">
+ $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.limitPage).change(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $d['this']->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                savePage: false,
+                data : {
+                    subOpcaoPag : 'loadPage'
+                }
+            });
+        });
+        /**
+         *  Traz os dados inativos na tela
+         *  @author Danilo Dorotheu
+         */
+        $$(transp.showInativo).click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $d['this']->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                savePage: false,
+                data : {
+                    subOpcaoPag : 'loadPage'
+                }
+            });
+        });
+    });
+</script>

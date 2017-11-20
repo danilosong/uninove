@@ -1,0 +1,41 @@
+<h3>Novo usuário</h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=>'users','action'=>'new')));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Usuario');
+    $fh->openCol('6')->text('nome_usuario')->closeCol();
+    $fh->openCol('6')->text('nickname')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->moeda('email_usuario')->closeCol();
+    $fh->openCol('6')->select('situacao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->text('lembreteSenha')->closeCol();
+    $fh->openCol('6')->text('tipo')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->password('senha_usuario')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->password('confirmation')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->radio('teste')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->checkbox('teste2')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->MultiCheckbox('teste3')->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->textArea('teste4',['rows' => '10'])->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

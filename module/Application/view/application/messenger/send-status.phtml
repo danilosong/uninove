@@ -1,0 +1,10 @@
+<?php
+
+$array = [];
+if($this->data){
+    $array[] = 'Alterado com sucesso';
+}else{
+    $array[] = 'Houve algum problema na alteração!!!';
+}
+
+echo json_encode($array);

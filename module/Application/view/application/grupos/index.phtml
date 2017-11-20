@@ -1,0 +1,70 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form);
+$controller = 'grupos';
+?>
+<h1><?php echo $this->dataView['titulo']; ?></h1>
+<br />
+<?php
+
+    $fh->openLine();
+        
+        //Armazena URL em variavel
+        $url = $this->url('app/default',array('controller'=>$controller,'action'=>'new'));
+        //Constroi Botao
+        $fh->openCol(1)->button(["onclick"=>$url],"Novo", "primary")->closeCol();
+        
+//        //Constroi o DropDown
+//        $fh->openCol(1)->dropdown(
+//            ["10", "25", "50", "100"], //Elementos do Dropdown
+//            ["id"=>"pagin"] //Atributos do Dropdown
+//        )->closeCol();
+//        
+//        //Constroi o DropDown
+//        $fh->openCol(4, 1)->dropdown(
+//            ["ID:id", "Nome:nome", "Mensagem Status:statusmsg", "Chat Status", "Status", "Ação"], //Elementos do Dropdown
+//            ["id"=>"opcPesquisa", "class"=>"pull-right"] //Atributos do Dropdown
+//        )->closeCol();
+//        
+//        $fh->openCol(5)->text("pesquisa", ['spanLabel' => false,'clean'=> false, 'extra'=>['type'=>'btn', 'text'=>'Pesquisar']])->closeCol();
+//        
+    $fh->closeLine();
+
+    $table->openTable(TRUE)  ; 
+    $table->renderThead(['ID','Nome','Mensagem Status','Chat Status','Status','Ação'])  ;     
+    foreach($this->data as $entity){
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getNome(),
+            $entity->getStatusMsg(),
+            $entity->getStatusChat(),
+            $entity->getStatus(),
+            $entity->getId(),
+        ]);
+    } 
+    $table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data,'Sliding','partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">      
+    function edit(key){
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'edit'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }
+    function del(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        if(!confirm(msg)){
+            return;
+        }
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'delete'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }    
+
+</script>

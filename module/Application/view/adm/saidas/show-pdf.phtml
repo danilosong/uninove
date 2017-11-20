@@ -1,0 +1,13 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+?>
+<iframe src="" id="frame-pdf" width="100%"  height="auto"></iframe>  
+
+<script lang="javascript">
+    $(function(){
+        $('#frame-pdf').height($(document).height() * 0.89);
+        $('#frame-pdf').attr('src',"<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getPdf'), [], FALSE, FALSE); ?>");
+    });
+</script>

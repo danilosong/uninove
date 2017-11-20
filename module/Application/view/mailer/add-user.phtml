@@ -1,0 +1,19 @@
+Olá <?php echo $this->nome; 
+
+    $url = $this->url(
+        'user-activate', 
+        array('key' => $this->activationKey), 
+        array('force_canonical' => true), 
+        FALSE, 
+        FALSE
+    );
+    
+?>
+<br />
+<br />
+
+<p>
+    Esse email tem o objetivo de confirmar seu cadastro em nosso sistema.
+    <br />
+    Para ativar sua conta, acesse <a href="<?php echo $url ?>"><?php echo $url ?></a>
+</p>

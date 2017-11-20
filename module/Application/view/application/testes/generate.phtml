@@ -1,0 +1,38 @@
+<h3><?php echo $this->dataView['titulo']; ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+/* @var $acl \Application\View\Helper\Acl */
+$fh  = $this->formHelp($this, $this->form, $this->url('app/default', array('controller' => 'testes', 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$usr = $this->UserIdentity();
+$acl = $this->Acl($usr);
+
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro para testes');
+$fh->lineDown();
+$fh->openCol('12')->text('path')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->text('returnClass')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->text('author')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->text('version')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->calend('date')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->select('opt')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+<br />
+<br />
+<br />
+<br />
+<script lang="javascritp">
+
+    function isValid() {
+        return true;
+    }
+    
+</script>

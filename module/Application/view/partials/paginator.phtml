@@ -1,0 +1,48 @@
+<?php 
+$urlPattern = $_SERVER['REQUEST_URI'];
+$urls = explode("?", $urlPattern);
+$urlPattern = $urls[0];
+
+$formatUrl = function ($page) use ($urlPattern) {
+    $frm = isset($_POST['formId']) ? '\''. $_POST['formId'] . '\''    : 'true';
+    $ret = isset($_POST['ret'])    ? 'ret:\'' . $_POST['ret'] . '\',' : '';
+    if (!preg_match('/page/', $urlPattern)) {
+        return "javascript:action.processa({frm:$frm,$ret url:'" . $urlPattern . '/page/' . (int) $page . "', data:{subOpcaoPag:'loadPage'}});";
+    } else {
+        return "javascript:action.processa({frm:$frm,$ret url:'" . preg_replace('@/page/\d+@', '/page/' . (int) $page, $urlPattern) . "', data:{subOpcaoPag:'loadPage'}});";
+    }
+};
+
+if ($this->pageCount):
+    ?>
+<div class="noPrint">
+    <div class="pagination pagination-centered">
+        <p>Total de Registros Encontrados <?php echo $this->totalItemCount; ?>
+        , Itens por pagina <?php echo $this->currentItemCount; ?>
+        , Total de paginas <?php echo $this->pageCount; ?></p>
+        <ul>
+            <?php if (isset($this->previous)): ?>
+                <li><a href="<?php echo $formatUrl($this->previous); ?>">«</a></li>
+            <?php else: ?>
+                <li class="disabled"><a href="#">«</a></li>
+            <?php endif; ?>
+            <?php foreach ($this->pagesInRange as $page): ?>
+                <?php if ($page != $this->current): ?>
+                    <li>
+                        <a href="<?php echo $formatUrl($page); ?>"><?php echo $page; ?></a>
+                    </li> 
+                <?php else: ?>
+                    <li class="active">
+                        <a href="#"><?php echo $page; ?></a>
+                    </li>      
+                <?php endif; ?>
+            <?php endforeach; ?>
+            <?php if (isset($this->next)): ?>
+                <li><a href="<?php echo $formatUrl($this->next); ?>">»</a></li>
+            <?php else: ?>
+                <li class="disabled"><a href="#">»</a></li>
+            <?php endif; ?>
+        </ul>
+    </div>
+</div>
+<?php endif; ?>

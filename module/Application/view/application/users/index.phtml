@@ -1,0 +1,97 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form);
+
+$controller = 'users';
+?>
+<h1><?php echo $this->dataView['titulo']; ?></h1>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'new')); ?>">Novo</button>
+</p>
+<br />
+
+<?php
+//    $fh->openLine();
+//        
+//        //Constroi Botao
+//        $fh->openCol(1);
+//            $url = $this->url('app/default',array('controller'=>$controller,'action'=>'new'));
+//            $fh->button(["onclick"=>$url],"Novo", "primary");
+//        $fh->closeCol();
+//        
+//        //Constroi o DropDown
+//        $fh->openCol(1);
+//            $fh->dropdown(
+//                ["10", "25", "50", "100"], //Elementos do Dropdown
+//                ["id"=>"pagin"] //Atributos do Dropdown
+//            );
+//        $fh->closeCol();
+//        
+//        //Constroi o DropDown
+//        $fh->openCol(4, 1);
+//        $fh->dropdown(
+//            ["ID:id", "Nome:nome", "Mensagem Status"], //Elementos do Dropdown
+//            ["id"=>"opcPesquisa", "class"=>"pull-right"] //Atributos do Dropdown
+//        );
+//        $fh->closeCol();
+//        
+//        //Input
+//        $fh->openCol(5);
+//            $fh->text("pesquisa", [
+//                'spanLabel' => false,
+//                'clean'=> false, 
+//                'extra'=>[
+//                    'type'=>'btn', 
+//                    'text'=>'Pesquisar'
+//                    ]
+//                ]
+//            );
+//        $fh->closeCol();
+//        
+//    $fh->closeLine();
+    
+    $fh->openLine();
+        $fh->openCol("12");
+            $table->openTable(TRUE)  ; 
+            $table->renderThead(['ID','Nome','Mensagem Status','Chat Status','Alteração Status','Usuario_Id','Status','Ação'])  ;     
+            foreach($this->data as $entity){
+                $table->renderLine([
+                    $entity->getId(),
+                    $entity->getNome(),
+                    $entity->getStatusMsg(),
+                    $entity->getStatusChat(),
+                    $entity->getStatusDatetime(),
+                    $entity->getUsuarioId(),
+                    $entity->getStatus(),
+                    $entity->getId(),
+                ]);
+            } 
+            $table->renderCloseTable();
+        $fh->closeCol();
+    $fh->closeLine();
+    
+    
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data,'Sliding','partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">      
+    function edit(key){
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'edit'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }
+    function del(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        if(!confirm(msg)){
+            return;
+        }
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'delete'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }    
+</script>

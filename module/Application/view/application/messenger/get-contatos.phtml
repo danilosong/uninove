@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Renderiza a lista de contatos e grupos do chat
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ */
+/* @var $contatos \Application\Entity\User */
+/* @var $grupos \Application\Entity\Grupo */
+$users = $this->contatos;
+$grupos = $this->grupos;
+
+$array["contatos"] = [];
+$array["grupos"] = [];
+foreach ($contatos as $users) {
+    $array["contatos"][] = [
+        "id" => $users->getId(),
+        "nome" => $users->getNome(),
+        "statusChat" => $users->getStatusChat(),
+    ];
+}
+
+foreach ($grupos as $grupo) {
+    $array["grupos"][] = [
+        "id" => $grupo->getId(),
+        "nome" => $grupo->getNome(),
+    ];
+}
+
+echo json_encode($array);
+die;

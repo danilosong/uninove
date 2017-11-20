@@ -1,0 +1,75 @@
+<?php 
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+// === TRANSPORTE ==============================================================
+$fields = [
+    'id'          => is_null($this->form->get('idParame')->getValue()) ?     '' : $this->form->get('idParame')->getValue()
+    , 'action'    => $action    
+];
+// ===================================================================== FIM ===
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Listagem</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new' ,'id' => $fields['id'])); ?>">Novo</button>
+</p>
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$action)));
+$fh->setHorizontal(false);
+$fh->formInit('Cadastro Parametros');
+    $fh->openCol('6')->text('chave')->closeCol();
+    $fh->openCol('6')->text('conteudo')->closeCol();
+$fh->lineDown();
+    $fh->openCol('8')->textarea('descricao')->closeCol();
+    $fh->openCol('4')->select('status')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+
+//
+?>
+
+<div id="showListagemParametros"></div>
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+      
+    $(function(){  
+        // =====================================================================
+        /**
+         * @property {Object} fields Campos de transferencia do PHP, que serão
+         * utilizados no javascript
+         */
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        var showParametros = function(){
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>" 
+                , type: "POST"
+                , savePage: false
+                , ret: '#showListagemParametros'
+                , data: {
+                    id: fields.id
+                    , ret: '#showListagemParametros'
+                    , chave: $('#chave').val()
+                }
+            });    
+        };
+        
+        if($('#chave').val() != ''){  
+            showParametros();
+        }
+        
+        if(fields.action == 'new'){  
+            $('#idParame').val('');
+        }
+        
+    });
+</script>

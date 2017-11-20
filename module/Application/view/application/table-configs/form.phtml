@@ -1,0 +1,45 @@
+<?php
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+$form = $this->form;
+$partial = $this->partialObj('application');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+echo '<h3>', $title, '</h3>';
+
+$fh->formInit('Cadastro');
+$fh->setHorizontal(TRUE);
+
+$fh->getIdFor('idTableConfig');
+
+$fh->openCol(12)->text('entityPath')->closeCol();
+$fh->lineDown();
+$fh->openCol(12)->text('caption'   )->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('trOption'  )->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('tdOption'  )->closeCol();
+
+$fh->openCol(12)->Submit('submit')->closeCol();
+
+$fh->setHorizontal(FALSE);
+$fh->formEnd();
+?>
+<script lang="javascript">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

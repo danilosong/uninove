@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <?
+/**
+ * layout com o CSS do pdf do colaborador ponto.
+ * @author Danilo Song <danilosong@outlook.com>
+ * @version 1.0  
+ * @since 12-06-2017 
+ */
+
+?>
+<!-- Incluindo o CSS do Bootstrap -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<style type="text/css">
+    td{
+        font: 9px/25px Georgia, serif;
+        width: 50px;
+        white-space: nowrap;
+    }
+    td.b{
+        font: bold 12px/50px Georgia, serif;
+        white-space: nowrap;
+    }
+    td.b1{
+        font: bold 8px/25px Arial, serif;
+        text-align:  center;
+        white-space: nowrap;
+    }
+    td.b3{
+        font: bold 8px/25px Arial, serif;
+    }
+    td.alinhar{
+        text-align:  center;
+        white-space: nowrap;
+    }
+    td.alr{
+        text-align:  right;
+        white-space: nowrap;
+    }
+    .mytab tr:nth-child(odd) {
+        background-color:#ffffff;
+        width: 50px;
+        white-space: nowrap;
+    }  
+    .mytab tr:nth-child(even) {
+        background-color:#e6e6e6;
+        width: 50px;
+        white-space: nowrap;
+    } 
+</style>
+    </head>
+  <body>
+
+
+<? 
+/**
+ * @todo Para exibir a data em portugues o servidor devera ter instaldo o locale do pt_br exemplo para instalacao ubuntu sudo locale-gen pt_BR.utf8 para listar use sudo locale -a
+ */
+//
+//setlocale(LC_ALL, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
+date_default_timezone_set('America/Sao_Paulo');
+
+
+$controller = $dataView['controller'];
+$action     = $dataView['action'    ];
+$route      = $dataView['route'     ];
+$orderBy    = $dataView['orderBy'   ];
+/* @var $param \Application\View\Helper\Param  */
+/* @var $param \Application\View\Helper\Image  */
+$path = $param('path','cartao_ponto_logo');
+
+    /* @var $entity \Adm\Entity\Produto */
+?>
+      <table class="table-bordered" width="100%">
+            <tr>
+                <td class="alinhar"><img src="<?= $path; ?>" alt="não encontrado <?= $path; ?>" width="210" height="80"/></td>
+                <td class="alinhar">
+                    <b><h4>Relatório de estoque <?php echo  date('d/m/Y H:i'); ?></h4></b>
+                    <?php echo 'Gerado por: '.$user['nomeUsuario']; ?>
+                </td>
+            </tr>
+      </table>
+      <table class="table-bordered mytab" width="100%">
+        <tr>
+           <td class="alinhar b3">Id               </td>
+           <td class="alinhar b3">Setor            </td>
+           <td class="alinhar b3">Produto          </td>
+           <td class="alinhar b3">Unidade          </td>
+           <td class="alinhar b3">Estoque Minimo   </td>
+           <td class="alinhar b3">Estoque atual    </td>
+           <td class="alinhar b3">Valor            </td>
+        </tr>
+            <?php 
+            $c = 0; 
+            foreach($resul as $entity):
+                if($entity->getStatus() == "ATIVO"):
+                    $c++;
+            ?>
+        <tr>
+            <td align="right">  <?php echo $entity->getId(); ?>                   </td>
+            <td class="alinhar"><?php echo $entity->getSetor(); ?>                </td>
+            <td class="alinhar"><?php echo $entity->getNomeProd(); ?>             </td>
+            <td class="alinhar"><?php echo $entity->getUnidadeEntrada(); ?>       </td>
+            <td align="right">  <?php echo $entity->getEstoqueMinimo(); ?>        </td>
+            <td align="right">  <?php echo $entity->getEstoqueAtual(); ?>         </td>
+            <td align="right">  <?php echo $entity->getValorProd(); ?>            </td>
+        </tr>
+            <?php 
+                endif;
+            endforeach; 
+            ?>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td align="right">Quantidade de produtos:     </td>
+            <td class="b3" align="right"><? echo $c; ?></td>
+        </tr>
+      </table>
+      </body>
+</html>

@@ -1,0 +1,199 @@
+<?php
+/* @var $form Adm\Form\Pedido */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+$user       = $this->UserIdentity();
+
+echo '<h3>', $title, '</h3>';
+?>
+
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>"><i class='fa fa-plus'></i> Novo</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+</p>
+
+
+<?php
+// $ret        = $form->getValue('ret', '#inter');
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$lambda = function ($value, &$data){
+        if (is_callable($this->funcEdit)) {
+            $lambda = $this->funcEdit;
+            $lambda($value, $data);
+            return;
+        }
+        echo "\t", '<td nowrap style="font-size: 14pt;">',
+                '<span class="hand" onClick="visu(\'', $value, '\',this)" title="Visualizar"><i class="glyphicon glyphicon-file"></i>','</span>&nbsp;', PHP_EOL,
+                '&nbsp;',
+                '<span class="hand" onClick="receb(\'', $value, '\',this)" title="Receber"><i class="glyphicon glyphicon-download-alt"></i>','</span>&nbsp;', PHP_EOL,
+                '&nbsp;',
+                '<span class="hand" onClick="edit(\'', $value, '\',this)" title="Editar"><i class="fa fa-pencil"></i>','</span>&nbsp;', PHP_EOL,
+                '&nbsp;',
+                '<span class="hand" onClick="del(\'', $value, '\',this)" title="Excluir"><i class="fa fa-trash"></i></span>',
+             "</td>", PHP_EOL; 
+};
+
+$fh->formInit();
+    $fh->setPreFix('pedido');
+
+    $inpFornecedor = $fh->getIdFor('fornecedor');
+    $fh->openCol(4)->renderInputText('fornecedorNome', [
+        "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ,"dt-clear" => $inpFornecedor,
+    ])->closeCol();
+    $inpFornecedorNome = $fh->getLastId();
+    
+    $fh->openCol(2)->renderInputSelect('status')->closeCol();
+    $inpStatus = $fh->getLastId();
+    
+    $fh->removePreFix('pedido');
+
+    $fh->openCol(2)->renderInputCalend('filtro1',[],['label' => 'De:'])->closeCol();
+    $fh->openCol(2)->renderInputCalend('filtro2',[],['label' => 'Até:'])->closeCol();
+    echo "<br />";
+    $fh->openCol(1)->renderInputButton(['type' => 'button', 'id' => 'btn-pesquisa'],'pesquisa','btn btn-primary')->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setLambda($lambda);
+
+$table->setOrderList($this->dataView['orderBy']);
+$table->renderThead([
+    ['label' => 'ID'                   ],
+    ['label' => 'Fornecedor'           ],
+    ['label' => 'Usuario'              ],
+    ['label' => 'Data do pedido'       ],
+    ['label' => 'Data de Entrega'      ],
+    ['label' => 'Quantidade'           ],
+    ['label' => 'Observação'           ],
+    ['label' => 'Total'                ],
+    ['label' => 'Status'               ],
+    ['label' => 'Ação'                 ],
+]);
+/* @var $entity \Adm\Entity\Pedido */
+foreach ($this->data as $entity) {
+
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getFornecedor('nomeFornec'),
+        $entity->getUsuario('nomeUsuario'),
+        $entity->getCreatedAt(),
+        $entity->getDataEntrega(),
+        $entity->getQtd(),
+        $entity->getObs(),
+        $entity->getTotal(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ]);
+} 
+    $table->renderCloseTable();
+
+$fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+echo $this->partial('partials/modal');
+
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpFornecedorNome'
+    ,'inpFornecedor'
+); 
+?>
+<script lang="javascript">
+    
+    //Função do auto-complete
+    function isValid(){
+        return true;
+    }
+
+    function edit(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+        
+    }
+    
+    function del(key) {
+        gModal.reset('confirm',2).setMsg('Deseja mesmo excluir este registro?').setClickOk(function(){
+            var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+            $.processa(data);
+        }).showModal();
+    }
+ 
+    function visu(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'relatorio'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+    }
+    
+    function receb(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'receberPedido'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+    }
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.inpFornecedorNome).auto({
+            primary: "nomeFornec",
+            width : 500,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'fornecedors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                id: [transp.inpFornecedor]
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+                });
+            },        
+            showCols: ["id", "nomeFornec", "telefone"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpFornecedorNome).change(function(){
+            $$(transp.inpFornecedor).val("");
+        });
+        
+        $('#btn-pesquisa').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'                
+            });
+        });
+    });
+</script>

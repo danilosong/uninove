@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * Inicia resultados
+ */
+if ($this->resultSet) {
+    $array = [];
+    switch ($this->subOpcao) {
+        default :
+            /* @var $entity \Adm\Entity\Colaborador */
+            $array[] = [
+                "menu_id" => "ID do Usuario",
+                "menu_nomeUsuario" => "Usuario",
+                "menu_emailUsuario" => "Email",
+            ];
+            foreach ($this->resultSet as $entity) {
+                $array[] = [
+                    "id" => $entity->getId(),
+                    "nomeUsuario" => $entity->getUsuario('nome'),
+                    "emailUsuario" => $entity->getUsuario('email'),
+                ];
+            }
+
+            break;
+    }
+
+    echo json_encode($array);
+}

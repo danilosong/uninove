@@ -1,0 +1,28 @@
+<h3><?php echo $this->dataView['titulo']; ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=>'enviados','action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Registrar envio de mensagem');
+    $fh->openCol('12')->select('toUser')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('fromUser')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('mensagemMensagem')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->calend('dateEnviado')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->calend('dateRecebido')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

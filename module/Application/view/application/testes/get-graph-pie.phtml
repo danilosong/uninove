@@ -1,0 +1,54 @@
+<?php 
+/**
+ * @author Paulo Watakabe <email>watakabe05@gmail.com</email>
+ */
+// Some data
+//$data = array(30,70);
+
+// A new pie graph
+$graph = new PieGraph(600,300,'auto');
+$this->set($graph);
+
+//$graph = $this->newGraphPie();
+
+
+
+// Setup title
+$graph->title->Set("Gráfico da evolução da meta do Lider");
+$graph->title->SetFont(FF_ARIAL,FS_BOLD,14);
+$graph->title->SetMargin(8); // Add a little bit more margin from the top
+
+// Create the pie plot
+$p1 = new PiePlotC($data);
+$p1->addTheme('farol', [45,27,128]);
+$p1->setTheme('farol');
+// Set size of pie
+$p1->SetSize(0.4);
+//$p1->SetCenter(0.25,0.32);
+
+//$i,$xc,$yc,$radius,$sa,$ea
+//Slice number, ellipse centre (x,y), radius, start angle, end angle
+//$pi->AddSliceToCSIM(1,2,3,5,0,360);
+
+// Label font and color setup
+$p1->value->SetFont(FF_ARIAL,FS_BOLD,10);
+$p1->value->SetColor('black');
+
+// Setup the title on the center circle
+$p1->SetMidSize(0.8);
+$p1->midtitle->Set("IQN  30%          ");
+$p1->midtitle->SetFont(FF_TIMES,FS_BOLD,60);
+
+// Set color for mid circle
+//$p1->SetMidColor('white');
+
+//// Use percentage values in the legends values (This is also the default)
+//$p1->SetLabelType(PIE_VALUE_PER);
+
+// Add plot to pie graph
+$graph->Add($p1);
+//
+//// .. and send the image on it's marry way to the browser
+//$graph->Stroke();
+//
+//die;

@@ -1,0 +1,93 @@
+<?php 
+/* @var $param \Application\View\Helper\Param */
+$controller = 'usuarios';
+$param      = $this->Param();
+$route = 'app/default';
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>;hideMenuBar()">Voltar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>;hideMenuBar()">Novo</button>
+</p>
+<br />
+<?php
+if(is_array($this->resul) and $this->resul[0] === FALSE){
+    foreach ($this->resul[1] as $key => $vlr){
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr , '</h4>';
+    }
+}
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=>'usuarios','action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Usuario');
+    $fh->openCol('6')->text('nomeUsuario')->closeCol();
+    $fh->openCol('6')->select('situacao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->text('nickname')->closeCol();
+    $fh->openCol('6')->text('emailUsuario')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->password('senhaUsuario')->closeCol();
+    $fh->openCol('6')->select('tipo')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->password('confirmation')->closeCol();
+    $fh->openCol('6')->select('role')->closeCol();
+$fh->lineDown();
+    $fh->openCol(6);
+        $fh->openCol(12)->text('lembreteSenha')->closeCol();
+        $fh->openCol(12)->file('uploadFoto')->closeCol();
+    $fh->closeCol();
+    $fh->openCol(6);
+        $path = $param('all', 'usuarioDir')  . $fh->getForm()->get('pathFoto')->getValue();
+            if($path != ''){
+                $imgPath = '<img src="' . $this->Image($path) . '" style="width: 330px" />
+                    <span class="input-group-btn" name="pathLogo" id="clean_pathLogo">
+                        <button class="btn btn-default" type="button" id="btnPathLogo">
+                            <i class="fa fa-remove"></i>
+                        </button>
+                    </span>';
+            }else{
+                $imgPath = 'Inserir a imagem aqui';
+            }
+            echo <<<EOF
+                <div style="height: 135px; margin:0px" class="alert alert-info input-group" role="alert" id="divPathLogo">
+                    {$imgPath}
+                    </span>
+                </div>
+EOF;
+    $fh->closeCol();
+$fh->lineDown();                                      
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+
+$fieldsUsuario = [
+    "idUsuario" => isset($this->entity) ? $this->entity->getId() : $fh->getForm()->get('idUsuario')->getValue(),
+    "isEdit"    => ($this->dataView["action"] == "edit"),
+];
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+    $(function () {
+        var fields = <?php echo json_encode($fieldsUsuario) ?>;
+
+        $('#btnPathLogo').click(function(){
+            if(confirm("Deseja realmente remover as imagens??")){
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'rmImage'), [], FALSE, FALSE); ?>/" + fields["idUsuario"],
+                    savePage: false,
+                    callback: function (data) {
+                        if(data == 'ok'){
+                            $('#divPathLogo').html('Inserir a imagem aqui');
+                        }else{
+                            alert(data);
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>

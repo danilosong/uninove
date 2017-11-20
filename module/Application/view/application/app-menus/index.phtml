@@ -1,0 +1,127 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$form       = $this->form;
+$formId     = 'showListMenu';
+$form->setAttribute('id', $formId);
+$form->setAttribute('target', $form->get('ret')->getValue());
+$table   = $this->table();
+$fh      = $this->formHelp($this,$form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj();
+$ret = $form->get('ret')->getValue();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->openCol(8);
+?>
+<h1>Menu Creator</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>"><i class='fa fa-plus'></i> Novo</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+</p>
+<?php
+$fh->closeCol();
+$fh->closeCol()->openCol(4)->select('limitePag',['labelWidth' => 6,'clean' => FALSE,'extra' => ['icon' => 'search', 'js' => "atualizaPag()"]]);
+$fh->closeCol()->lineDown();
+$fh->openCol(12);
+$table->openTable(TRUE); 
+$table->setEditLine('first'); 
+$table->setLambda(function ($value, $data){
+    echo "\t<td nowrap>",
+            '<span class="hand" onClick="edit(\'', $value, '\')" title="Editar"><i class="fa fa-pencil"></i> ','</span>&nbsp;', PHP_EOL,
+            '<span class="hand" onClick="copy(\'', $value, '\')" title="Duplicar"><i class="fa fa-files-o"></i> ','</span>&nbsp;', PHP_EOL,
+            '<span class="hand" onClick="del(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> </span>',
+         "</td>", PHP_EOL;  
+});
+$table->setOrderList($this->dataView['orderBy']);
+$table->renderThead([
+     ['label' => 'Ação'                                                      ]
+    ,['label' => 'ID'                                                        ]  
+    ,['label' => 'Descrição'           , 'order' => 'descricao'              ]
+    ,['label' => 'Label'               , 'order' => 'label'                  ]
+    ,['label' => 'Route'               , 'order' => 'route'                  ]
+    ,['label' => 'Controller'          , 'order' => 'controller'             ]  
+    ,['label' => 'Action'              , 'order' => 'action'                 ]
+    ,['label' => 'Atributos'           , 'order' => 'atributos'              ]
+    ,['label' => 'Icons'               , 'order' => 'icons'                  ]
+    ,['label' => 'class'               , 'order' => 'class'                  ]
+    ,['label' => 'Pagescontainerclass' , 'order' => 'pagescontainerclass'    ]
+    ,['label' => 'Wrapclass'           , 'order' => 'wrapclass'              ]
+    ,['label' => 'Ordem'               , 'order' => 'ordem'                  ]
+    ,['label' => 'Resource'            , 'order' => 'resource'               ]
+    ,['label' => 'Privilege'           , 'order' => 'privilege'              ]
+    ,['label' => 'In Menu'             , 'order' => 'inMenu'                 ]
+    ,['label' => 'Criado'              , 'order' => 'createdAt'              ]
+    ,['label' => 'Atualizado'          , 'order' => 'updatedAt'              ]
+]);
+/* @var $entity \Application\Entity\AppMenu */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getId(),
+        $entity->getDescricao(),
+        $entity->getLabel(),
+        $entity->getRoute(),
+        $entity->getController(),
+        $entity->getAction(),
+        $entity->getAtributos(),
+        $entity->getIcons(),
+        $entity->getClass(),
+        $entity->getPagescontainerclass(),
+        $entity->getWrapclass(),
+        $entity->getOrdem(),
+        $entity->getResource(),
+        $entity->getPrivilege(),
+        (is_null($entity->getInMenu())) ? '-' : $entity->getInMenu()->getId(),
+        $entity->getCreatedAt(),
+        $entity->getUpdatedAt(),
+    ]);
+}
+$table->renderCloseTable();
+$fh->closeCol()->closeLine();
+
+if($ret == '#inter'){
+    $fh->formEnd();
+}
+// === TRANSPORTE ==============================================================
+$fields = [
+    'ret'   => $ret
+    , 'frm' => $formId
+];
+// ===================================================================== FIM ===
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    var edit = function(key) {
+        var data = {url: "<?php echo $this->url('app/default', array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        action.processa(data);
+    };
+    var copy = function(key) {
+        action.processa({
+            url: "<?php echo $this->url('app/default', array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>"
+            ,type : 'POST'
+            ,data : {
+                id : key
+                ,'subOpcao' : 'copy'
+            }
+        });
+    };
+    var del = function(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url('app/default', array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        action.processa(data);
+    };
+</script>

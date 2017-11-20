@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * Retorna as mensagens do contato do usuário
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ */
+$mensagens = $this->mensagens;
+$array = [];
+
+if(!empty($mensagens)){
+    /* @var $mensagem \Application\Entity\Enviado */
+    foreach ($mensagens as $mensagem) {
+        $toGrupo = ($mensagem->getToGrupo()) ? $mensagem->getToGrupo()->getId() : FALSE;
+
+        $array[] = [
+            "fromId" => $mensagem->getFromUser()->getId(),
+            "toId" => $mensagem->getToUser()->getId(),
+            "toGrupo" => $toGrupo,
+            "mensagem" => $mensagem->getMensagemMensagem()->getTexto(),
+            "dataEnviado" => $mensagem->getDateEnviado(FALSE),
+            "horaEnviado" => $mensagem->getDateEnviado("H:i:s"),
+        ];
+    }
+    echo json_encode($array);
+}
+die;

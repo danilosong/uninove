@@ -1,0 +1,43 @@
+<?php
+$controller = 'Testes';
+?>
+<h1><?php echo $this->titulo; ?></h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'testgraph')); ?>">Reload</button>
+</p>
+<img id="test" src="" />
+<br />
+
+<script lang="javascript">      
+    function edit(key){
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'edit'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }
+    function del(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        if(!confirm(msg)){
+            return;
+        }
+        var data = {url : "<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>'delete'),[],FALSE,FALSE);?>" + "/" + key };
+        action.processa(data);
+    }   
+    
+    $(function(){
+        
+        console.log('ijdifjidjf');
+        var linkImg = "<? echo $this->url('app/default',array('controller'=>$controller,'action'=>'getGraph'),[],FALSE,FALSE) . "?" . rand(0, 1000);?>";
+        $("#test").attr('src',linkImg);
+//        action.processa({
+//            url : linkImg,
+//            ret : "test",
+//            callback: function (data) {
+//                $("#test").html(data); //Exibe retorno na tela
+//            }
+//        });
+        
+//        $('.img-grande').find('img').attr('src',linkAtual);
+        
+        
+    });
+</script>

@@ -1,0 +1,41 @@
+<?php 
+$controller = 'grupos';
+$rota = 'app/default';
+?>
+<h3><?php echo $this->dataView['titulo']; ?></h3>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($rota, array('controller' => $controller, 'action' => 'index')); ?>;hideMenuBar()">Voltar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($rota, array('controller' => $controller, 'action' => 'new')); ?>;hideMenuBar()">Novo</button>
+</p>
+<br />
+<?php
+if(is_array($this->resul) and $this->resul[0] === FALSE){
+    foreach ($this->resul[1] as $key => $vlr){
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr , '</h4>';
+    }
+}
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url('app/default',array('controller'=> $controller,'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro User');
+    $fh->openCol('12')->text('nome')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('statusMsg')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('status')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('statusChat')->closeCol();
+$fh->lineDown()->setHorizontal(FALSE);
+    $fh->openCol('12')->multiCheckbox('contatos', ['position' => FALSE])->closeCol();
+$fh->lineDown()->setHorizontal(TRUE);
+    $fh->openCol('12')->submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

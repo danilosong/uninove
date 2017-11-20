@@ -1,0 +1,192 @@
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3 text-center">
+            <img src="/img/uninove.png" style="width: 260px; margin-top: 50px">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="loginName-panel panel panel-primary" style="margin-top: 10px">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Entrar</h3>
+                </div>
+                <div class="panel-body">
+                <?php
+                if(is_array($this->resul) and $this->resul[0] === FALSE){
+                    foreach ($this->resul[1] as $key => $vlr){
+                        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr , '</h4>';
+                    }
+                }
+                /* @var $fh \Application\View\Helper\FormHelp */                
+                $fh = $this->formHelp($this,$this->form,$this->url('application-auth',[],[],FALSE,$this->dataView['ajax']));
+
+                if($this->error) {
+                    $fh->openLine()->openCol(12);
+                    echo '<div class="alert alert-danger"><p class="text-uppercase">Usuário ou senha inválidos</p></div>';
+                    $fh->closeCol()->closeLine();
+                }
+                
+                $fh->setHorizontal(false);
+                $fh->formInit('Fazer Login no Sistema');
+                $fh->lineDown();
+                    $fh->openCol('12')->text('email')->closeCol();
+                $fh->lineDown();
+                    $fh->openCol('12');
+                        echo '<span id="loginName-desc" class="ft-login-name"></span>';
+                    $fh->closeCol();
+                $fh->lineDown();
+                    $fh->openCol('12')->password('password')->closeCol();
+                $fh->lineDown(); 
+                    $fh->openCol('12')->checkbox('remember')->closeCol();
+                $fh->lineDown();                                      
+//                    $fh->openCol('12')->renderInputButtonOnly('proximo')->closeCol();
+                    $fh->openCol('12')->Submit('proximo')->closeCol();
+                $fh->lineDown();                                      
+                    $fh->openCol('6')->renderInputButtonOnly('voltar')->closeCol();
+                    $fh->openCol('6')->Submit('submit', ['class'=> 'btn btn-primary'])->closeCol();
+                $fh->lineDown(); 
+                    $fh->openCol(12); 
+                    echo '<span id="spn-forget-pass"><br /><br />Esqueceu a senha <a href="#" id="btn-forget-pass">Clique Aqui</a></span>';
+                    $fh->closeCol(); 
+                $fh->closeLine()->formEnd();
+                
+                ?>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .ft-login-name{
+        font-size : 14pt;
+        padding-left: 20%;
+    }
+</style>
+<script lang="javascript">   
+    var login = true;
+
+    var getLogin = function(){
+        var email = module.Cookie.get('EMAIL');
+        if(email != ''){
+            $('#email').val(email);
+            $('#remember').prop('checked', true);
+        }else{
+            setTimeout(function(){
+                $('#email').val('');
+            },1000);
+        }
+    };
+    
+    var isValid = function(){
+        var $email = $('#email');
+        if($('#password').val() == ''){
+            alert('Digite a senha por favor !!');
+            return false;
+        }
+        // verificase se request esta liberado
+        var resul = globalLogonUser.waitForRequestAllow(function(arg){
+            $('#btnEnviarForm').click();
+        },'');
+        if(!resul){
+            return false;
+        }
+        
+        globalLogonUser.changeAllCookieForMyLogin();
+        
+        return true;
+    };
+    
+    $(function(){
+        console.log(action.ObterBrowserUtilizado());
+        
+        $('.clean').click(function () {
+            var obj = $(this).parent().parent();
+            var $txt = obj.find('input[type=text]').eq(0);
+            $txt.val('');
+            if (!$txt.hasClass('calendario')) {
+                $txt.focus();
+            }
+            obj.find('textarea').val('').focus();
+            obj.find('input[type=password]').val('');
+            obj.find('input[type=checkbox]').removeAttr('checked').focus();
+            obj.find('input[type=radio]').removeAttr('checked').focus();
+            var select = obj.find('select');
+            if (select) {
+                select.val($('options:first', select).val()).focus();
+            }
+        });
+        
+        /**
+         * Faz os pre ajustes no cookie para depois fazer o loginName no sistema.
+         */
+        $('#proximo').click(function(){            
+            var $email = $('#email');
+            if($email.val() == ''){
+                alert('Digite um loginName!!');
+                return false;
+            }            
+            if($('#remember').is(':checked')){
+                module.Cookie.set({name : 'EMAIL', value : $email.val(), expires : '30'});
+            }else{
+                module.Cookie.set({name : 'EMAIL', value : '', expires : '30'});
+            }            
+            // Verificar se tem @ no loginName e corrigir para gravar cookie
+            var loginName = $email.val();
+            loginName = loginName.replace(/[^a-z0-9]/gi ,'');
+            if(loginName.length > 10){
+                loginName = loginName.substring(0, 10);
+            }
+            // verificase se request esta liberado
+            var resul = globalLogonUser.waitForRequestAllow(function(arg){
+                $('#proximo').click();
+            },'');
+            if(!resul){
+                return false;
+            }
+            module.Cookie.set({
+                name : 'LOGIN'
+                , value : loginName
+                , expires : '0'
+            });            
+            globalLogonUser.setAllParams();
+            globalLogonUser.changeAllCookieForMyLogin();
+        });
+        
+        if($('#subOpcao').val() == 'logon'){
+            /**
+             * Carregar usuario padrao se existir no cookie
+             */
+            getLogin();
+            $('#password').closest('.row').hide();
+            $('#btnEnviarForm').closest('.row').hide();
+            $('#email').focus();
+            $('#spn-forget-pass').hide();
+        }else{
+            $('#loginName-desc').html($('#email').val());
+            $('#email').closest('.row').hide();
+            $('#remember').closest('.row').hide();
+            $('#proximo').closest('.row').hide();
+            $('#password').focus();
+            globalLogonUser.setAllParams();
+            globalLogonUser.AllowRequest();
+            $('#spn-forget-pass').show();
+        }
+        
+        $('#email').keypress(function(e){
+            if(e.which == 13){
+                $('#proximo').click();
+            }
+        });
+        
+        $('#voltar').click(function(){
+            $(window).attr('location','auth');
+        });
+        
+        $('#btn-forget-pass').click(function(){
+            $(this).attr('href','auth?opt=reset&l=' + $('#loginName-desc').html());
+        });
+        
+    });
+</script>

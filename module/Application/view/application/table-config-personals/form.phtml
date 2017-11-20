@@ -1,0 +1,174 @@
+<?php
+/** ===========================================================================|
+ * FORM - SET_ENTITY
+ * @author SET_AUTHOR
+ * @since SET_SINCE
+ * 
+ * IncludeView - v1
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+$form = $this->form;
+$partial = $this->partialObj('application');
+
+echo '<h3>', $title, '</h3>';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit('Dados');
+$fh->setHorizontal(TRUE);
+
+$idTableConfig = $fh->getIdFor('idTableConfig');
+
+$fh->openCol(6)->select('tableConfig'     )->closeCol();
+$tableConfig = $fh->getLastId();
+
+// == ALTERNADOR NOMEUSUARIO/ ROLE =============================================
+$fh->openCol(6, ['class'=> 'change'])->select('role', [
+    "extra" => ["icon" => "exchange", "class" => "change-to-nomeUsuario", "title" => "Clique para alternar entre role/usuario"],
+])->closeCol();
+$role = $fh->getLastId();
+
+$fh->setPreFix('usuario');
+$idUsuario = $fh->getIdFor('idUsuario');
+
+$fh->openCol(6, ['class'=> 'change'])->text('nomeUsuario', [
+    "extra" => array(
+        ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"],
+        ["icon" => "exchange", "class" => "change-to-role", "title" => "Clique para alternar entre role/usuario"],
+    ),
+    "dt-clear" => join(",", array($idUsuario)),
+])->closeCol();
+$nomeUsuario = $fh->getLastId();
+
+$fh->removePreFix('usuario');
+// =============================================================================
+
+$fh->lineDown();
+$fh->openCol(6)->select('tableConfigColun')->closeCol();
+
+$fh->openCol(6);
+echo '<div class="alert alert-info">Você pode definir a tabela personalizada para um papel OU um funcionário específico clacando em "<i class="fa fa-exchange"></i>" </div>';
+$fh->closeCol();
+
+$fh->lineDown();
+$fh->openCol(6)->number('seq'             )->closeCol();
+
+
+$fh->setHorizontal(FALSE);
+
+$fh->openCol(12)->Submit('submit')->closeCol();
+$fh->formEnd();
+
+// Var de transferencia PHP to JS
+$transp = array(
+    "idUsuario" => $idUsuario,
+    "nomeUsuario" => $nomeUsuario,
+    "tableConfig" => $tableConfig,
+    "role" => $role
+);
+?>
+<script lang="javascript">   
+    
+    /**
+     * Trata os dados da view antes de anvia-los
+     * @author Danilo Dorotheu
+     * @returns {Object}
+     */
+    function trataData(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        if($$(transp.nomeUsuario).is(':visible')){
+            $$(transp.role).find('option:first-child').attr('selected', true);
+        }else{
+            $$(transp.idUsuario).val('');
+            $$(transp.nomeUsuario).val('');
+        };
+        
+        return transp;
+    }
+    
+    /**
+     * Valida os campos antes de envia-los
+     * @author Danilo Dorotheu
+     * @returns {Boolean}
+     */
+    function isValid(){
+        var transp = trataData();
+        var rule1 = ("" == $$(transp.idUsuario).val() && $$(transp.nomeUsuario).is(':visible'));
+        var rule2 = ("" == $$(transp.role).find('option:selected').val() && $$(transp.role).is(':visible'));
+        
+        if(rule1 || rule2){
+            $.notify({
+                message: "É necessário definir um usuário ou um papel para esta tabela personalizada!",
+                type: "danger"
+            });
+            return false;
+        }
+        
+        return true;
+    }
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        /**
+         * 
+         */
+        if("" == $$(transp.idUsuario).val()){
+            $$(transp.nomeUsuario).closest('.change').hide();
+        }else{
+            $$(transp.role).closest('.change').hide();
+        }
+        
+        /**
+         * @element Button
+         * Alterna visualização entre o nomeUsuario e o Role
+         */
+        $('.change-to-role').click(function(){
+            $$(transp.nomeUsuario).closest('.change').hide();
+            $$(transp.role).closest('.change').show();
+        });
+        
+        /**
+         * @element Button
+         * Alterna visualização entre o nomeUsuario e o Role
+         */
+        $('.change-to-nomeUsuario').click(function(){
+            $$(transp.role).closest('.change').hide();
+            $$(transp.nomeUsuario).closest('.change').show();
+        });
+        
+        $$(transp.nomeUsuario).auto({
+            primary: "nomeUsuario",
+            serviceUrl: "<?php echo $this->url('app/default', array('controller' => 'usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                idUsuario: [transp.idUsuario],
+            },
+            showCols: ["nomeUsuario"]
+        });
+        
+        $$(transp.tableConfig).change(function(){
+            var val = $(this).find('option:selected').val();
+            $(this).closest('form').processa({
+                url:"<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    subOpcao: "setTableConfig"
+                }
+            });
+        });
+    });
+    
+</script>

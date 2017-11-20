@@ -1,0 +1,19 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+?>
+<h1><?php echo $this->titulo; ?></h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url('app/default',array('controller'=>$controller,'action'=>$action)); ?>">Reload</button>
+</p>
+<img id="test" src="" />
+<br />
+<script lang="javascript">      
+    $(function(){
+        var linkImg = "<? echo $this->url('app/default',array('controller'=>$controller,'action'=>'getGraphPie'),[],FALSE,FALSE) . "?" . rand(0, 1000);?>";
+        $("#test").attr('src',linkImg);
+    });
+</script>

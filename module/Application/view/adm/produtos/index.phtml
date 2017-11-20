@@ -1,0 +1,192 @@
+<?php
+/* @var $form Adm\Form\Produto */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+$user       = $this->UserIdentity();
+
+echo '<h3>', $title, '</h3>';
+?>
+
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>"><i class='fa fa-plus'></i> Novo</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+</p>
+
+
+<?php
+// $ret        = $form->getValue('ret', '#inter');
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+$fh->setPreFix('produto');
+
+$fh->openCol(2)->renderInputSelect('setor')->closeCol();
+$inpSetor = $fh->getLastId();
+$inpProduto = $fh->getIdFor('id');
+$fh->openCol(3)->renderInputText('nomeProd', [
+    "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+    ,"dt-clear" => $inpProduto,
+])->closeCol();
+$inpProdutoNome = $fh->getLastId();
+$fh->removePreFix('produto');
+echo '<br />';
+
+$fh->setHorizontal(true);
+$fh->openCol(3)->renderInputCheckbox('show',['position' => 'right'],['label' => 'Exibir igual ou abaixo do minimo.'])->closeCol();
+$fh->setHorizontal(false);
+$fh->openCol(2)->renderInputButton(['type' => 'button', 'id' => 'btn-pesquisa'],'Pesquisar','btn btn-primary')->closeCol();
+$fh->openCol(2)->renderInputButton(['type' => 'button', 'id' => 'btn-relatorio'],'Gerar relatório','btn btn-info')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setOrderList($this->dataView['orderBy']);
+$table->renderThead([
+    ['label' => 'ID'                   ],
+    ['label' => 'Nome'                 ],
+    ['label' => 'Valor'                ],
+    ['label' => 'Unidade de entrada'   ],
+    ['label' => 'Quantidade da compra' ],
+    ['label' => 'Unidade de saída'     ],
+    ['label' => 'Quantidade de saída'  ],
+    ['label' => 'Estoque atual'        ],
+    ['label' => 'Estoque Mínimo'       ],
+    ['label' => 'Estoque Máximo'       ],
+    ['label' => 'Setor'                ],
+    ['label' => 'Data de Cadastramento'],
+    ['label' => 'Data da ultima compra'],
+    ['label' => 'Status'],
+    ['label' => 'Ação'                 ],
+]);
+/* @var $entity \Adm\Entity\Produto */
+foreach ($this->data as $entity) {
+
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getNomeProd(),
+        $entity->getValorProd(),
+        $entity->getUnidadeEntrada(),
+        $entity->getCompraQtd(),
+        $entity->getUnidadeSaida(),
+        $entity->getSaidaQtd(),
+        $entity->getEstoqueAtual(),
+        $entity->getEstoqueMinimo(),
+        $entity->getEstoqueMaximo(),
+        $entity->getSetor(),
+        $entity->getCreatedAt(),
+        $entity->getdataUltCompra(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ]);
+}
+    $table->renderCloseTable();
+
+$fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+echo $this->partial('partials/modal');
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpProdutoNome'
+    ,'inpProduto'
+    ,'inpSetor'
+); 
+?>
+<script lang="javascript">
+    
+    //Função do auto-complete
+    function isValid(){
+        return true;
+    }
+
+    function edit(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+        
+    }
+    function del(key) {
+        gModal.reset('confirm',2).setMsg('Deseja mesmo excluir este registro?').setClickOk(function(){
+            var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+            $.processa(data);
+        }).showModal();
+    }
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $$(transp.inpProdutoNome).auto({
+            primary: "nomeProd",
+            width : 800,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'produtos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                id: [transp.inpProduto]
+            },
+            filters: function (data) {
+                data.rules = {
+                    "setor": $$(transp.inpSetor).val()
+                };
+                return data;
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });
+            },        
+            showCols: ["id", "nomeProd", "setor"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpProdutoNome).change(function(){
+            $$(transp.inpProduto).val("");
+        });
+        
+        $('#btn-pesquisa').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'                
+            });
+        });
+    });
+    $(function() {
+        $('#btn-relatorio').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showPdf'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+            });            
+        });  
+    });
+</script>
