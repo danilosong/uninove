@@ -2,7 +2,7 @@
 ## Sistema de Gerenciamento de colaboradores, cartão de ponto e cadastro de produtos.
 
 
-> Versão 0.5.0 lançada! :tada: 
+> Versão 1.0 :tada: 
 
 ### Detalhes da versão:
 1. Gerenciamento de Colaborador
