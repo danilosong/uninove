@@ -5,47 +5,32 @@ namespace Adm\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Pais
- *
- *  @ORM\Table(name="adm_pais", indexes={
- *  @ORM\Index(name="fk_pais_created_by_id_idx"    , columns={"created_by_id"})
- * ,@ORM\Index(name="fk_pais_updated_by_id_idx"    , columns={"updated_by_id"})
+ * TipoLogradouro
+ *  @ORM\Table(name="adm_tipoLogradouro", indexes={
+ *  @ORM\Index(name="fk_logradouro_created_by_id_idx"    , columns={"created_by_id"})
+ * ,@ORM\Index(name="fk_logradouro_updated_by_id_idx"    , columns={"updated_by_id"})
  * })
- * @ORM\Entity(repositoryClass="\Adm\Entity\Repository\PaisRepository")
+ * @ORM\Entity(repositoryClass="\Adm\Entity\Repository\TipoLogradouroRepository")
  * @ORM\HasLifecycleCallbacks
  * @author Danilo Dorotheu <danilo.dorotheu@live.com>
  */
-class Pais extends \Application\Entity\AbstractEntity {
+class TipoLogradouro extends \Application\Entity\AbstractEntity {
 
     /**
      * @var integer
      *
-     * @ORM\Column(name="id_pais", type="integer", nullable=false)
+     * @ORM\Column(name="id_tipo_logradouro", type="integer", nullable=false)
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
-    private $idPais;
+    private $idTipoLogradouro;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="nome_pais", type="string", length=45, nullable=false)
+     * @ORM\Column(name="tipo", type="string", length=20, nullable=true)
      */
-    private $nomePais;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="sigla", type="string", length=3, nullable=true)
-     */
-    private $sigla;
-
-    /**
-     * @var string
-     *
-     * @ORM\Column(name="codigo", type="string", length=45, nullable=true)
-     */
-    private $codigo;
+    private $tipo;
 
     /**
      * @var string
@@ -53,6 +38,20 @@ class Pais extends \Application\Entity\AbstractEntity {
      * @ORM\Column(name="status", type="string", length=10, nullable=false, options={"default" = "ATIVO"})
      */
     private $status='ATIVO';
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="created_at", type="datetime", nullable=true)
+     */
+    private $createdAt;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="updated_at", type="datetime", nullable=true)
+     */
+    private $updatedAt;
 
     /**
      * @var \Application\Entity\Usuario
@@ -75,19 +74,14 @@ class Pais extends \Application\Entity\AbstractEntity {
     protected $updatedBy;
     
     /**
-     * @var \DateTime
      *
-     * @ORM\Column(name="created_at", type="datetime", nullable=true)
+     * @var string
+     * 
+     * @ORM\Column(name="sigla", type="string", length=45, nullable=true) 
      */
-    private $createdAt;
-
-    /**
-     * @var \DateTime
-     *
-     * @ORM\Column(name="updated_at", type="datetime", nullable=true)
-     */
-    private $updatedAt;
+    private $sigla;
     
+
     /**
      * Construtor
      * @param array $options
@@ -97,55 +91,38 @@ class Pais extends \Application\Entity\AbstractEntity {
         parent::__construct($options);
         $this->createdAt = new \DateTime("now");
     }
-    
+
     /**
-     * Retorna o ID do Pais
+     * Retorna o ID do Tipo de Logradouro
      * @return integer
      */
-    public function getIdPais() {
-        return $this->idPais;
+    public function getIdTipoLogradouro() {
+        return $this->idTipoLogradouro;
     }
-    
+
     /**
-     * (Alias) Retorna o ID do Pais
-     * @return integer
+     * (Alias) Retorna o ID do Tipo de Logradouro
+     * @return string
      */
     public function getId() {
-        return $this->getIdPais();
-    }
-    
-    /**
-     * Retorna o nome do Pais
-     * @return string
-     */
-    public function getNomePais() {
-        return $this->nomePais;
+        return $this->getIdTipoLogradouro();
     }
 
     /**
-     * Retorna a sigla do Pais
+     * Retorna o nome do Tipo de Logradouro
      * @return string
      */
-    public function getSigla() {
-        return $this->sigla;
-    }
-    
-    /**
-     * Retorna o codigo do Pais
-     * @return string
-     */
-    public function getCodigo() {
-        return $this->codigo;
+    public function getTipo() {
+        return $this->tipo;
     }
 
     /**
-     * Retorna o status do Pais
-     * @return status
+     * Retorna o status do Tipo de Logradouro
+     * @return string
      */
     public function getStatus() {
         return $this->status;
     }
-
 
     /**
      * Retorna data de desenvolvimento da entidade   
@@ -166,65 +143,44 @@ class Pais extends \Application\Entity\AbstractEntity {
     }
 
     /**
-     * Seta o ID do Pais
-     * @param type $idPais
-     * @return \Adm\Entity\Pais
+     * Seta o ID do tipo de logradouro
+     * @param integer $idTipoLogradouro
+     * @return \Adm\Entity\TipoLogradouro
      */
-    public function setIdPais($idPais) {
-        $this->idPais = $idPais;
+    public function setIdTipoLogradouro($idTipoLogradouro) {
+        $this->idTipoLogradouro = $idTipoLogradouro;
         return $this;
     }
 
     /**
-     * (Alias) Seta o ID do Pais
-     * @param type $idPais
-     * @return \Adm\Entity\Pais
+     * (Alias) Seta o ID do tipo de logradouro
+     * @param integer $id
+     * @return \Adm\Entity\TipoLogradouro
      */
-    public function setId($idPais) {
-        $this->setIdPais($idPais);
+    public function setId($id) {
+        return $this->setIdTipoLogradouro($id);
+    }
+
+    /**
+     * Seta o nome do tipo de logradouro
+     * @param string $tipo
+     * @return \Adm\Entity\TipoLogradouro
+     */
+    public function setTipo($tipo) {
+        $this->tipo = $tipo;
         return $this;
     }
 
     /**
-     * Seta o nome do Pais
-     * @param string $nomePais
-     * @return \Adm\Entity\Pais
-     */
-    public function setNomePais($nomePais) {
-        $this->nomePais = $nomePais;
-        return $this;
-    }
-
-    /**
-     * Seta a sigla do Pais
-     * @param string $sigla
-     * @return \Adm\Entity\Pais
-     */
-    public function setSigla($sigla) {
-        $this->sigla = $sigla;
-        return $this;
-    }
-
-    /**
-     * Seta o codigo do Pais
-     * @param string $codigo
-     * @return \Adm\Entity\Pais
-     */
-    public function setCodigo($codigo) {
-        $this->codigo = $codigo;
-        return $this;
-    }
-    
-    /**
-     * Seta o status do Pais
+     * Retorna o status do tipo de logradouro
      * @param string $status
-     * @return \Adm\Entity\Pais
+     * @return \Adm\Entity\TipoLogradouro
      */
     public function setStatus($status) {
         $this->status = $status;
         return $this;
     }
-    
+
     /**
      * Seta a data de desenvolvimento desta entidade
      * @param \DateTime $createdAt
@@ -244,6 +200,25 @@ class Pais extends \Application\Entity\AbstractEntity {
     public function setUpdatedAt() {
         $this->updatedAt = new \DateTime("now");
         return $this;
+    }
+    
+    public function __toString() {
+        return $this->getTipo();
+    }
+    /**
+     * 
+     * @return string
+     */
+    function getSigla() {
+        return $this->sigla;
+    }
+
+    /**
+     * 
+     * @param string $sigla
+     */
+    function setSigla($sigla) {
+        $this->sigla = $sigla;
     }
 
     /**
@@ -308,5 +283,4 @@ class Pais extends \Application\Entity\AbstractEntity {
     public function getUpdatedBy($method='', Array $params=[]) {
         return $this->relationGet($this->updatedBy, $method, $params);            
     }
-
 }

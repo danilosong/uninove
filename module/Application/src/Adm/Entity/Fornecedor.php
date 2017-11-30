@@ -30,8 +30,8 @@ class Fornecedor extends AdmAbstractEntity {
     private $id;
     
     /**
-     * @var \Tcmed\Entity\Endereco
-     * @ORM\ManyToOne(targetEntity="\Tcmed\Entity\Endereco")
+     * @var \Adm\Entity\Endereco
+     * @ORM\ManyToOne(targetEntity="\Adm\Entity\Endereco")
      * @ORM\JoinColumn(name="endereco_id", referencedColumnName="id_endereco")
      */
     protected $endereco;
@@ -191,10 +191,10 @@ class Fornecedor extends AdmAbstractEntity {
      * @author Danilo Song <danilosong@outlook.com>
      * @version 1.0  
      * @since 14/06/2017           
-     * @param \Tcmed\Entity\Endereco $endereco
+     * @param \Adm\Entity\Endereco $endereco
      * @return \Adm\Entity\Fornecedor   
      */
-    public function setEndereco(\Tcmed\Entity\Endereco $endereco = NULL) {
+    public function setEndereco(\Adm\Entity\Endereco $endereco = NULL) {
         $this->endereco = $endereco;
         return $this;
     }
@@ -207,7 +207,7 @@ class Fornecedor extends AdmAbstractEntity {
      * @since 14/06/2017   
      * @param string $method  Nome do method get a ser retornado da relação.
      * @param array  $params Parametro(s) a serem usado neste  get da relação.
-     * @return \Tcmed\Entity\Endereco
+     * @return \Adm\Entity\Endereco
      */
     public function getEndereco($method='', Array $params=[]) {
         return $this->relationGet($this->endereco, $method, $params);            

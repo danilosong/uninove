@@ -7,12 +7,12 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Bairro
  *
- * @ORM\Table(name="tcmed_bairro", indexes={
+ * @ORM\Table(name="adm_bairro", indexes={
  *      @ORM\Index(name="fk_bairro_cidade1_idx", columns={"id_cidade"})
- *      ,@ORM\Index(name="fk_tcmed_estado_created_by_id_idx"    , columns={"created_by_id"})
- *      ,@ORM\Index(name="fk_tcmed_estado_updated_by_id_idx"    , columns={"updated_by_id"})
+ *      ,@ORM\Index(name="fk_adm_estado_created_by_id_idx"    , columns={"created_by_id"})
+ *      ,@ORM\Index(name="fk_adm_estado_updated_by_id_idx"    , columns={"updated_by_id"})
  * })
- * @ORM\Entity(repositoryClass="\Tcmed\Entity\Repository\BairroRepository")
+ * @ORM\Entity(repositoryClass="\Adm\Entity\Repository\BairroRepository")
  * @ORM\HasLifecycleCallbacks
  * @author Allan Davini
  */
@@ -42,7 +42,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
     private $status = 'ATIVO';
 
     /**
-     * @var \Tcmed\Entity\Cidade
+     * @var \Adm\Entity\Cidade
      *
      * @ORM\ManyToOne(targetEntity="Cidade")
      * @ORM\JoinColumns({
@@ -157,7 +157,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
     /**
      * 
      * @param integer $idBairro
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      */
     public function setIdBairro($idBairro) {
         $this->idBairro = $idBairro;
@@ -167,7 +167,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
     /**
      * 
      * @param string $nomeBairro
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      */
     public function setNomeBairro($nomeBairro) {
         $this->nomeBairro = $nomeBairro;
@@ -177,7 +177,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
     /**
      * 
      * @param string $status
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      */
     public function setStatus($status) {
         $this->status = $status;
@@ -187,7 +187,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
     /**
      * Seta a data de desenvolvimento desta entidade
      * @param \DateTime $createdAt
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      * @author Danilo Dorotheu <danilo.dorotheu@live.com>
      */
     public function setCreatedAt() {
@@ -197,7 +197,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
 
     /**
      * Seta data de atualizacao da entidade
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      * @author Danilo Dorotheu <danilo.dorotheu@live.com>
      */
     public function setUpdatedAt() {
@@ -211,7 +211,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
      * @version 1.0  
      * @since 11-11-2016           
      * @param \Application\Entity\Usuario $createdBy
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      */
     public function setCreatedBy(\Application\Entity\Usuario $createdBy = NULL) {
         $this->createdBy = $createdBy;
@@ -248,7 +248,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
      * @version 1.0  
      * @since 11-11-2016           
      * @param \Application\Entity\Usuario $updatedBy
-     * @return \Tcmed\Entity\Bairro
+     * @return \Adm\Entity\Bairro
      */
     public function setUpdatedBy(\Application\Entity\Usuario $updatedBy = NULL) {
         $this->updatedBy = $updatedBy;
@@ -299,10 +299,10 @@ class Bairro extends \Application\Entity\AbstractEntity {
      * @author Paulo Watakabe <watakabe05@gmail.com>
      * @version 1.0  
      * @since 10-11-2016           
-     * @param \Tcmed\Entity\Cidade $cidade
-     * @return \Tcmed\Entity\Bairro
+     * @param \Adm\Entity\Cidade $cidade
+     * @return \Adm\Entity\Bairro
      */
-    public function setCidade(\Tcmed\Entity\Cidade $cidade = NULL) {
+    public function setCidade(\Adm\Entity\Cidade $cidade = NULL) {
         $this->cidade = $cidade;
         return $this;
     }
@@ -315,7 +315,7 @@ class Bairro extends \Application\Entity\AbstractEntity {
      * @since 10-11-2016   
      * @param string $get  Nome do method get a ser retornado da relação.
      * @param array  $params Parametro(s) a serem usado neste  get da relação.
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function getCidade($get='', Array $params=[]) {
         if(empty($get)){

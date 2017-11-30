@@ -7,13 +7,13 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Estado
  *
- * @ORM\Table(name="tcmed_estado", indexes={
+ * @ORM\Table(name="adm_estado", indexes={
  *       @ORM\Index(name="fk_estado_pais1_idx", columns={"id_pais"})
- *      ,@ORM\Index(name="fk_tcmed_estado_created_by_id_idx"    , columns={"created_by_id"})
- *      ,@ORM\Index(name="fk_tcmed_estado_updated_by_id_idx"    , columns={"updated_by_id"})
+ *      ,@ORM\Index(name="fk_Adm_estado_created_by_id_idx"    , columns={"created_by_id"})
+ *      ,@ORM\Index(name="fk_Adm_estado_updated_by_id_idx"    , columns={"updated_by_id"})
  * 
  * })
- * @ORM\Entity(repositoryClass="\Tcmed\Entity\Repository\EstadoRepository")
+ * @ORM\Entity(repositoryClass="\Adm\Entity\Repository\EstadoRepository")
  * @ORM\HasLifecycleCallbacks
  * @author Danilo Dorotheu <danilo.dorotheu@live.com>
  */
@@ -50,9 +50,9 @@ class Estado extends \Application\Entity\AbstractEntity{
     private $status = 'ATIVO';
 
     /**
-     * @var \Tcmed\Entity\Pais
+     * @var \Adm\Entity\Pais
      *
-     * @ORM\ManyToOne(targetEntity="\Tcmed\Entity\Pais")
+     * @ORM\ManyToOne(targetEntity="\Adm\Entity\Pais")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="id_pais", referencedColumnName="id_pais")
      * })
@@ -142,7 +142,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param integer $idEstado
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setIdEstado($idEstado) {
         $this->idEstado = $idEstado;
@@ -166,7 +166,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param string $nomeEstado
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setNomeEstado($nomeEstado) {
         $this->nomeEstado = $nomeEstado;
@@ -190,7 +190,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param string $uf
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setUf($uf) {
         $this->uf = $uf;
@@ -214,7 +214,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param string $status
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setStatus($status) {
         $this->status = $status;
@@ -237,10 +237,10 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @author Paulo Watakabe <watakabe05@gmail.com>
      * @version 1.0  
      * @since 11-11-2016           
-     * @param \Tcmed\Entity\Pais $pais
-     * @return \Tcmed\Entity\Estado
+     * @param \Adm\Entity\Pais $pais
+     * @return \Adm\Entity\Estado
      */
-    public function setPais(\Tcmed\Entity\Pais $pais = NULL) {
+    public function setPais(\Adm\Entity\Pais $pais = NULL) {
         $this->pais = $pais;
         return $this;
     }
@@ -253,7 +253,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @since 11-11-2016   
      * @param string $get  Nome do method get a ser retornado da relação.
      * @param array  $params Parametro(s) a serem usado neste  get da relação.
-     * @return \Tcmed\Entity\Pais
+     * @return \Adm\Entity\Pais
      */
     public function getPais($get='', Array $params=[]) {
         if(empty($get)){
@@ -275,7 +275,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param \DateTime | string $createdAt
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setCreatedAt($createdAt = '') {
         $this->createdAt = $this->strToDate($createdAt);
@@ -301,7 +301,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param \DateTime | string $updatedAt
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setUpdatedAt($updatedAt = '') {
         $this->updatedAt = $this->strToDate($updatedAt);
@@ -327,7 +327,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param \Application\Entity\Usuario $createdBy
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setCreatedBy(\Application\Entity\Usuario $createdBy = NULL) {
         $this->createdBy = $createdBy;
@@ -364,7 +364,7 @@ class Estado extends \Application\Entity\AbstractEntity{
      * @version 1.0  
      * @since 11-11-2016           
      * @param \Application\Entity\Usuario $updatedBy
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function setUpdatedBy(\Application\Entity\Usuario $updatedBy = NULL) {
         $this->updatedBy = $updatedBy;

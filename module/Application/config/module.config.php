@@ -162,19 +162,6 @@ return array(
                 'may_terminate' => true,
                 'child_routes' => &$child_routes,
             ),
-            'tcmed' => array(
-                'type' => 'Literal',
-                'options' => array(
-                    'route' => '/adm',
-                    'defaults' => array(
-                        '__NAMESPACE__' => 'Adm\Controller',
-                        'controller' => 'Index',
-                        'action' => 'index',
-        ),
-    ),
-                'may_terminate' => true,
-                'child_routes' => &$child_routes,
-            ),
             'adm' => array(
                 'type' => 'Literal',
                 'options' => array(
@@ -248,14 +235,7 @@ return array(
             'Endereco\Controller\Ufs'                       => 'Endereco\Controller\UfsController',
             'Endereco\Controller\Cidades'                   => 'Endereco\Controller\CidadesController',
             'Endereco\Controller\Enderecos'                 => 'Endereco\Controller\EnderecosController',
-            'Endereco\Controller\Respostas'                 => 'Endereco\Controller\RespostasController',
-            'Endereco\Controller\Perguntas'                 => 'Endereco\Controller\PerguntasController',
-            'Endereco\Controller\ExamesCompls'              => 'Endereco\Controller\ExamesComplsController',
-            'Endereco\Controller\QuestionarioPerguntas'     => 'Endereco\Controller\QuestionarioPerguntasController',
-            'Endereco\Controller\Questionarios'             => 'Endereco\Controller\QuestionariosController',
             'Endereco\Controller\Cats'                      => 'Endereco\Controller\CatsController',
-            'Endereco\Controller\Consultas'                 => 'Endereco\Controller\ConsultasController',
-            'Endereco\Controller\Completes'                 => 'Endereco\Controller\CompletesController',
 
             // REGISTRAR AQUI SOMENTE CONTROLLERS DE ADM
             'Adm\Controller\Testes'                 => 'Adm\Controller\TestesController',
@@ -353,20 +333,6 @@ return array(
                     __DIR__ . '/../src/Endereco/Entity',
                 ),
             ),
-            'Tcmed_driver' => array(
-                'class' => 'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
-                'cache' => 'array',
-                'paths' => array(
-                    __DIR__ . '/../src/Tcmed/Entity',
-                ),
-            ),
-            'Agenda_driver' => array(
-                'class' => 'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
-                'cache' => 'array',
-                'paths' => array(
-                    __DIR__ . '/../src/Agenda/Entity',
-                ),
-            ),
             'Adm_driver' => array(
                 'class' => 'Doctrine\ORM\Mapping\Driver\AnnotationDriver',
                 'cache' => 'array',
@@ -378,8 +344,6 @@ return array(
                 'drivers' => array(
                     __NAMESPACE__ . '\Entity' => __NAMESPACE__ . '_driver',
                     'Endereco\Entity' => 'Endereco_driver',
-                    'Tcmed\Entity' => 'Tcmed_driver',
-                    'Agenda\Entity' => 'Agenda_driver',
                     'Adm\Entity' => 'Adm_driver',
                 )
             ),
@@ -387,8 +351,6 @@ return array(
         'data-fixture' => array(
             __NAMESPACE__ . '_fixture' => __DIR__ . '/../src/' . __NAMESPACE__ . '/Fixture',
             'Endereco_fixture'         => __DIR__ . '/../src/Endereco/Fixture',
-            'Tcmed_fixture'            => __DIR__ . '/../src/Tcmed/Fixture',
-            'Agenda_fixture'           => __DIR__ . '/../src/Agenda/Fixture',
             'Adm_fixture'              => __DIR__ . '/../src/Adm/Fixture',
         ),
     ),

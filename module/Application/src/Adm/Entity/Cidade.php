@@ -7,12 +7,12 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Cidade
  *
- * @ORM\Table(name="tcmed_cidade", indexes={
+ * @ORM\Table(name="adm_cidade", indexes={
  *      @ORM\Index(name="fk_cidade_estado1_idx"                 , columns={"id_estado"})
- *      ,@ORM\Index(name="fk_tcmed_cidade_created_by_id_idx"    , columns={"created_by_id"})
- *      ,@ORM\Index(name="fk_tcmed_cidade_updated_by_id_idx"    , columns={"updated_by_id"})
+ *      ,@ORM\Index(name="fk_Adm_cidade_created_by_id_idx"    , columns={"created_by_id"})
+ *      ,@ORM\Index(name="fk_Adm_cidade_updated_by_id_idx"    , columns={"updated_by_id"})
  * })
- * @ORM\Entity(repositoryClass="\Tcmed\Entity\Repository\CidadeRepository")
+ * @ORM\Entity(repositoryClass="\Adm\Entity\Repository\CidadeRepository")
  * @author Danilo Dorotheu <danilo.dorotheu@live.com>
  * @ORM\HasLifecycleCallbacks
  */
@@ -76,9 +76,9 @@ class Cidade extends \Application\Entity\AbstractEntity
     protected $updatedBy;
 
     /**
-     * @var \Tcmed\Entity\Estado
+     * @var \Adm\Entity\Estado
      *
-     * @ORM\ManyToOne(targetEntity="\Tcmed\Entity\Estado")
+     * @ORM\ManyToOne(targetEntity="\Adm\Entity\Estado")
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="id_estado", referencedColumnName="id_estado")
      * })
@@ -112,7 +112,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 15-11-2016 
      * @param int $id
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setId($id) {
         return $this->setIdCidade($id);
@@ -124,7 +124,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param integer $idCidade
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setIdCidade($idCidade) {
         $this->idCidade = $idCidade;
@@ -148,7 +148,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param string $nomeCidade
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setNomeCidade($nomeCidade) {
         $this->nomeCidade = $nomeCidade;
@@ -172,7 +172,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param string $status
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setStatus($status) {
         $this->status = $status;
@@ -196,7 +196,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param \DateTime | string $createdAt
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setCreatedAt($createdAt = '') {
         $this->createdAt = $this->strToDate($createdAt);
@@ -222,7 +222,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param \DateTime | string $updatedAt
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setUpdatedAt($updatedAt = '') {
         $this->updatedAt = $this->strToDate($updatedAt);
@@ -248,7 +248,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param \Application\Entity\Usuario $createdBy
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setCreatedBy(\Application\Entity\Usuario $createdBy = NULL) {
         $this->createdBy = $createdBy;
@@ -285,7 +285,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @version 1.0  
      * @since 11-11-2016           
      * @param \Application\Entity\Usuario $updatedBy
-     * @return \Tcmed\Entity\Cidade
+     * @return \Adm\Entity\Cidade
      */
     public function setUpdatedBy(\Application\Entity\Usuario $updatedBy = NULL) {
         $this->updatedBy = $updatedBy;
@@ -321,10 +321,10 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @author Paulo Watakabe <watakabe05@gmail.com>
      * @version 1.0  
      * @since 11-11-2016           
-     * @param \Tcmed\Entity\Estado $estado
-     * @return \Tcmed\Entity\Cidade
+     * @param \Adm\Entity\Estado $estado
+     * @return \Adm\Entity\Cidade
      */
-    public function setEstado(\Tcmed\Entity\Estado $estado = NULL) {
+    public function setEstado(\Adm\Entity\Estado $estado = NULL) {
         $this->estado = $estado;
         return $this;
     }
@@ -337,7 +337,7 @@ class Cidade extends \Application\Entity\AbstractEntity
      * @since 11-11-2016   
      * @param string $get  Nome do method get a ser retornado da relação.
      * @param array  $params Parametro(s) a serem usado neste  get da relação.
-     * @return \Tcmed\Entity\Estado
+     * @return \Adm\Entity\Estado
      */
     public function getEstado($get='', Array $params=[]) {
         if(empty($get)){
