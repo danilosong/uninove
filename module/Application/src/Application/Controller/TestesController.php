@@ -12,41 +12,6 @@ class TestesController extends CrudController
         $this->setLog(TRUE);
     }
     
-    public function testgraphAction() {
-        return $this->makeView(['titulo' => 'teste']);
-    }
-    
-    public function getGraphAction() {        
-        /* @var $audiometria \Tcmed\Entity\Audiometria */
-        $ydata = [10,15,20,20,15,10,5,10];
-        $ydata2 =    [5,10,15,5,10];
-        $lado = 'direito';
-        $graphModel = $this->getGraphModel('getGraphOrelha');
-        $graphModel->setVars(compact("ydata", "ydata2", "lado"));
-        // Add the plot to the graph
-        $graphModel->printGraph();
-    }
-    
-    public function testeGraphBarAction() {        
-        $dataView = $this->getDataView('Teste ' . $this->getTitle(), 'testeGraphBar');
-        return $this->makeView(compact("dataView"));
-    }
-    
-    public function getGraphPieAction() {        
-        /* @var $audiometria \Tcmed\Entity\Audiometria */
-        // Some data
-        $data = array(70,30);
-        $graphModel = $this->getGraphModel('getGraphPie', 'GraphPie');
-        $graphModel->setVars(compact("data"));
-        // Add the plot to the graph
-        $graphModel->printGraph();
-    }
-    
-    public function testeGraphPieAction() {        
-        $dataView = $this->getDataView('Teste ' . $this->getTitle(), 'testeGraphPie');
-        return $this->makeView(compact("dataView"));
-    }
-    
     public function emailAction() {
         $email = $this->getEmail();
         $data = [
@@ -66,23 +31,22 @@ class TestesController extends CrudController
             ],
         ];
         $email->enviaEmail([
-            'to' => 'watakabe05@gmail.com',
-            'cc' => ['paulo@tcmed.com.br'],
-            'cco' => ['watakabe98@hotmail.com'],
-            'toName' => 'Paulo Japa',
+            'to' => 'danilosong@outlook.com',
+            'cc' => ['danilosong@outlook.com'],
+            'cco' => ['danilosong@outlook.com'],
+            'toName' => 'Danilo Song',
             'subject' => 'testando',
             'data' => $data,
-//            'anexos' => ['/var/www/tcmed/data/asoImages/asoVV.png','/var/www/tcmed/data/medicoAssin/medico1.jpg','/var/www/tcmed/data/anexos/mpdf.pdf'],
         ]);
         echo 'enviado';
         return $this->setRedirect();
     }
     
     public function generateAction() {
-        $dataView = $this->getDataView('Gerar Seters e Geters ' . $this->name, 'generate');
-        $options['path']        = "/var/www/tcmed/module/Application/src/Tcmed/Entity/LiberacaoExame.php";
-        $options['returnClass'] = "\Tcmed\Entity\LiberacaoExame";
-        $options['author']      = "Paulo Watakabe <watakabe05@gmail.com>";
+        $dataView = $this->getDataView('Gerar Seters e Geters ');
+        $options['path']        = "/var/www/uninove/module/Application/src/...";
+        $options['returnClass'] = "\Adm\Entity\...";
+        $options['author']      = "Danilo Song <danilosong@outlook.com>";
         $options['version']     = "1.0";
         $request = $this->getRequest();
         if ($request->isPost()) {
@@ -107,11 +71,8 @@ class TestesController extends CrudController
     }
     
     public function imageAction() {
-        $path = "/var/www/tcmed/data/medicoAssin/medico2.jpg";
         
         return $this->makeView(compact("path"));
-        
-        $path = "/var/www/tcmed/data/asoImages/asoVV.png";
         
         $ext = substr(trim($path), -3);
         
