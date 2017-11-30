@@ -1,0 +1,24 @@
+<?php
+$emailTcmed = $this->param("emailTcmed", "emails_default");
+$emailVilaVelha = $this->param("emailVilaVelha", "emails_default");
+
+/**
+ * @var array Mensagens do servidor que serão lidas na view
+ * OBS: Após ler mensagens, fila é apagada
+ * @see javascript::createMessages
+ */
+$messages = $this->flashMessenger()->getCurrentAllMessages();
+$this->flashMessenger()->clearCurrentAllMessages();
+?>
+
+<h2>Guia de Exames Complementares</h2>
+
+<iframe id="iframeAso" width='100%' height='500' frameborder='0' src='<?php echo $this->url('tcmed/default', $this->route, [], FALSE, FALSE); ?>'></iframe>
+<script lang="javascript">
+    $(function () {
+        /**
+         * Alterar a altura para visualização do aso
+         */
+        $('#iframeAso').height($(document).height() * 0.89);
+    });
+</script>

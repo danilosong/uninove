@@ -1,0 +1,32 @@
+<h3><?php echo $this->dataView['titulo']; 
+$controller = 'respostas';
+$route = 'tcmed/default';
+?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp
+ * @author Allan Davini */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Respostas:');
+    $fh->openCol('12')->select('pergunta')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('resposta')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('respostaCheck')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('consulta')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('status')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

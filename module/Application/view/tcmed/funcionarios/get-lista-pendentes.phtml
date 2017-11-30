@@ -1,0 +1,51 @@
+<?php
+/* @var $table \Application\View\Helper\Table 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * 
+ */
+$route = 'tcmed/default';
+$table = $this->table();
+
+$table->openTable(TRUE);
+$table->renderThead([
+    'Funcionário',
+    'RG',
+    'Setor',
+    'Cargo',
+    'Administradora',
+    'Empresa',
+    'Registrado por',
+    'Ação'
+]);
+
+$lambda = function ($value, $data) {
+    echo '<td>';
+    echo '<a class="hand" onclick="abrirPend(' . $value . ')"><i class="fa fa-eye"></i> Exibir</a>';
+    echo '</td>';
+};
+$table->setLambda($lambda);
+
+foreach ($this->pendentes as $entity) {
+    /* @var $entity \Tcmed\Entity\Funcionario */
+    $table->renderLine([
+        $entity->getNomeFuncionario(),
+        $entity->getRg(),
+        ($entity->histOcupacionalAtual()) ? $entity->histOcupacionalAtual()->getOcupacao()->getSetor()->getNomeSetor() : "-",
+        ($entity->histOcupacionalAtual()) ? $entity->histOcupacionalAtual()->getOcupacao()->getCargo()->getCargo() : "-",
+        $entity->getEmpresa()->getAdministradora()->getFantasiaAdm(),
+        $entity->getEmpresa()->getFantasiaEmpresa(),
+        $entity->getCreatedBy()->getNomeUsuario(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<script type="text/javascript">
+    function abrirPend(id) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => "funcionarios", 'action' => 'edit'), [], FALSE, FALSE); ?>/" + id,
+            ret: "#inter",
+        });
+    }
+</script>
+

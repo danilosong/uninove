@@ -1,0 +1,24 @@
+<?php
+/*
+ * @author Paulo Watakabe <email>watakabe05@gmail.com</email>
+ * 
+ */ 
+/* @var $entity \Tcmed\Entity\ConsultaExameCompl */
+$entity = $this->entity;
+
+if(!$entity){
+    echo "['error','Não foi econtrado esse registro'];";
+}else{    
+    $str = '[';
+    $str .= '"' .  $entity->getFuncionario()->getId() . '"';
+    $str .= ',"' . $entity->getEmpresa()->getId() . '"';
+    $str .= ',"' . $entity->getConsulta()->getId() . '"';
+    $str .= ',"' . $entity->getExameCompl()->getId() . '"';
+    $str .= ',"' . $entity->getExameCompl()->getExame() . '"';
+    $str .= ',"' . $entity->getData() . '"';
+    $str .= ($entity->getResultado()) ? ',"1"' : ',"0"' ;
+    $str .= ',"' . $entity->getObservacao() . '"';
+    $str .= ',"' . $entity->getId() . '"';
+    $str .= '];';
+    echo $str;
+}

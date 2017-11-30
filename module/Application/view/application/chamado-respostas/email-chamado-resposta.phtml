@@ -1,0 +1,37 @@
+<?php
+/* @var $entity \Application\Entity\ChamadoResposta */
+$entity     = $this->data['entity'];
+$hr         = date("H"); 
+$user       = $this->UserIdentity();
+$saudacao   = ($hr <= 12)?'Bom dia!':'Boa tarde!';
+/* @var $param \Application\View\Helper\Param */
+$param      = $this->Param();
+$prioridade = $param($entity->getChamado('prioridade'), "select_chamado_prioridade");
+$situacao   = $param($entity->getChamado('situacao'), "select_chamado_situacao");
+$setor      = $param($entity->getChamado('setor'), "select_chamado_setor");
+?>
+<p><?= $saudacao;?>!!!</p>
+<h2>Alerta!</h2>
+<p>
+    Foi efetuado uma resposta referente ao chamado de titulo: <strong><?= $entity->getChamado('titulo'); ?></strong>,<br/>
+    Chamado aberto em:  <strong><?= $entity->getChamado()->getCreatedAt('full')?></strong>,<br/>
+    Prioridade:         <strong><?= $prioridade; ?></strong>,<br/>
+    Setor:              <strong><?= $setor; ?></strong>,<br/>
+    Situação:           <strong><?= $situacao; ?></strong>.
+</p>
+<table border="1">
+    <tr>
+        <th>Resposta do chamado </th>
+        <th>Cópia para          </th>
+        <th>Tempo de resposta   </th>
+        <th>Respondido em       </th>
+        <th>Respondido por      </th>
+    </tr>
+    <tr>
+        <td><?= $entity->getTexto(); ?>                     </td>
+        <td><?= implode("<br/>", $entity->getCopiaPara()); ?>  </td>
+        <td><?= $entity->getHoras();?>                      </td>
+        <td><?= $entity->getCreatedAt('full')?>             </td>
+        <td><?= $entity->getCreatedBy('nome')?>             </td>
+    </tr>
+</table>

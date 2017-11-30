@@ -399,12 +399,25 @@ abstract class CrudController extends AbstractActionController {
         
         if ($request->isPost()) {
             $data = $request->getPost()->toArray();
+        }else{
+            if(isset($data['subOpcaoPag'])){
+                unset($data['subOpcaoPag']); // retirar essa variavel quando for carregada da sessão
+            }
         }
         !is_array($data) && $data = [];
-        $this->sessao('post', false);  // reseta os dados que estavam ou não na sessao post
         $form->setData($this->getFormatFormData($data));
         $this->changeIndexAction($form, $dataView, $data);
         $this->page = $this->params()->fromRoute('page', $form->get('page')->getValue());
+        if(isset($data['subOpcaoPag']) AND $data['subOpcaoPag'] == 'loadPage'){
+            $this->sessao('page.' . $this->name ,$this->page);
+            $this->sessao('post', $data);  
+        }else{
+            $this->sessao('post', false);  // reseta os dados que estavam ou não na sessao post
+        }
+        
+        if (!$request->isPost()) {
+            $this->page = $this->sessao('page.' . $this->name);
+        }
 
         $doctrinePaginator = new DoctrinePaginator($list);
         $paginatorAdapter = new PaginatorAdapter($doctrinePaginator);

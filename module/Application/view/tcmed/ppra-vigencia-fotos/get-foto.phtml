@@ -1,0 +1,28 @@
+<?php
+
+    /* @var $foto \Tcmed\Entity\PpraVigenciaFoto */
+    $foto = $this->entity;
+
+    $param     = $this->Param();
+
+    $img = $foto->getPath();
+    $path= $param('dir', 'ppraVigFoto_dir') . $img;
+
+    $info = getimagesize($path);
+    if($info[0] < $info[1]){
+        $newHeight = 600;
+        $imgHeight = " height: {$newHeight}px ;";
+        $imgWidth  = ' width : ' . number_format($info[0] / $info[1] * $newHeight, 0) . 'px ;';
+    }else{
+        $newWidth = 600;
+        $imgHeight = ' height: ' . number_format($info[0] / $info[1] * $newWidth, 0) . 'px ;';
+        $imgWidth  = " width : {$newWidth}px ;";
+    }
+    $src = $this->Image($path, TRUE);
+    
+//    echo '<pre>', var_dump($info), '</pre>';
+//    echo '<pre>', var_dump($imgHeight), '</pre>';
+//    echo '<pre>', var_dump($imgWidth), '</pre>';
+//    echo '<pre>', var_dump($info[0] / $info[1] * $newHeight), '</pre>';
+    
+    echo "<img style='{$imgWidth}{$imgHeight}' src='{$src}' data-realpath='{$path}' />" . PHP_EOL . "</td>" . PHP_EOL;

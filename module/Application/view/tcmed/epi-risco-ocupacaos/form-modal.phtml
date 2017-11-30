@@ -1,0 +1,60 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$entity     = $this->entity;
+$form       = $this->form;
+
+$form->setAttribute('id', 'formModalEpiOcupacao');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action' => $action,
+), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+
+    $idEpiRiscoOcupacao = $fh->getIdFor('idEpiRiscoOcupacao');
+    $ocupacao           = $fh->getIdFor('ocupacao');
+    $riscoOcupacao      = $fh->getIdFor('riscoOcupacao');
+
+    $fh->setPreFix('epi');
+        $idEpi = $fh->getIdFor('idEpi');
+        $epi   = $fh->getIdFor('epi');
+
+        $fh->openCol(12)->text('epi', [
+            'dt-clear' => $idEpi,
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ])->closeCol();
+    $fh->removePreFix('epi');
+
+$fh->formEnd();
+
+// Var de transferencia PHP to JS
+$transp = compact('epi', 'idEpi');
+?>
+<br>
+<br>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+
+        $$(transp.epi).auto({
+            primary: "epi",
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'Epis', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                "id": [transp.idEpi],
+            },
+            showCols: ["epi"]
+        });
+    });
+
+</script>

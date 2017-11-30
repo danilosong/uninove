@@ -1,0 +1,208 @@
+<?php
+/** ===========================================================================|
+ * FORM - Bloco
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 24-07-2016
+ * 
+ * IncludeView - v1
+ */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$ajax       = $this->dataView['ajax'      ];
+$id         = ($this->entity)? $this->entity->getId() : 0;
+
+/* @var $form \Agenda\Form\Bloco */
+$form = $this->form;
+
+// define o sistema de flashMessage
+$partial = $this->partialObj('tcmed');
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+echo $this->partial('partials/modal');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$url = $this->url($route, compact('controller', 'action', 'id'), [], FALSE, $ajax);
+$fh  = $this->formHelp($this, $form, $url);
+
+
+$fh->openLine();
+$fh->openCol(10);
+echo '<h2>', $title, '</h2>';
+$fh->closeCol();
+
+$fh->openCol(2)->buildButton(['id' => 'voltar-index', 'class' => 'btn-block'], '<i class="fa fa-arrow-left"></i> Voltar p/ lista', 'primary', TRUE)->closeCol();
+$fh->closeLine();
+
+
+/*
+ |------------------------------------------------------------------------------
+ | 
+ |------------------------------------------------------------------------------
+ |
+ |
+ */
+
+$styleContainer = implode(';', [
+    "padding: 10px",
+    "border-radius: 5px",
+    "border: 1px solid #ccc",
+    "background-color: #ffffee"
+]);
+
+$fh->openLine()->openCol(12);
+
+echo $fh->openDiv("id='container-listagem' style='{$styleContainer}'");
+    $fh->openLine();
+        $fh->openCol(12, ['id' => 'listagem-itens'])->closeCol();
+    $fh->lineDown();
+        $fh->openCol(12);
+            echo '<i id="hide-show" class="fa fa-eye pull-right hand"></i>';
+        $fh->closeCol();
+    $fh->closeLine();
+    ?>
+        <script type="text/javascript">
+            $(function() {
+                $('#hide-show').click(function () {
+                    if ($(this).hasClass('fa-eye')) {
+                        $(this).removeClass('fa-eye');
+                        $(this).addClass('fa-eye-slash');
+                        $('#listagem-itens').hide();
+                    } else {
+                        $(this).removeClass('fa-eye-slash');
+                        $(this).addClass('fa-eye');
+                        $('#listagem-itens').show();
+                    }
+                });
+            });
+        </script>
+    <?
+echo $fh->closeDiv();
+
+$fh->closeCol()->closeLine();
+
+
+/* ================================ CORPO - INI ==================================== */
+$style = implode(';', [
+    'overflow-y: scroll',
+    'height: 700px',
+    'margin: 0px',
+    'padding: 0px'
+]);
+echo $fh->openDiv(" id='corpo' style='{$style}' ");
+
+/*
+ |------------------------------------------------------------------------------
+ | 
+ |------------------------------------------------------------------------------
+ |
+ |
+ */
+
+$fh->formInit('')->openCol(12);
+$fh->openLine();
+
+$idBloco        = $fh->getIdFor('id');
+$anoAgendamento = $fh->getIdFor('anoAgendamento');
+$blocoItens     = $fh->getIdFor('blocoItens');
+
+$fh->openCol(12)->text('observacao')->closeCol();
+
+$fh->openCol(2, 5)->buildButton(['id' => 'enviaForm', 'class' => 'btn-block'], 'Salvar', 'success', TRUE)->closeCol();
+
+$fh->closeLine();
+$fh->closeCol()->formEnd(); 
+echo '<br><br>';
+
+/*
+ |------------------------------------------------------------------------------
+ | 
+ |------------------------------------------------------------------------------
+ |
+ |
+ */
+
+$fh->openLine()->openCol(12);
+echo '<div id="listagem-empresas"></div>';
+$fh->closeCol()->closeLine();
+
+echo $fh->closeDiv();
+/* ================================ CORPO - FIM ==================================== */
+
+
+$transp = compact('idBloco', 'blocoItens', 'anoAgendamento', 'idMedico', 'action');
+?>
+
+<br>
+<br>
+<script type="text/javascript" src="/js/jquery-sortable.js"></script>
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        /**
+         * Monta a listagem de empresas
+         */
+        $.processa({
+            url: "<?= $this->url($route, array('controller' => 'blocoItems', 'action' => 'getListaBlocoItem'), [], FALSE, FALSE); ?>",
+            ret: "#listagem-itens",
+            savePage: false
+        });
+
+        /**
+         * Monta a listagem de empresas
+         */
+        $.processa({
+            url: "<?php echo $this->url('tcmed/default', array('controller' => 'empresas', 'action' => 'indexBloco'), [], FALSE, FALSE); ?>",
+            type: "POST",
+            data: {
+                ret: '#listagem-empresas',
+                subOpcao: "fakePost"
+            },
+            ret: "#listagem-empresas",
+            savePage: false
+        });
+
+
+        $('#voltar-index').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        /**
+         * @event Botao de visualização de pendentes 
+         */
+        $("#enviaForm").click(function () {
+            var $form = $(this).closest('form');
+            var params = {
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                type: 'POST',
+                savePage: false
+            };
+
+            gModal.reset("confirm", 1)
+                    .setClickOk(function () {
+                        params.data = {
+                            newAgain: true
+                        };
+                        $form.processa(params);
+                    })
+                    .setClickNg(function () {
+                        $form.processa(params);
+                    })
+                    .setLabelOk("SIM")
+                    .setLabelNg("NÃO, voltar ao inicio")
+                    .setMsg('Deseja montar um novo bloco utilizando as páginas já definidas?')
+                    .showModal();
+        });
+
+    });
+
+</script>

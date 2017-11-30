@@ -399,15 +399,19 @@
          * @since 23-05-2017
          * @param {string} msg
          * @param {int} color
+         * @param {string} tit
          * @returns {modalController}
          */
-        this.alert = function(msg,color){
+        this.alert = function(msg,color, tit){
             if(color == null){
                 color = 2 ;
             }
             this.reset('alert',color);
             if(msg){
                 this.setMsg(msg);
+            }
+            if(tit){
+                this.setTit(tit);
             }
             this.showModal();
             return this;

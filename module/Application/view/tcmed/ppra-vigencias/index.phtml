@@ -1,0 +1,197 @@
+<?php
+/* @var $form Tcmed\Form\PpraVigencia */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+
+echo '<h3>', $title, '</h3>';
+
+// $ret        = $form->getValue('ret', '#inter');
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+echo "<br /><br />";
+
+$fh->formInit();
+$fh->setPreFix('ppraVigencia');
+
+    $fh->openCol(12);
+    $partial->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'hideCnpj' => TRUE]);
+    $fh->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(3)->calend('ini')->closeCol();
+    $fh->openCol(3)->calend('fim')->closeCol();
+    $fh->openCol(3)->checkbox('pendente'   )->closeCol();
+    $fh->openCol(3)->checkbox('showInativo')->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(2, 2)->buildButton(['id' => 'pesquisar', 'class' => 'btn-block'], '<i class="fa fa-search"></i> Pesquisar', 'primary', TRUE)->closeCol();
+    $fh->openCol(2, 1)->buildButton(['id' => 'limpaForm', 'class' => 'btn-block'], '<i class="fa fa-refresh"></i> Limpar'  , 'warning', TRUE)->closeCol();
+    $fh->openCol(2, 1)->buildButton(['id' => 'salvar'   , 'class' => 'btn-block'], '<i class="fa fa-floppy-o"></i> Salvar' , 'primary', TRUE)->closeCol();
+
+$fh->removePreFix('ppraVigencia');
+$fh->jumpLine(2);
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setLambda(function($value, $data) {   
+    echo "\t", '<td nowrap style="font-size: 14pt;">';
+    echo    '<i title="Editar Vigencia" class="fa fa-pencil hand editar" data-id="' . $value . '"></i>' . PHP_EOL;
+    echo    '&nbsp;&nbsp;';
+    switch ($data[10]) {
+        case "ATIVO":
+    echo    '<i title="Excluir Vigencia" class="fa fa-trash hand remover" data-id="' . $value . '"></i>' . PHP_EOL;
+    echo    '&nbsp;&nbsp;';
+            break;
+        case "PENDENTE":
+    echo    '<i title="Ativar PPRA" class="fa fa-flash hand ativa" data-id="' . $value . '"></i>' . PHP_EOL;
+    echo    '&nbsp;&nbsp;';
+            break;
+        case "INATIVO":
+    echo    '<i title="Reativar Vigencia" class="fa fa-lightbulb hand reativa" data-id="' . $value . '"></i>' . PHP_EOL;
+    echo    '&nbsp;&nbsp;';
+            break;
+    }
+    echo "</td>", PHP_EOL;
+});
+
+$table->setOrderList($this->dataView['orderBy']);
+$table->renderThead([
+    ['label' => 'id'        ],
+    ['label' => 'Cod. Emp.' ],
+    ['label' => 'Nome'      ],
+    ['label' => 'Contato'   ],
+    ['label' => 'Inicio'    ],
+    ['label' => 'Vencimento'],
+    ['label' => 'Cad. por'  ],
+    ['label' => 'Data Cad.' , 'order' => 'e.createdAt'],
+    ['label' => 'Alt. por'  ],
+    ['label' => 'Data Alt.' , 'order' => 'e.updatedAt'],
+    ['label' => 'Sit.'      ],
+    ['label' => 'Ação'      ],
+]);
+/* @var $entity \Tcmed\Entity\Ppra */
+foreach ($this->data as $entity) {
+
+    $colorType     = "";
+
+    if("PENDENTE" == $entity->getStatus()) {
+        $colorType = "warning";
+    }
+
+    if("INATIVO" == $entity->getStatus()) {
+        $colorType = "danger";
+    }
+
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getEmpresa('referenciaEmp'),
+        $entity->getEmpresa('fantasiaEmpresa'),
+        $entity->getNome(),
+        $entity->getIni(),
+        $entity->getFim(),
+        $entity->getCreatedBy('nome'),
+        $entity->getCreatedAt(),
+        $entity->getUpdatedBy('nome'),
+        $entity->getUpdatedAt(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ], "class={$colorType}");
+}
+$table->renderCloseTable();
+$fh->closeCol();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?
+$fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+// ================== carregar modal para Mensagens ==============================
+echo $this->partial('partials/modal',[]);
+
+ ?>
+
+<script lang="javascript">
+
+    $(function () {
+        $('.editar').click(function() {
+            var id = $(this).data('id');
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>/" + id,
+                type: "POST",
+                data: {
+                    'fakepost': true
+                }
+            });
+        });
+
+        $('.remover').click(function() {
+            var id = $(this).data('id');
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>/" + id,
+                type: "POST",
+                data: {
+                    'fakepost': true
+                }
+            });
+        });
+
+        $('#pesquisar').click(function() {
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $('#salvar').click(function() {
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $('#limpaForm').click(function() {
+            $.processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $('.reativa').click(function() {
+            var id = $(this).data('id');
+            $(this).closest('form').processa({
+                url  : "<?= $this->url($route, array('controller' => $controller, 'action' => 'reativaVigencia'), [], FALSE, FALSE); ?>/" + id,
+                type : 'POST'
+            });
+        });
+
+        $('.ativa').click(function() {
+            var id = $(this).data('id');
+            gModal.confirm('Tem certeza que deseja Ativar esse Laudo do PPRA', function(){
+                $(this).closest('form').processa({
+                    url  : "<?= $this->url($route, array('controller' => $controller, 'action' => 'ativaVigencia'), [], FALSE, FALSE); ?>/" + id,
+                    type : 'POST'
+                });
+            });
+        });
+    });
+</script>

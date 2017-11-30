@@ -1,0 +1,154 @@
+<?php
+/* @var $form Application\Form\Chamado */
+/* @var $table \Application\View\Helper\Table */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('tcmed');
+$form       = $this->form;
+$user       = $this->UserIdentity();
+/* @var $param \Application\View\Helper\Param */
+$param = $this->Param();
+
+echo '<h3>', $title, '</h3>';
+?>
+
+<br />
+<p>
+    <button class="btn btn-success" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>"><i class='fa fa-plus'></i> Abrir chamado</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>"><i class='fa fa-refresh'></i> Atualiza</button>
+    <button class="btn btn-warning" onclick="<?php echo $this->url($route, array('controller' => 'chamadoRespostas', 'action'  => 'index')); ?>"><i class='glyphicon glyphicon-arrow-right'></i> Ir para listagem de chamado respostas</button>
+</p>
+
+
+<?php
+// $ret        = $form->getValue('ret', '#inter');
+// $form->setAttribute('target', $ret);
+$table = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$lambdaPendente = function ($value, &$data){
+        if (is_callable($this->funcEdit)) {
+            $lambda = $this->funcEdit;
+            $lambda($value, $data);
+            return;
+        }
+        echo "\t", '<td nowrap style="font-size: 14pt;">',
+                   '<span class="hand" onClick="atendeChamado(\'', $value, '\',this)" title="Atender chamado"><i class="glyphicon glyphicon-share-alt"></i></span>',
+                   "</td>", PHP_EOL; 
+};
+
+$lambdaSolucao = function ($value, &$data){
+        if (is_callable($this->funcEdit)) {
+            $lambda = $this->funcEdit;
+            $lambda($value, $data);
+            return;
+        }
+        echo "\t", '<td nowrap style="font-size: 14pt;">',
+                   '<span title="Atender chamado"><i class="glyphicon glyphicon-thumbs-up"></i></span>',
+                   "</td>", PHP_EOL; 
+};
+
+$lambdaCancelado = function ($value, &$data){
+        if (is_callable($this->funcEdit)) {
+            $lambda = $this->funcEdit;
+            $lambda($value, $data);
+            return;
+        }
+        echo "\t", '<td nowrap style="font-size: 14pt;">',
+                   '<span title="Atender chamado"><i class="glyphicon glyphicon-remove"></i></span>',
+                   "</td>", PHP_EOL; 
+};
+
+$fh->formInit();
+$fh->lineDown();
+    $fh->openCol(12);
+        $table->openTable(TRUE);
+        
+        $table->setOrderList($this->dataView['orderBy']);
+        $table->renderThead([
+            ['label' => 'ID'                        ],
+            ['label' => 'Titulo'                    ],
+            ['label' => 'Prioridade'                ],
+            ['label' => 'Setor'                     ],
+            ['label' => 'Prazo'                     ],
+            ['label' => 'Data da finalização'       ],
+            ['label' => 'Tempo para solução'        ],
+            ['label' => 'Carga horária da solução'  ],
+            ['label' => 'Criado por'                ],
+            ['label' => 'Criado em'                , 'order' => 'createdAt'    ],
+            ['label' => 'Situação'                 , 'order' => 'situacao'     ],
+            ['label' => 'Ação'                      ],
+
+        ]);
+        /* @var $entity \Application\Entity\Chamado */
+        foreach ($this->data as $entity) {
+        /* @var $solucao \Application\Entity\Chamado */
+            if($entity->getSituacao() != "3" AND $entity->getSituacao() != "4"){
+                $menu = $lambdaPendente;
+            }else if($entity->getSituacao() == "4"){
+                $menu = $lambdaCancelado;
+            }else{
+                $menu = $lambdaSolucao;
+            }
+            $table->setLambda($menu);
+            $table->renderLine([
+                $entity->getId(),
+                $entity->getTitulo(),
+                $param($entity->getPrioridade(), "select_chamado_prioridade"),
+                $param($entity->getSetor(), "select_chamado_setor"),
+                $entity->getPrazo('full'),
+                $entity->getFinalizado('full'),
+                $entity->getHoras(),
+                $entity->getHorasTotal(),
+                $entity->getCreatedBy('nome'),
+                $entity->getCreatedAt('full'),
+                $param($entity->getSituacao(), "select_chamado_situacao"),
+                $entity->getId(),
+            ]);
+        }
+        $table->renderCloseTable();
+
+    $fh->closeCol();
+$fh->closeLine();
+$fh->formEnd();
+echo $this->partial('partials/modal');
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>
+</center>
+
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+); 
+?>
+<script lang="javascript">
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+    
+    });
+        function atendeChamado(key) {
+        gModal.reset('confirm',2).setMsg('Deseja realmente atender a este chamado???').setClickOk(function(){
+            var data = {url: "<?php echo $this->url($route, array('controller' => 'chamadoRespostas', 'action' => 'new'), [], FALSE, FALSE); ?>" + "/" + key};
+            $.processa(data);
+        }).showModal();
+    }
+</script>

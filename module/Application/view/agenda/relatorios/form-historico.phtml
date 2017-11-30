@@ -1,0 +1,105 @@
+<?php
+/** ===========================================================================|
+ * FORM - SET_ENTITY
+ * @author SET_AUTHOR
+ * @since SET_SINCE
+ * 
+ * IncludeView - v1
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+$form = $this->form;
+$partial = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3>';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit()->openCol(12); // ===============================================
+$fh->openLine();
+
+$fh->openCol(12);
+$partial->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'rules' => $rules, 'hideCnpj' => TRUE]);
+$fh->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(3, 3)->calend('dtIni')->closeCol();
+$dtIni = $fh->getLastId();
+
+
+$fh->openCol(3)->calend('dtFim')->closeCol();
+$dtFim = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->openCol(9, 3)->checkbox('agendFuturo', ['position' => 'right'])->closeCol();
+$agendFuturo = $fh->getLastId();
+
+$fh->openCol(2, 2);
+$fh->buildButton(['id' => 'limpar', 'class' => 'btn-block'], 'Limpar Tela', "primary", TRUE);
+$fh->closeCol();
+
+$fh->openCol(2, 4);
+$fh->buildButton(['id' => 'pesquisar', 'class' => 'btn-block gerarTodos'], 'Pesquisar', "success", TRUE);
+$fh->closeCol();
+
+$fh->closeLine();
+$fh->closeCol()->formEnd(); // =================================================
+
+// Var de transferencia PHP to JS
+$transp = array_merge(
+    $partial->fieldsEmpresa, 
+    compact('dtIni', 'dtFim', 'agendFuturo')
+);
+
+?>
+<br>
+<br>
+<script lang="javascript">   
+    
+    function isValid(){
+        return true;
+    }
+    
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $('#limpar').click(function() {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+            });
+        });
+        
+        $('#pesquisar').click(function() {
+            if("" == $$(transp.idAdministradora).val()){
+                $.notify({
+                    message: "Selecione pelo menos a Administradora",
+                    type: "danger"
+                });
+                return false;
+            }
+        
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+            });
+        });
+        
+        $$(transp.agendFuturo).click(function() {
+            $$(transp.dtIni).prop('disabled', $(this).is(':checked'));
+            $$(transp.dtFim).prop('disabled', $(this).is(':checked'));
+        });
+    });
+    
+</script>

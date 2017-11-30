@@ -1,0 +1,42 @@
+<?php
+/* @var $entity \Application\Entity\Chamado */
+$entity     = $this->data['entity'];
+$hr         = date("H"); 
+$user       = $this->UserIdentity();
+$saudacao   = ($hr <= 12)?'Bom dia!':'Boa tarde!';
+/* @var $param \Application\View\Helper\Param */
+$param      = $this->Param();
+$prioridade = $param($entity->getPrioridade(), "select_chamado_prioridade");
+$situacao   = $param($entity->getSituacao(), "select_chamado_situacao");
+$setor      = $param($entity->getSetor(), "select_chamado_setor");
+$categoria  = '<ul><li>'.implode("<li>" , $entity->getCategoria()). '</li></ul>';
+$copiaPara  = '<ul><li>'.implode("<li>" , $entity->getCopiaPara()). '</ul></li>';
+?>
+<p><?= $saudacao;?>!!!</p>
+<h2>Alerta!</h2>
+<h3>Chamado:    <?= $entity->getTitulo(); ?></h3>
+<p>Criado por:  <?= $entity->getCreatedBy('nome'); ?></p>
+<table border="1">
+    <tr>
+        <th colspan="6">Descrição do chamado</th>
+    </tr>
+    <tr>
+        <td colspan="6"><?= $entity->getDesc(); ?></td>
+    </tr>
+    <tr>
+        <th>Prioridade          </th>
+        <th>Setor               </th>
+        <th>Categoria da C.I    </th>
+        <th>Cópia Para          </th>
+        <th>Criado em           </th>
+        <th>Situação            </th>
+    </tr>
+    <tr>
+        <td><?= $prioridade; ?>                                     </td>
+        <td><?= $setor; ?>                                          </td>
+        <td><?= $categoria; ?>                                      </td>
+        <td><?= $copiaPara; ?>                                      </td>
+        <td><?= $entity->getCreatedAt('full'); ?>                   </td>
+        <td><?= $situacao; ?>                                       </td>
+    </tr>
+</table>

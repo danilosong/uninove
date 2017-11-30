@@ -1,0 +1,184 @@
+<script type="text/javascript">
+    /**
+     * Gerencia de forma abstrata, uma listagem de dados a partir de um input
+     * identificado por $field
+     */
+
+    var mnglist = (function($) {
+
+        var $field  = false;
+        var _params = {
+            ret: "#lista",
+            type: "POST",
+            savePage: false
+        }
+
+        /**
+         * Transforma o txt do campo $field em um objeto
+         */
+        var getList = function(opt) {
+            if(opt) {
+                return $field.val() || "[]";
+            }
+
+            return JSON.parse($field.val() || "[]");
+        }
+
+        /**
+         * Transforma o objeto list em txt e armazena no campo $field
+         */
+        var setList = function(lista) {
+            $field.val(JSON.stringify(lista));
+        }
+
+        /**
+         * Retorna o index do item
+         */
+        var getIndexBy = function(val) {
+            var list = getList();
+
+            var ret = -1;
+            for(i = 0; i < list.length; i++) {
+                if(list[i].id == val) {
+                    ret = i;
+                }
+            }
+            return ret;
+        }
+
+        /**
+         * Facilita a exibicao da mensagem
+         */
+        var message = function(msg, type) {
+            $.notify({
+                message: msg,
+                type: type || "success"
+            });
+        }
+
+        /**
+         * Atualiza a listagem na view
+         */
+        var atualiza = function(callback) {
+            if(callback) {
+                _params.callback = callback;
+            }
+
+            _params.data = {
+                lista: getList(true),
+                field: $field.attr('id')
+            };
+
+            $.processa(_params);
+        }
+
+        return {
+
+            /**
+             * Adiciona o item na lista
+             */
+            addItem: function(value) {
+                var list = getList();
+
+                if("" == value.id) {
+                    message("Campo vazio! Preencha os dados do item antes de adicioná-lo", "danger");
+                    return false;
+                }
+
+                var index = getIndexBy(value.id);
+                if(0 <= index) {
+                    message("Item já consta na lista!", "danger");
+                    return false;
+                }
+
+                list.push(value);
+                message("Item foi adicionado na lista!");
+
+                setList(list);
+                return this;
+            },
+
+            editItem: function(item) {
+                var list  = getList();
+                var index = getIndexBy(item.id);
+                if(-1 == index) {
+                    message("Item não foi encontrado!", "danger");
+                    return false;
+                }
+
+                $.extend(list[index], item, list[index]);
+                mnglist.message('Item foi atualizado com sucesso!');
+                setList(list);
+                return this;
+            },
+
+            /**
+             * Remove o item da lista
+             */
+            rmvItem: function(id) {
+                var list = getList();
+
+                var index = getIndexBy(id);
+                if(0 > index) {
+                    message("Item não existe na lista!", "danger");
+                    return false;
+                }
+
+                list.splice(index, 1);
+                message("Item foi removido da lista!");
+
+                setList(list);
+                return this;
+            },
+
+            /**
+             * Seta o campo que será usado para armazenar a lista em
+             * formato text
+             */
+            setField: function(field) {
+                $field = field;
+                return this;
+            },
+
+            /**
+             * Seta os parametros do servidor para atualizacao
+             */
+            setParamSrv: function(params) {
+                $.extend(_params, params, _params);
+                console.log(_params);
+                return this;
+            },
+
+            getItemBy: function(id) {
+                var index = getIndexBy(id);
+                if(-1 < index) {
+                    return getList()[index];
+                }
+                return false;
+            },
+
+            /**
+             * Atualiza a tabela de itens da view
+             */
+            atualiza: function(callback) {
+                atualiza(callback);
+                return this;
+            },
+
+            message: function(msg, type) {
+                message(msg, type)
+            },
+
+            roar: function() {
+                console.log("ROOOOOAAAAR!");
+            },
+
+            init: function(params) {
+                mnglist.setField(params.field);
+                _params.url = params.url;
+                _params.ret = params.ret;
+            }
+        }
+
+    })(jQuery);
+</script>

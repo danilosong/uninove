@@ -26,14 +26,14 @@ class AppLog extends AbstractEntity
     /**
      * @var string
      *
-     * @ORM\Column(name="controller", type="string", length=30, nullable=false)
+     * @ORM\Column(name="controller", type="string", length=200, nullable=false)
      */
     private $controller;
 
     /**
      * @var string
      *
-     * @ORM\Column(name="action", type="string", length=30, nullable=false)
+     * @ORM\Column(name="action", type="string", length=100, nullable=false)
      */
     private $action;
 

@@ -1,0 +1,144 @@
+<?php
+/**
+ * +===========================================================================+
+ * | VIEW INDEX - v1.5
+ * +===========================================================================+
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @version 1.5
+ * @since 30-11-2016
+ * 
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$partial = $this->partialObj('application');
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+echo "<h2>{$title} <small>da Administradora {$data['empresa']['administradora']['razaoSocial']}</small></h2>";
+echo "<button id='voltar' class='btn btn-primary'><i class='fa fa-arrow-left'></i> Voltar</button><br><br>";
+
+$table->openTable(TRUE);
+$table->setEditLine(FALSE);
+
+$table->renderThead([
+    ['label' => "Seq"],
+    ['label' => "Condomínio"],
+    ['label' => "Qtd Fun"],
+    ['label' => "Medico"],
+    ['label' => "Tot Amb"],
+    ['label' => "Realizou no ambulatorio depois da visita"],
+    ['label' => "Tot Rea"],
+    ['label' => "Funcionários<br>Realizados no<br>Condomínio"],
+    ['label' => "Tot Pen"],
+    ['label' => "Funcionários Pendentes"],
+    ['label' => "OBS"],
+]);
+
+
+$totFuncionarios    = 0;
+$totalNaoRea        = 0;
+$totalRealizados    = 0;
+$totalRealizadosAmb = 0;
+
+/* @var $relatDetEmp \Agenda\Entity\RelatorioDetEmp */
+/* @var $relatDetFunc \Agenda\Entity\RelatorioDetFunc */
+foreach ($this->result as $key => $relatDetEmp) {
+    $listaRelatDetFunc = $relatDetEmp->listRelatorioDetFunc();
+    
+    $totFuncionarios += $relatDetEmp->getQtdFunc();
+    
+    // Monta a coluna de Administradora
+    $administradora = <<<ADMINISTRADORA
+        {$relatDetEmp->getAdministradora('razaoSocial')} <br>
+        Cod: {$relatDetEmp->getAdministradora('referenciaSubhold')}
+ADMINISTRADORA;
+    
+    // Monta a coluna de médico
+    $medico = <<<MEDICO
+        {$relatDetEmp->getMedico('nomeMedico')} <br>
+        Visitado em <br>
+        {$relatDetEmp->getAgendadoEm()}
+MEDICO;
+        
+    // Monta a coluna de OBS
+    $obs = <<<OBS
+        Relatorio {$relatDetEmp->getRelatorio('id')}<br>
+        {$relatDetEmp->getObs()} <br>
+OBS;
+        
+    // Gera os contadores
+    $realizadosAmb = [];
+    $realizados    = [];
+    $pendentes     = [];
+    
+    foreach ($listaRelatDetFunc as $relatDetFunc) {
+        $nomeFunc = substr($relatDetFunc->getFuncionario('nomeFuncionario'), 0, 19);
+        
+        if($relatDetFunc->getRealizou()) {
+            $totalRealizados++;
+            $realizados[] =  $nomeFunc;
+            continue;
+        }
+        
+        if($relatDetFunc->getRealizouAmb()) {
+            $totalRealizadosAmb++;
+            $realizadosAmb[] = $nomeFunc;
+            continue;
+        }
+        
+        $totalNaoRea++;
+        $pendentes[] = $nomeFunc;
+    }
+    
+    
+    $table->renderLine([
+        $key + 1,
+        $administradora,
+        $relatDetEmp->getQtdFunc(),
+        $medico,
+        count($realizadosAmb),
+        "<font style= 'font-size: 9px; white-space: nowrap;'>" . implode('<br>', $realizadosAmb) . "</font>",
+        count($realizados),
+        "<font style= 'font-size: 9px; white-space: nowrap;'>" . implode('<br>', $realizados)    . "</font>",
+        count($pendentes),
+        "<font style= 'font-size: 9px; white-space: nowrap;'>" . implode('<br>', $pendentes)     . "</font>",
+        $obs
+    ], "style='font-size: 12px;'");
+}
+
+$table->renderCloseTable();
+
+echo '<hr>';
+
+$table->openTable(TRUE);
+$table->setEditLine(FALSE);
+
+$table->renderLine(["Funcionarios Total: {$totFuncionarios}"            ], "class='text-right info'");
+$table->renderLine(["Funcionarios Não Realizados: {$totalNaoRea}"       ], "class='text-right info'");
+$table->renderLine(["Funcionarios Não Realizados: {$totalRealizados}"   ], "class='text-right info'");
+$table->renderLine(["Funcionarios Não Realizados: {$totalRealizadosAmb}"], "class='text-right info'");
+
+$table->renderCloseTable();
+
+// Var de transferencia PHP to JS
+$transp = array(
+    
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $('#voltar').click(function(){
+            $('#godown').click();
+        });
+    });
+</script>
+

@@ -1,0 +1,123 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$form       = $this->form;
+/* @var $param \Application\View\Helper\Param */
+$param        = $this->Param();
+
+$ret        = $form->getValue('ret', '#inter');
+$form->setAttribute('target', $ret);
+$table = $this->table();
+
+$fh = $this->formHelp($this,$form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj('tcmed');
+
+// Lê as mensagens do servidor através do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+?>
+<p id="ppraAparelhoIndexMenu">
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Limpar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<br />
+<?php
+
+if($ret == '#inter'){
+    $fh->formInit();
+    $_POST['formId'] = $formId;
+}else{
+    $fh->renderFieldsetIni()->renderAllHidden();
+    $formId = true;
+}
+
+$fh->openCol(8);
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p id="acaoAnomaliaCausaIndexMenu">
+    <button type="button" class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Atualizar</button>
+</p>
+<br />
+<?php
+$fh->closeCol()->openCol(4)->select('limitePag',['labelWidth' => 6,'clean' => FALSE,'extra' => ['icon' => 'search', 'js' => "atualizaPag()"]]);
+$fh->closeCol()->lineDown();
+$fh->openCol(12);
+    $table->openTable(TRUE);
+    $table->setEditLine('first');
+    $table->setOrderList($this->dataView['orderBy']);
+    $table->renderThead([
+        'Ação'
+        ,['label' => 'Aparelho'            , 'order' => 'nome'           ] 
+        ,['label' => 'Titulo'              , 'order' => 'titulo'         ]
+        ,['label' => 'Agente'              , 'order' => 'agente'         ]
+        ,['label' => 'Metodo'              , 'order' => 'metodo'         ]
+        ,['label' => 'Orientação'          , 'order' => 'orientacao'     ]
+        ,['label' => 'Status'              , 'order' => 'status'         ]
+        ,['label' => 'Criado por:'         , 'order' => 'createdBy'      ]
+        ,['label' => 'criado em'           , 'order' => 'createdAt'      ]
+        ,['label' => 'Alterado por:'       , 'order' => 'createdBy'      ]
+        ,['label' => 'Alterado em'         , 'order' => 'createdAt'      ]
+        ]);
+    /* @var $entity \Tcmed\Entity\PpraAparelho */
+    foreach ($this->data as $entity) {
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getNome(),
+            $entity->getTitulo(),
+            $param($entity->getAgente(), 'ppra_agentes'),
+            $entity->getMetodo(),
+            $entity->getOrientacao(),
+            $entity->getStatus(),
+            $entity->getCreatedBy('nomeUsuario'),
+            $entity->getCreatedAt('full'),
+            $entity->getUpdatedBy('nomeUsuario'),
+            $entity->getUpdatedAt(),
+        ]);
+    }
+    $table->renderCloseTable();
+$fh->closeCol()->closeLine();
+
+if($ret == '#inter'){
+    $fh->formEnd();
+}
+// === TRANSPORTE ==============================================================
+$transp = [
+    'action'                 => $action
+    ,'ret'                   => $ret      
+];
+// ===================================================================== FIM ===
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    $(function () {
+        var fields = <?php echo json_encode($transp) ?>;
+        // Esconder menu superior do index
+        if('#inter' !== fields.ret){
+            $('#ppraAparelhoIndexMenu').hide();
+        }
+        
+    });
+    
+    var edit = function(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    };
+    var del = function(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        gModal.reset('confirm', 2).setMsg(msg).setClickOk(function(){
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key
+            });
+        }).showModal();
+    };
+    
+</script>

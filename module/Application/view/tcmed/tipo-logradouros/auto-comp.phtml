@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * Inicia resultados
+ */
+if ($this->resultSet) {
+    $array = [];
+    switch ($this->subOpcao) {
+        default :
+            /* @var $entity \Tcmed\Entity\TipoLogradouro */
+            $array[] = [
+                "menu_id"          => "ID",
+                "menu_descricao"   => "Descrição",
+            ];
+            foreach ($this->resultSet as $entity) {
+                $array[] = [
+                    "id"        => $entity->getIdTipoLogradouro()
+                    , "tipo"    => $entity->getTipo()
+                ];
+            }
+
+            break;
+    }
+
+    echo json_encode($array);
+}

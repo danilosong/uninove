@@ -1,0 +1,64 @@
+#!/bin/bash
+
+REPOSIT=$1
+ENTITY=$3
+FORM=$1
+CONTROL=$1
+FILTER=$1
+SERVICE=$1
+FILE=$2
+
+#Trata o Repository
+cd /var/www/tcmed/module/Application/src/Tcmed/Entity/Repository
+cp modelo.php mod.php
+mv modelo.php $REPOSIT"Repository.php"
+mv mod.php modelo.php
+sed "s/modelo/${REPOSIT}Repository/g" $REPOSIT"Repository.php" > "temp.php"
+mv "temp.php" $REPOSIT"Repository.php"
+
+#trata o entity
+cd /var/www/tcmed
+php public/index.php orm:convert-mapping --filter="Tcmed$ENTITY" --from-database annotation /var/www/tcmed/module/Application/src/Tcmed/Entity/
+
+cd /var/www/tcmed/module/Application/src/Tcmed/Entity/
+sed "s/Tcmed//g" "Tcmed"$ENTITY".php" > "temp.php"
+mv "temp.php" $CONTROL".php"
+rm "Tcmed"$ENTITY".php"
+
+#Trata o form
+cd /var/www/tcmed/module/Application/src/Tcmed/Form
+cp modelo.php mod.php
+mv modelo.php $FORM".php"
+mv mod.php modelo.php
+sed "s/modelo/$FORM/g" $FORM".php" > "temp.php"
+mv "temp.php" $FORM".php"
+
+#Trata o controller
+cd /var/www/tcmed/module/Application/src/Tcmed/Controller
+cp modelo.php mod.php
+mv modelo.php $CONTROL"sController.php"
+mv mod.php modelo.php
+sed "s/modelo/$CONTROL/g" $CONTROL"sController.php" > "temp.php"
+mv "temp.php" $CONTROL"sController.php"
+
+#Trata o Service
+cd /var/www/tcmed/module/Application/src/Tcmed/Service
+cp modelo.php mod.php
+mv modelo.php $SERVICE".php"
+mv mod.php modelo.php
+sed "s/modelo/$SERVICE/g" $SERVICE".php" > "temp.php"
+mv "temp.php" $SERVICE".php"
+
+#Trata o Filter
+cd /var/www/tcmed/module/Application/src/Tcmed/Form/Filter
+cp modelo.php mod.php
+mv modelo.php $FILTER"Filter.php"
+mv mod.php modelo.php
+sed "s/modelo/$FILTER/g" $FILTER"Filter.php" > "temp.php"
+mv "temp.php" $FILTER"Filter.php"
+
+cd /var/www/tcmed/module/Application/view/tcmed/
+mkdir $FILE;
+cd /var/www/tcmed/module/Application/view/tcmed/modelo
+cp * /var/www/tcmed/module/Application/view/tcmed/$FILE/.
+

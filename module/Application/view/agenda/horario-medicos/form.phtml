@@ -1,0 +1,216 @@
+<?php
+/**
+ * HORÁRIO MEDICOS
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 03-06-2016
+ */
+$controller = $this->dataView['controller'];
+$route = $this->dataView['route'];
+$action = $this->dataView['action'];
+$titulo = $this->dataView['titulo'];
+$entity = $this->entity;
+/* @var $form Agenda\Form\HorarioMedico */
+$form = $this->form;
+
+//Printa as mensagens do servidor diretamente no form
+if (is_array($this->resul) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+/**
+ * Lê as mensagens do servidor através do flashMessenger
+ */
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+echo "<h1>{$titulo}</h1>";
+$fh->formInit('Definir horário para o(a) Doutor(a)', ["noPreFormInit" => TRUE]);
+
+$fh->openCol(3)->select('mesTo')->closeCol();
+$mesTo = $fh->getLastId();
+
+$fh->setPreFix('medico');
+$idMedico = $fh->getIdFor('idMedico');
+
+$fh->openCol(7)->text('nomeMedico', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+$nomeMedico = $fh->getLastId();
+
+$fh->openCol(2);
+$fh->buildButton(['id' => 'clear-form', 'class' => 'btn-block', 'style' => 'margin-top: 25px'], $fh->buildIcon('eraser') . " Limpar", "primary", TRUE);
+$fh->closeCol();
+$fh->removePreFix('medico');
+
+
+$fh->jumpLine(2);
+
+
+$fh->lineDown();
+
+/*
+ * +===========================================================================+
+ * # Carrega a listagem de horários
+ * +===========================================================================+
+ * | Aqui serão listados os horários definidos para este horarioMedico
+ * |
+ */
+$fh->openCol(12, ['id' => 'lista-horarios', 'style' => 'border: 2px solid #ddd'])->closeCol();
+/* |
+ * +===========================================================================+
+ */
+
+$fh->openCol(2, 5);
+$fh->buildButton(['id' => 'salvar', 'class' => 'btn-block', 'style' => 'margin-top: 25px'], 'Salvar', "primary", TRUE);
+$fh->closeCol();
+
+$fh->closeLine();
+$fh->formEnd();
+
+$fh->openLine();
+$fh->openCol(12, ['id' => 'tabela-medicos'])->closeCol();
+$fh->closeLine();
+
+$fields = array(
+    "nomeMedico" => $nomeMedico,
+    "idMedico" => $idMedico,
+    "mesTo" => $mesTo,
+    "idHorarioMedico" => ($entity) ? $entity->getId() : 0,
+//    "mesFrom" => $mesFrom,
+);
+?>
+<script type="text/javascript" src="/js/jquery-sortable.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        var $calend = $('.dias');
+
+        /**
+         * @description A listagem será carregada automaticamente, quando abrir 
+         * o form.pthml de horarioMedicos
+         */
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showListaHorarios'), [], FALSE, FALSE); ?>",
+            type: "POST",
+            data: {
+                idHoraMed: fields.idHorarioMedico,
+                dateRef: $$('mesTo').val(),
+                subOpcao: "fakePost"
+            },
+            ret: "#lista-horarios",
+            savePage: false
+        });
+
+        /**
+         * Limpa o formulário
+         */
+        $('#clear-form').click(function () {
+            if (confirm("Deseja realmente apagar os campos?")) {
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                });
+            }
+        });
+
+        /**
+         * 
+         * @param {type} mesReferencia Mes de referencia para pegar dados do srv
+         * @param {type} subOpcao [previous | next | current]
+         * @returns {void}
+         */
+        function getListaMedicos(mesReferencia, subOpcao) {
+            mesReferencia = mesReferencia || $$(fields.mesTo).val();
+            subOpcao = subOpcao || "current";
+
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage: false,
+                data: {
+                    dateRef: mesReferencia,
+                    subOpcao: subOpcao,
+                    fakePost: 1
+                },
+                ret: "#tabela-medicos"
+            });
+        }
+
+        // AUTOCALL evento de gerar listagem de médicos
+        getListaMedicos();
+
+        /**
+         * Autocomplete Medico
+         */
+        $$(fields.nomeMedico).auto({
+            primary: "nomeMedico",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Medicos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            showCols: ["nomeMedico"],
+            filters: function (data) {
+                data.rules = {
+                    "status": "EXTERNO"
+                };
+                return data;
+            },
+            callback: function (data) {
+                $$(fields.idMedico).val(data.idMedico);
+
+                $$(fields.idMedico).closest('form').processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'renderByData'), [], FALSE, FALSE); ?>",
+                    savePage: false,
+                });
+            },
+        });
+
+        /**
+         * Verifica se possui algum campo preenchido no cadastro de horários
+         * @returns {Boolean}         
+         */
+        function temCamposPreenchidos() {
+            var check = false;
+            
+            $('#lista-horarios').find('input').each(function () {
+                var $input = $(this);
+
+                if ('text' == $input.attr('type') && !$input.isEmpty()) {
+                    check = true;
+                }
+                
+                if ('checkbox' == $input.attr('type') && $input.is(':checked')) {
+                    check = true;
+                }
+            });
+            
+            return check;
+        }
+        
+        $('#salvar').click(function () {
+            if(temCamposPreenchidos()){
+                $.notify({
+                    "message": "Existem campos que foram preenchidos e não foram salvos no cadastro de horários!!",
+                    "type": "danger"
+                });
+                return false;
+            }
+            
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                savePage: false
+            });
+        });
+
+        /**
+         * Ao trocar o mês de seleção das datas, alterar também o mês de visualização
+         * do calendário 
+         */
+        $$("#mesTo").change(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'renderByData'), [], FALSE, FALSE); ?>",
+                savePage: false,
+            });
+        });
+
+    });
+</script>

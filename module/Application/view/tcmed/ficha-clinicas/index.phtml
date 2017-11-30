@@ -1,0 +1,99 @@
+<?php
+/*
+ * @author Paulo Watakabe <email>watakabe05@gmail.com</email>
+ * 
+ */ 
+/* @var $table \Application\View\Helper\Table */
+/* @var $param \Application\View\Helper\Param */
+
+$table = $this->table();
+$param = $this->Param();
+$controller = 'fichaClinicas';
+$route = 'tcmed/default';
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1>Ficha Clinica</h1>
+<br />
+<!--
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+-->
+<?php
+$table->openTable(TRUE);
+$table->renderThead([
+    'ID', 
+    'Consulta', 
+    'Status', 
+    'Resultado', 
+    'Normal', 
+    'Ocupacional', 
+    'Retorno', 
+    'Validade', 
+    'Observacao Cid', 
+    'Observacao Retorno', 
+    'Observacao Final', 
+    'CAT Aberto', 
+    'Abrir CAT', 
+    'Medico',
+    'HistOcupacional', 
+    'Exame', 
+    'Administradora', 
+    'Funcionario',
+    'Empresa', 
+    'Clinica', 
+    'Ação'
+]);
+/* @var $entity \Tcmed\Entity\Consulta */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getDtConsulta(),
+        $entity->getStatus(),
+        $param($entity->getResultado()  ,'FC_Resultado'),
+        $param($entity->getNormal()     ,'FC_normal'),
+        $param($entity->getOcupacional(),'FC_Ocupacional'),
+        $entity->getDtRetorno(),
+        $entity->getValidade(),
+        $entity->getObservacaoCid(),
+        $entity->getObservacaoRetorno(),
+        $entity->getObservacaoFinal(),
+        $entity->getCatAberto()? 'sim' : 'não',
+        $entity->getAbrirCat()? 'sim' : 'não',
+        $entity->getMedico()->getNomeMedico(),
+        $entity->getHistOcupacional(),
+        $entity->getTipo(),
+        $entity->getAdministradora()->getRazaoSocial(),
+        $entity->getFuncionario()->getNomeFuncionario(),
+        $entity->getEmpresa()->getRazaoSocial(),
+        $entity->getClinica()->getRazaoSocial(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    $(function () {
+
+    });
+</script>

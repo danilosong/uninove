@@ -1,0 +1,153 @@
+<?php
+/** ============================================================================
+ * Gera Formulário de Empresas p/ filtra-los na action pesquisaEmpresa
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 15-04-2016
+ * @see Tcmed\Controller\EmpresasController::pesquisaEmpresaAction()
+ *  ========================================================================== */
+//
+/* @var $form \Tcmed\Form\Empresa */
+$form = $this->form;
+
+$controller = "guias";
+$route = "tcmed/default";
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+$partialObject = $this->partialObj('tcmed');
+?>
+<div class="row">
+    <div class="col-md-8">
+        <h2>Pesquisar Guias</h2>
+    </div>
+</div>
+<br>
+<?php
+$fh->formInit('Dados para a consulta de Guias', ["noPreFormInit" => TRUE]);
+$fh->setPreFix("guia");
+
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this]);
+$fh->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setPreFix("funcionario");
+$idFuncionario = $fh->getIdFor("idFuncionario");
+$fh->openCol(3)->number('referenciaFun')->closeCol();
+$referenciaFun = $fh->getLastId();
+$fh->openCol(9)->text('nomeFuncionario', ['dt-clear' => $idFuncionario, "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+$nomeFuncionario = $fh->getLastId();
+
+$fh->removePreFix("funcionario");
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(3)->calend("ini", [], ["label" => "Data de Emissão"])->closeCol();
+$fh->openCol(3)->calend("fim", [], ["label" => "Até"])->closeCol();
+
+$createdBy = $fh->getIdFor("createdBy");
+$fh->openCol(6)->text('filtro1', [], ["label" => "Usuario"])->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(3)->number('idGuia', [], ["label" => "Codigo de Autenticacao"])->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(3)->checkbox('showInativo', ["position" => "right"])->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(2)->buildButton(["id" => "limpar", "class" => "btn-block"], '<i class="fa fa-eraser"></i> Limpar', "primary", TRUE)->closeCol();
+$fh->openCol(2,3)->buildButton(["id" => "pesquisar", "class" => "btn-block"], '<i class="fa fa-search"></i> Pesquisar', "success", TRUE)->closeCol();
+$fh->openCol(2,3)->buildButton(["id" => "atualizar", "class" => "btn-block"], '<i class="fa fa-refresh"></i> Atualizar', "primary", TRUE)->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(12, ["id" => "lista"])->closeCol();
+
+$fh->removePreFix();
+$fh->formEnd();
+
+$fields = array(
+    "idFuncionario" => $idFuncionario,
+    "referenciaFun" => $referenciaFun,
+    "nomeFuncionario" => $nomeFuncionario,
+    "createdBy" => $createdBy,
+    "nomeUsuario" => "filtro1"
+);
+?>
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+
+        $.processa({
+            url: "<?php echo $this->url('tcmed/default', array('controller' => "guias", 'action' => 'listaGuiasEmitidas'), [], FALSE, FALSE); ?>",
+            type: "POST",
+            savePage: false,
+            ret: "#lista"
+        });
+
+        $("#pesquisar").click(function () {
+            $(this).closest("form").processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'guias', 'action' => 'listaGuiasEmitidas'), [], FALSE, FALSE); ?>",
+                ret: "#lista"
+            });
+        });
+        
+        $("#atualizar").click(function () {
+            $("#pesquisar").click();
+        });
+
+        $("#limpar").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'guias', 'action' => 'listaGuiasEmitidas'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $("#showInativo").click(function () {
+            $("#pesquisar").click();
+        });
+
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                "idFuncionario": [fields.idFuncionario],
+                "referenciaFun": [fields.referenciaFun]
+            },
+            showCols: ["nomeFuncionario", "rg"]
+        });
+
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.referenciaFun).auto({
+            primary: "referenciaFun",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                "idFuncionario": [fields.idFuncionario],
+                "nomeFuncionario": [fields.nomeFuncionario]
+            },
+            showCols: ["nomeFuncionario", "rg"]
+        });
+
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.nomeUsuario).auto({
+            primary: "nomeUsuario",
+            serviceUrl: "<?php echo $this->url('app/default', array('controller' => 'Usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                "idUsuario": [fields.createdBy]
+            },
+            showCols: ["nomeUsuario"]
+        });
+    });
+</script>

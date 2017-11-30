@@ -1,0 +1,19 @@
+<? 
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$link       = ['controller' => $controller, 'action' => $action];
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<iframe id="iframePdfProntuario" width='100%' height='500' frameborder='0' src=''></iframe>
+<script lang="javascript">      
+    $(function(){
+        /**
+         * Alterar a altura para visualização do aso
+         */
+        $('#iframePdfProntuario').height($(document).height() * 0.89);
+        $('#iframePdfProntuario').attr('src','<?php echo $this->url($route, $link, [], FALSE, FALSE); ?>');
+        
+    });
+</script>

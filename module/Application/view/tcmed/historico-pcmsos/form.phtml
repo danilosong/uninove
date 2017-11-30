@@ -1,0 +1,130 @@
+<?php
+/** ============================================================================
+ * Gera Formulário de Funcionários p/ filtra-los na action pesquisaFuncionario
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 15-04-2016
+ * @see Tcmed\Controller\FuncionariosController::pesquisaFuncionarioAction()
+ *  ========================================================================== */
+//
+/* @var $form \Tcmed\Form\Funcionario */
+$form = $this->form;
+
+$controller = "historicoPcmsos";
+$route = "tcmed/default";
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+$partialObject = $this->partialObj('tcmed');
+?>
+<div class="row">
+    <div class="col-md-12"><h2>Histórico do PCMSO <small>Programa de Controle Médico de Saúde Ocupacional</small></h2></div>
+</div>
+<br>
+<?php
+//Printa as mensagens do servidor diretamente no form
+if ($this->resul and is_array($this->resul) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+$fh->formInit('Dados', ["noPreFormInit" => TRUE]);
+
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this]);
+$fh->closeCol();
+
+$fh->setPreFix("funcionario");
+$fh->openCol(3)->number('referenciaFun')->closeCol();
+$referenciaFun = $fh->getLastId();
+$fh->openCol(5)->text('nomeFuncionario', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+$nomeFuncionario = $fh->getLastId();
+$fh->removePreFix("funcionario");
+
+$fh->lineDown();
+
+$fh->openCol(3)->select('anoReferencia')->closeCol();
+
+$fh->openCol(3)->calend('ini')->closeCol();
+$ini = $fh->getLastId();
+$fh->openCol(3)->calend('fim')->closeCol();
+$fim = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->openCol(2);
+$fh->buildButton(["id" => "limparTela", "class" => "btn-block"], "Limpar Tela", "primary", TRUE);
+$fh->closeCol();
+
+$fh->openCol(2, 8);
+$fh->buildButton(["id" => "gerarRelatorio", "class" => "btn-block"], "Gerar Relatorio", "success", TRUE);
+//$fh->Submit('submit', ["class"=>"btn-block btn btn-success"]);
+$fh->closeCol();
+
+$fh->formEnd();
+
+$fields = array(
+    "ini" => $ini,
+    "fim" => $fim,
+    "nomeFuncionario" => $nomeFuncionario
+);
+$fields = array_merge($partialObject->fieldsEmpresa, $fields);
+?>
+<script type="text/javascript">
+    /**
+     * Qualquer retorno 'false' acarreta no impedimento do envio do formulario
+     * para o servidor
+     * 
+     * @param {type} fields Campos do formulario
+     * @returns {Boolean}
+     */
+    function isValid(fields) {
+        return true;
+    }
+
+    $(function () {
+
+        var fields = <?php echo json_encode($fields) ?>;
+
+        /**
+         * Gera o relatório (SUBMIT)
+         */
+        $("#gerarRelatorio").click(function () {
+            if (!isValid(fields)) {
+                return false;
+            }
+
+            $(this).closest("form").processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        /**
+         * Limpa a tela e renova o formulário
+         */
+        $("#limparTela").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (data) {
+                data.rules = {
+                    "empresa": $$(fields.idEmpresa).val()
+                };
+                return data;
+            },
+            callback: function (data) {
+                $.processa({
+                    url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>/" + data["idFuncionario"],
+                })
+            },
+            showCols: ["nomeFuncionario", "rg"]
+        });
+    });
+</script>

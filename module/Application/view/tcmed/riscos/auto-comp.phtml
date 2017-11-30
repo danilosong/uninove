@@ -1,0 +1,59 @@
+<?php 
+/* @var $entity \Tcmed\Entity\Risco */
+if($this->resultSet){
+    
+    switch ($this->subOpcao){
+        /**
+         * Utilizao para trazer dados de risco
+         * @author Allan Davini <allan_mv19@hotmail.com>
+         * @since 23/12/2015
+         */
+        case "simple":
+            
+            $array[] = [
+                "menu_idRisco" => "ID Risco",
+                'menu_risco' => "Risco",
+            ];
+            
+            foreach ($this->resultSet as $entity){
+                 $array[] =[
+                    "idRisco" => $entity->getId(),
+                    "risco" => $entity->getRisco(),
+                ];
+            }
+                
+            break;
+        case "withFilters":
+            
+            $array[] = [
+                "menu_idRisco" => "ID Risco",
+                'menu_risco' => "Risco",
+            ];
+
+            foreach ($this->resultSet as $entity){
+                $array[] =[
+                    "idRisco" => $entity->getRisco(TRUE)->getId(),
+                    "risco" => $entity->getRisco(TRUE),
+                ];
+            }
+            
+            break;
+        default:
+            $array[] = [
+                "menu_idRisco" => "ID Risco",
+                'menu_risco' => "Risco",
+            ];
+            
+            foreach ($this->resultSet as $entity){
+                 $array[] =[
+                    "idRisco" => $entity->getId(),
+                    "risco" => $entity->getRisco(),
+                ];
+            }
+            break;
+    }
+    
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

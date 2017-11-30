@@ -1,0 +1,213 @@
+<style type="text/css">
+    /* =========================================================================
+     * CSS Bootstrap table simulation
+     * @TODO tabelabootstrap
+     */
+    .table{
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: #333;
+        font-size: 10px;
+    }
+
+    .table tr, 
+    .table td, 
+    .table th {
+        border: 1px solid #ccc;
+    }
+    
+    .table thead tr {
+        border-bottom: 2px solid #ddd;
+    }
+    
+    .table thead th {
+        background-color: #eee;
+        font-size: 14px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    .table td{
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    .table-striped tr:nth-child(even) {
+        background: #f9f9f9
+    }
+    /* ====================================================================== */
+    
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    #pdf-relatorio{
+        width: 270mm;
+        padding: 10px;
+    }
+    
+    .text-right{
+        text-align: right;
+    }
+
+    .titlecol {
+        font-size: 14px;
+        font-weight: bold; 
+    }
+    
+    #tabela-topo {
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        border: 1px solid #222;
+        width:  100%;
+    }
+    
+</style>
+
+<div id="pdf-relatorio">
+    <table id="tabela-topo">
+        <tr>
+            <td style="width: 300px;">
+                <img width="260px" src="<?= "{$params('all','vilaVelhaDir')}logoVilaVelha.png" ?>">
+            </td>
+            <td>
+                <?php
+                echo "<h3>{$dataView['titulo']} {$medico->getNomeMedico()}</h3>";
+
+                $datetime = new \DateTime('now');
+                echo "<h3>Hora: {$datetime->format('H:i')} Data: {$datetime->format('d/m/Y')}</h3>"
+                ?>
+            </td>
+        </tr>
+    </table>
+    <br>
+    
+    <?
+    $thead = <<<THEAD
+    <thead>
+        <tr>
+            <th>Hora</th>
+            <th>Cod Adm</th>
+            <th>Cod Emp</th>
+            <th>Administradora</th>
+            <th>Empresa</th>
+            <th>Endereço</th>
+            <th>Bairro</th>
+            <th>Ref</th>
+            <th>Qtd</th>
+            <th style="width: 40px">Rea</th>
+        </tr>
+    </thead>  
+THEAD;
+    
+    $aux = [];
+    
+    $limFirstPage   = 36;
+    $limOthersPages = 42;
+
+    $openTable    = "<table class='table table-striped'>{$thead}<tbody>";
+    $closeTable   = "</tbody></table>";
+    $quebraPagina = "<div style='page-break-before: always;'></div>";
+
+    // Armazena o valor do ultimo 'agendadoEm'
+    $lastAgendadoEm = '';
+
+    // Contador
+    $cont                = $limFirstPage;
+    $contadorEmpresa     = 0;
+    $contadorFuncionario = 0;
+
+    echo $openTable; // ========================================= OPEN TABLE ===
+    
+    
+    /* @var $horaMedDia Agenda\Entity\HorarioMedicoDia */
+    foreach ($entities as $horaMedDia) {
+        
+        $bloco = $horaMedDia->getBloco();
+        
+        if ($cont < count($bloco->listaBlocoItem())) {
+            echo $closeTable;
+            echo $quebraPagina;
+            echo $openTable;
+            $cont = $limOthersPages;
+        }
+        
+        echo "<tr style='background-color: #bbb;'><td colspan='10' style='padding-left: 30px' class='titlecol'>Dia: {$horaMedDia->getDateHoramed()}</td></tr>";
+        $cont--;
+        
+        /* @var $blocoItem Agenda\Entity\BlocoItem */
+        foreach ($bloco->listaBlocoItem() as $blocoItem) {
+            
+            // Lê a quantidade de funcionários no item
+            $funcionarios = $blocoItem->getQtdFunItem();
+            
+            if($bloco->getManyDays()) {
+                $id = $bloco->getId();
+                /*
+                 * Caso seja a primeira vez que o item com muitos dias de agendamento
+                 * está sendo montado, então dividir a quantidade total de funcionarios
+                 * pela quantidade de dias agendados. Caso a divisão não resulte
+                 * em um número inteiro, então dividir igualmente estes funcionarios
+                 * e exibir a diferença apenas no primeiro (ex: 1º com 58 funcionarios
+                 * e o 2º em diante com 57 funcionarios)
+                 */
+                $resto = 0;
+                if(!isset($aux[$id])) {
+                    $quantHora = count($bloco->listHorarioMedicoDia());
+                    $resto     = $funcionarios % $quantHora;
+                    $aux[$id]  = ($funcionarios - $resto) / $quantHora;
+                    
+                    /*
+                     * Aproveitei este espaço para contabilizar a empresa, que 
+                     * deve ser incrementada apenas se for a 1ª vez que a empresa
+                     * é exibida na tabela. Da 2ª em diante, ela não será mais 
+                     * exibida
+                     */
+                    $contadorEmpresa++;
+                }
+                
+                $funcionarios = $aux[$id] + $resto;
+            }else{
+                /*
+                 * Será incrementada a empresa caso esta não contenha muitos 
+                 * horários agendados. Se ela tiver muitos horários, olhar o
+                 * if acima e ver a condição em que este contador será incrementado
+                 */
+                $contadorEmpresa++;
+            }
+            
+            $quantHorarios = count($horaMedDia->getBloco()->listHorarioMedicoDia());
+            $quantFuncItem = $blocoItem->getQtdFunItem() / $quantHorarios;
+            $nomeAdm       = substr($blocoItem->getEmpresa('administradora', ['razaoSocial']), 0, 13);
+            
+            echo '<tr>';
+            echo "<td>{$cont} {$blocoItem->getHoraIni()}</td>";
+            echo "<td class='text-right'>{$blocoItem->getEmpresa('administradora', ['referenciaSubhold'])}</td>";
+            echo "<td class='text-right'>{$blocoItem->getEmpresa('referenciaEmp')}</td>";
+            echo "<td>{$nomeAdm}</td>";
+            echo "<td>{$blocoItem->getEmpresa('razaoSocial')}</td>";
+            echo "<td>{$blocoItem->getEmpresa('endereco', ['exibeEnderecoSimples'])}</td>";
+            echo "<td>{$blocoItem->getEmpresa('endereco', ['logradouro', ['bairro', ['nomeBairro']]])}</td>";
+            echo "<td>{$blocoItem->getEmpresa('codigoRua')}</td>";
+            echo "<td>{$funcionarios}</td>";
+            echo "<td></td>";
+            echo '</tr>';
+            
+            $contadorFuncionario += $funcionarios;
+            
+            $cont--;
+        }
+    }
+    
+    echo "<tr  style='background-color: #bbb;'>";
+    echo "<td colspan='3' class='text-right titlecol'> Total de Empresas</td>";
+    echo "<td  class='titlecol'>{$contadorEmpresa}</td>";
+    echo "<td colspan='2' class='text-right titlecol'> Total de Funcionarios</td>";
+    echo "<td colspan='4' class='titlecol'>{$contadorFuncionario}</td>";
+    echo "</tr>";
+    
+    echo $closeTable; // ======================================= CLOSE TABLE ===
+    ?>
+</div>    

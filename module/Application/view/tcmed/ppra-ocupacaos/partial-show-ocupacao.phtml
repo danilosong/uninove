@@ -1,0 +1,245 @@
+<?php
+$controller   = $d['dataView']['controller'];
+$action       = $d['dataView']['action'];
+$route        = $d['dataView']['route'];
+$ajax         = $d['dataView']['ajax'];
+/* @var $ppraOcupacao  \Tcmed\Entity\PpraOcupacao */
+$ppraOcupacao = $d['ppraOcupacao'];
+
+$transp = $d['post'];
+$total  = $d['total'];
+// ===================================================================== FIM ===
+if($this->qtd){
+    $this->qtd++;
+}else{
+    $this->qtd = 1 ;    
+}
+
+$showApelidos = function(){
+    if(!empty($this->apelidos)):        
+        ?>
+    <div class="row">
+        <div class="col-md-2">
+            Apelidos  :        
+        </div>
+        <div class="col-md-10">
+            <ul><li><?= implode('</li><li>', $this->apelidos);?></li></ul>
+        </div>
+    </div>
+        <?
+    endif;
+    
+        ?>
+    <div class="row">
+        <div class="col-md-2">
+            descrição  :        
+        </div>
+        <div class="col-md-10">
+            <?= $this->descricao;?>
+        </div>
+    </div>
+        <?
+        
+    if(empty($this->riscos)): 
+        ?>
+    <div class="bg-warning">
+        <div class="row">
+            <div class="col-md-2">
+                Risco  :        
+            </div>
+            <div class="col-md-10">
+                Ausencia de Riscos Especificos.
+            </div>
+        </div>
+    </div>
+</div>
+        <?
+        return;
+    endif;
+    echo '<div class="grupo-risco">';
+    echo '&nbsp;&nbsp;&nbsp;<span class="hand btn-risco-control" style="font-size : 14pt;"><i class="fa fa-plus"> Exibir Todos os Riscos da Ocupação</i></span>';
+    echo '<div class="all-riscos">';
+    /* @var $risco \Tcmed\Entity\RiscoOcupacao */
+    foreach($this->riscos as $risco):        
+        ?>
+    <div class="bg-warning">
+        <div class="row">
+            <div class="col-md-1">Risco  :</div>
+            <div class="col-md-8"><h5>
+                <?= $risco->getRisco('risco');?>.
+            </h5></div>
+            <div class="col-md-3">
+                <span class='hand edtRiscoOcupacao' data-id='<?= $risco->getId();?>'><i class='fa fa-pencil'></i> Editar Risco</span>
+                <span class='hand rmvRiscoOcupacao' data-id='<?= $risco->getId();?>'><i class='fa fa-trash'></i> Remover Risco</span>
+            </div>
+        </div>
+    </div>
+    <div class="bg-info">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-1">Tipo</div>
+            <div class="col-md-4"><?= $risco->getTipo('-');?></div>
+            <div class="col-md-3">Agente</div>
+            <div class="col-md-3"><?= $risco->getAgente('-');?></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-1">Prioridade</div>
+        <div class="col-md-4"><?= $risco->getPrioridade('-');?></div>
+        <div class="col-md-3">Classificação do Agente</div>
+        <div class="col-md-3"><?= $risco->getClassifAgente('-');?></div>
+    </div>
+    <div class="bg-info">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-1">Controle</div>
+            <div class="col-md-4"><?= $risco->getControle('-');?></div>
+            <div class="col-md-3">Classificação da Exposição</div>
+            <div class="col-md-3"><?= $risco->getClassifExposicao('-');?></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-1">Somatoria</div>
+        <div class="col-md-4"><?= $risco->getSomatoria('-');?></div>
+        <div class="col-md-3">Intensidade/Concentração</div>
+        <div class="col-md-3"><?= $risco->getIntensConc('-');?></div>
+    </div>
+    <div class="bg-info">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-1" style="padding-right: 0px;">EPC Eficaz</div>
+            <div class="col-md-1">-</div>
+            <div class="col-md-1">EPI Eficaz</div>
+            <div class="col-md-2">-</div>
+            <div class="col-md-3">Técnica Utilizada</div>
+            <div class="col-md-3"><?= $risco->getTecnicaUtil('-');?></div>
+        </div>
+    </div>
+    <div class="bg-gray">
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-1"><strong>EPI</strong></div>
+            <div class="col-md-4">
+                <span class='hand addEpiRiscoOcupacao bg-primary' data-riscoocupacao='<?= $risco->getId();?>' data-ppraocupacao='<?= $this->ppraOcupacao->getId();?>'
+                      ><i class='fa fa-plus'></i> Incluir EPI</span>
+                <?                
+                    $listaEpis = $risco->listEpiRiscoOcupacao();
+                    $epis = '-';
+                    if(count($listaEpis)) {
+                        $epis = '<ul style="list-style-type: none; padding: 0px;">';
+                        foreach ($listaEpis as $epiRiscoOcupacao) {
+                            $iconRemover = '<i class="rmvEpiRiscoOcupacao fa fa-times hand" data-id="' . $epiRiscoOcupacao->getId() . '" data-ppraocupacao="' . $this->ppraOcupacao->getId() . '"></i>';
+                            $epis .= '<li class="hand">' . $iconRemover . ' ' . $epiRiscoOcupacao->getEpi()->getEpi() . '</li>';
+                        }
+                        $epis .= '</ul">';
+                    }
+                    echo $epis;
+                ?>
+            </div>
+            <div class="col-md-1"><strong>EPC</strong></div>
+            <div class="col-md-4">
+                <span class='hand addEpcRiscoOcupacao bg-primary' data-riscoocupacao='<?= $risco->getId();?>' data-ppraocupacao='<?= $this->ppraOcupacao->getId();?>'
+                      ><i class='fa fa-plus'></i> Incluir EPC</span>
+                <?                
+                    $listaEpcs = $risco->listEpcRiscoOcupacao();
+                    $epcs = '-';
+                    if(count($listaEpcs)) {
+                        $epcs = '<ul style="list-style-type: none; padding: 0px;">';
+                        /* @var $epcRiscoOcupacao \Tcmed\Entity\EpcRiscoOcupacao */
+                        foreach ($listaEpcs as $epcRiscoOcupacao) {
+                            $iconRemover = '<i class="rmvEpcRiscoOcupacao fa fa-times hand" data-id="' . $epcRiscoOcupacao->getId() . '" data-ppraocupacao="' . $this->ppraOcupacao->getId() . '"></i>';
+                            $epcs .= '<li class="hand">' . $iconRemover . ' ' . $epcRiscoOcupacao->getEpc()->getEpc() . '</li>';
+                        }
+                        $epcs .= '</ul">';
+                    }
+                    echo $epcs;
+                ?>
+            </div>
+        </div>
+    </div>
+        <?        
+    endforeach;
+    echo '</div>';
+    echo '</div>';
+    ?>        
+</div>
+    <?       
+};
+
+if(!$this->setor OR $this->setor != $ppraOcupacao->getOcupacao('setor',['nomeSetor']) AND
+        $this->local OR $this->local != $ppraOcupacao->getLocal()){
+    if($this->cargo){
+        $showApelidos();
+    }
+    $this->setor = $ppraOcupacao->getOcupacao('setor',['nomeSetor']);
+    $this->cargo = false ;
+    $this->local = false ;
+    ?>
+<br>
+<div class="border bg-default">
+    <div class="row">
+        <div class="col-md-2">
+            Local  :        
+        </div>
+        <div class="col-md-10"><strong>
+            <?= $ppraOcupacao->getLocal();?>
+        </strong></div>
+    </div>
+</div>
+<div class="border bg-primary">
+    <div class="row">
+        <div class="col-md-2">
+            setor  :        
+        </div>
+        <div class="col-md-10"><strong>
+            <?= $this->setor;?>
+        </strong></div>
+    </div>
+</div>
+    <?
+}
+
+if(!$this->cargo OR $this->cargo != $ppraOcupacao->getOcupacao('cargo',['cargo'])){
+    
+    if($this->cargo AND $this->local){
+        $showApelidos();
+    }
+    
+    $this->cargo = $ppraOcupacao->getOcupacao('cargo',['cargo']);
+    $this->local = $ppraOcupacao->getLocal();
+    ?>
+<br>
+<div class="border">
+    <div class="bg-success">
+        <div class="row">
+            <div class="col-md-1">
+                <h4 class="">&nbsp;cargo  :</h4>
+            </div>
+            <div class="col-md-9">
+                <?= $ppraOcupacao->getOcupacao('cargo',['cargo']);?>
+            </div>
+            <div class="col-md-2">
+                <span class='hand addOcupacaoRisco' data-id="<?= $ppraOcupacao->getId();?>"><i class='fa fa-plus'></i> Incluir Risco</span><br />
+                <span class='hand edtOcupacao'      data-id="<?= $ppraOcupacao->getId();?>"><i class='fa fa-pencil'></i> Editar Cargo</span><br />
+                <span class='hand rmvOcupacao'      data-id="<?= $ppraOcupacao->getId();?>"><i class='fa fa-trash'></i> Remover Cargo</span>
+            </div>
+        </div>
+    </div>
+    <?
+    
+    $this->ppraOcupacao = $ppraOcupacao;
+    $this->descricao    = $ppraOcupacao->getOcupacao('descricaoCargo',['descricao']);
+    $this->apelidos     = [];
+    /* @var $this->riscos \Doctrine\Common\Collections\ArrayCollection */
+    $this->riscos       = $ppraOcupacao->getOcupacao('listaRiscoOcupacao');
+}else{
+    // acumula apelido do cargo
+    $this->apelidos[]  = $ppraOcupacao->getOcupacao('cargoApelido',['apelido']);
+}
+// ultimo registro de cargo faz a exibição final
+if($this->qtd == $total){
+    $showApelidos();      
+}
+?>

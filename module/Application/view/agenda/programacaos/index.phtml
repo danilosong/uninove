@@ -1,0 +1,84 @@
+<?php
+/**
+ * +===========================================================================+
+ * | VIEW INDEX - v1.5
+ * +===========================================================================+
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @version 1.5
+ * @since 19-10-2016
+ * 
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$ajax = $this->dataView['ajax'];
+$partial = $this->partialObj('application');
+$form = $this->form;
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, $ajax));
+
+$fh->openLine();
+
+$fh->openCol(12);
+echo "<h3 class='text-center'>{$title}</h3>";
+$fh->closeCol();
+
+$fh->jumpLine(1);
+//
+$fh->openCol(6, 3);
+$fh->buildButton(["id" => "carta", "class" => "btn-block"], "Gerar Carta para Administradora", "success", TRUE);
+$fh->closeCol();
+//
+$fh->jumpLine(1);
+//
+$fh->openCol(6, 3);
+$fh->buildButton(["id" => "relatorioMedico", "class" => "btn-block"], "Relatório por Médicos e Período", "success", TRUE);
+$fh->closeCol();
+//
+$fh->jumpLine(1);
+//
+$fh->openCol(6, 3);
+$fh->buildButton(["id" => "agendamento", "class" => "btn-block"], "Fazer Agendamento por Médico", "success", TRUE);
+$fh->closeCol();
+
+$fh->jumpLine(1);
+
+$fh->openCol(2, 5);
+$fh->buildButton(["id" => "voltaPagina", "class" => "btn-block"], "<i class='fa fa-arrow-left'></i> voltar", "primary", TRUE);
+$fh->closeCol();
+//
+$fh->closeLine();
+?>
+<script type="text/javascript">
+    $(function () {
+        $("#carta").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'carta'), [], FALSE, FALSE); ?>"
+            });
+        });
+
+        $("#agendamento").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'agendamento'), [], FALSE, FALSE); ?>"
+            });
+        });
+
+        $("#relatorioMedico").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'relatorioMedico'), [], FALSE, FALSE); ?>"
+            });
+        });
+
+        $("#voltaPagina").click(function () {
+            $("#godown").click();
+        });
+    });
+</script>

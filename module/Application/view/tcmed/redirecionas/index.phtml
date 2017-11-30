@@ -1,0 +1,85 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$table = $this->table();
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj('tcmed');
+
+// Lê as mensagens do servidor através do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Limpar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<br />
+<?php
+$fh->formInit();
+        // === DADOS DO EMPRESA  ====================================================
+        $fh->openCol(12)->submit('submit',0,['value' => 'Pesquisar'])->closeCol();
+    $fh->lineDown();
+$fh->openCol(12);
+    $table->openTable(TRUE);
+    $table->setEditLine('first');
+    $table->setOrderList($this->dataView['orderBy']);
+    $table->renderThead([
+        'Ação'
+        ,['label' => 'clinica'           , 'order' => 'cl.razaoSocial']
+        ,['label' => 'Empresa'           , 'order' => 'em.razaoSocial']
+        ,['label' => 'Administradora'    , 'order' => 'ad.razaoSocial']
+        ,['label' => 'Descrição'         , 'order' => 'descricao']
+        ,['label' => 'Status'            , 'order' => 'status']
+        ,['label' => 'Criado em:'        , 'order' => 'createdAt']
+        ,['label' => 'Alterado em:'      , 'order' => 'updatedAt']
+        ]);
+    /* @var $entity \Tcmed\Entity\Redireciona */
+    foreach ($this->data as $entity) {
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getClinica('razaoSocial'),
+            $entity->getEmpresa('razaoSocial'),
+            $entity->getAdministradora('razaoSocial'),
+            $entity->getDescricao(),
+            $entity->getCreatedAt('full'),
+            $entity->getUpdatedAt(),
+        ]);
+    }
+    $table->renderCloseTable();
+$fh->closeCol()->closeLine();
+$fh->formEnd();
+// === TRANSPORTE ==============================================================
+$fields = [];
+// ===================================================================== FIM ===
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        
+    });
+    
+    var edit = function(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    };
+    var del = function(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    };
+    
+</script>

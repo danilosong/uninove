@@ -1,0 +1,107 @@
+<?php
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$ajax       = $this->dataView['ajax'];
+/* @var $setor \Tcmed\Entity\Setor */
+$setor     = $this->setor;
+/* @var $cargo \Tcmed\Entity\Cargo */
+$cargo     = $this->cargo;
+/* @var $form \Tcmed\Form\CargoApelido */
+$form       = $this->form;
+
+$ret        = $form->getValue('ret', '#inter');
+
+$form->setAttribute('id', 'formCargoApelidoModal');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh   = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action'     => $action,
+            'id'         =>  0,
+        ), [], FALSE, $ajax));
+
+// ===============================================
+$fh->formInit(); 
+if($setor){
+    $fh->openCol(12);
+    echo '<div>';
+    echo '<label class="col-md-2 control-label">Setor</label>';
+    echo '<h3 class="col-md-10" style="margin:0; margin-bottom:10px;">' . $setor->getNomeSetor() . '</h3>';
+    echo '</div>';
+    $fh->closeCol();
+    $fh->lineDown();
+}
+if($cargo){
+    $fh->openCol(12);
+    echo '<div>';
+    echo '<label class="col-md-2 control-label">Cargo</label>';
+    echo '<h3 class="col-md-10" style="margin:0; margin-bottom:10px;">' . $cargo->getCargo() . '</h3>';
+    echo '</div>';
+    $fh->closeCol();
+    $fh->lineDown();
+}
+
+$fh->setHorizontal(true);
+
+    $fh->openCol(12)->text('apelido')->closeCol();
+
+$fh->closeLine();
+$fh->formEnd(); 
+// =================================================
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'ret'
+    ,'frm'
+);
+?>
+<br>
+<br>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+                
+//        $$(transp.nomeSetor).auto({
+//            primary: "nomeSetor",
+//            serviceUrl: "<?php echo $this->url($route, array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+//            noCache: true,
+//            width: 800,
+//            filters: function (query) {
+//                query["rules"]    = {"status": "ATIVO"};
+//                query["subOpcao"] = "";
+//            },
+//            responseTo: {
+//                idSetor: [transp.idSetor]
+//            },
+//            showCols: ["nomeSetor"]
+//        });
+//
+//        $$(transp.cargo).auto({
+//            primary: "cargo",
+//            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+//            type: "POST",
+//            width: 800,
+//            params: {
+//                subOpcao: "",
+//            },
+//            responseTo: {
+//                idCargo       : [transp.idCargo],
+//                idCargoApelido: [transp.idCargoApelido],
+//                descricao     : [transp.descricao],
+//            },
+//            showCols: ["cargo", "descricao","tipo"]
+//        });
+
+
+    });
+
+</script>

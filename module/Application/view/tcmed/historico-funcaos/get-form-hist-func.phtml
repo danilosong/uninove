@@ -1,0 +1,74 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form);
+?>
+<!-- Modal -->
+<div class="modal fade" id="histFunc" data-hist="<?php echo $this->data["idHistOcupacional"] ?>" data-func="<?php echo $this->data["idFuncionario"] ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Incluir Função</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <?php
+                        $fh->setPreFix("funcao");
+                        $fh->openCol('12')->text("funcao")->closeCol();
+                        $funcao = $fh->getLastId();
+                        $fh->removePreFix("funcao");
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="sairModal" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button id="insertFuncao" type="button" id="incluirFun" class="btn btn-primary">Inserir</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    $(function () {
+        var fields = {
+            funcao: "<?php echo $funcao ?>",
+        }
+
+        $$(fields.funcao).auto({
+            primary: "funcao",
+            width: 300,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            callback: function(data){
+                if(data["tipo"] == "funcao"){
+                    $("#histFunc").attr("data-idfuncao", data["id"]);
+                }else{
+                    $("#histFunc").attr("data-idapelido", data["id"]);
+                }
+                $$(fields.funcao).val(data["funcao"]);
+            },
+            showCols: ["id", "funcao", "tipo"]
+        });
+
+        $("#insertFuncao").click(function () {
+            var $modal = $("#histFunc");
+            
+            action.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'HistoricoFuncaos', 'action' => 'includeFun'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    "histOcupacional": $modal.attr("data-hist"),
+                    "funcao": $modal.attr("data-idfuncao"),
+                    "funcaoApelido": $modal.attr("data-idapelido"),
+                    "funcionario": $modal.attr("data-func"),
+                },
+                callback: function (data) {
+                    $("#table_histOcupacional").html(data); //Exibe retorno na tela
+                    $("#sairModal").click();
+                }
+            });
+        });
+    });
+</script>

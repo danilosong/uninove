@@ -1,0 +1,234 @@
+<?php
+/* @var $medico \Tcmed\Entity\Medico */
+/* @var $empresa Tcmed\Entity\Empresa */
+
+$abreFolha            = "<div class='folha'>";
+$fechaFolha           = "</div>";
+$quebraPagina         = "<div style='page-break-before: always;'></div>";
+$closeTable           = "</tbody></table>";
+$examesComplementares = 0;
+
+
+$this->__set('controller', '')     ; // ================================ CSS ==+
+$this->__set('subMod', 'partials') ;
+include $this->partial('style-pdf'); // =======================================+
+
+?>
+<style type="text/css">
+    h2, td, th, p{
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 500;
+        line-height: 1.1;
+    }
+    
+    .small
+    {
+        font-size: 15px;
+        color: #444;
+    }
+    
+    .subl{
+        text-decoration: underline;
+    }
+    
+</style>
+<?php 
+
+
+echo $abreFolha; // ============================================================== INICIO FOLHA
+
+$path      = $empresa->getAdministradora('hold', ['pathLogo']);
+$holdImage = $param('path', 'hold_dir') . $path;
+$imageHold = "<img style='width: 150px' id='imagemLogoHold' src='{$holdImage}'>";
+    
+echo <<<TOPO
+        <table id='topo' style="width: 100%;">
+            <tbody>
+                <tr>
+                    <td style='width: 165px'>{$imageHold}</td>
+                    
+                    <td id="topo-descr">
+                        <h2>Histórico do PCMSO</h2> 
+                        <span class='small'>Programa de Controle Médico de Saúde Ocupacional</span>
+                        <br>
+                        Período {$periodo['ini']} a {$periodo['fim']}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <hr>
+TOPO;
+    
+echo <<<CABECALHO
+    <table class='table'>
+        <thead>
+            <tr>
+                <th colspan="2">Identificação</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-right">Administradora</td>
+                <td>{$empresa->getAdministradora('razaoSocial')}</td>
+            </tr>
+            <tr>
+                <td class="text-right">Empresa</td>
+                <td>{$empresa->getFantasiaEmpresa()}</td>
+            </tr>
+            <tr>
+                <td class="text-right">Endereco</td>
+                <td>{$empresa->getEndereco()}</td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+CABECALHO;
+  
+                
+// ---------------- TABELA DE EXAMES (HTML) --------------------- |
+echo <<<TABLE1
+    <table class='table table-striped'>
+        <thead>
+            <tr>
+                <td colspan="9" class="text-center italic">EXAMES NO PERÍODO DE {$periodo['ini']} A {$periodo['fim']}</td>
+            </tr>
+            <tr>
+                <th>Funcionário</th>
+                <th>Exame</th>
+                <th>Função</th>
+                <th>Período</th>
+                <th>Tipo</th>
+                <th>Dt Exame</th>
+                <th>ASO</th>
+                <th>Incluído</th>
+                <th>Excluído</th>
+            </tr>
+        </thead>
+        <tbody>
+TABLE1;
+
+
+// Quando for vazia a lista de consultas, então exibir linha descrevendo
+// Que nenhum exame foi encontrado
+if (empty($listaConsultas)) {
+    echo '<tr>';
+    echo '<td class="txt-center" colspan="9">Nenhum exame encontrado</td>';
+    echo '</tr>';
+}
+
+/* @var $consulta Tcmed\Entity\Consulta */
+foreach ($listaConsultas as $consulta) {
+
+    $resultado = "Inapto";
+    if ($consulta->getResultado()) {
+        if ("DEM" == $consulta->getTipo()) {
+            $resultado = "Apto";
+        } else {
+            $resultado = "Apto p/ função";
+        }
+    }
+
+    echo '<tr>';
+    echo '<td>' . $consulta->getFuncionario('nomeFuncionario') . '</td>';
+    echo '<td>Exame Clínico</td>';
+    echo '<td>' . $consulta->getHistOcupacional()->getOcupacao()->getCargo()->getCargo() . '</td>';
+    echo '<td>' . $consulta->getFuncionario('periodicidade') . '</td>';
+    echo '<td>' . $param($consulta->getTipo(), 'FC_tipo_exame') . '</td>';
+    echo '<td>' . $consulta->getDtConsulta() . '</td>';
+    echo '<td>' . $resultado . '</td>';
+    echo '<td>' . $consulta->getFuncionario('dtAdmissao') . '</td>';
+    echo '<td>' . $consulta->getFuncionario('dtDemissao') . '</td>';
+    echo '</tr>';
+
+    $idFuncionario = $consulta->getFuncionario('id');
+    if (isset($listaFuncionarios[$idFuncionario])) {
+        unset($listaFuncionarios[$idFuncionario]);
+    }
+
+    /* @var $exameCompl Tcmed\Entity\ConsultaExameCompl */
+    foreach ($consulta->listExameCompls() as $exameCompl) {
+        echo '<tr>';
+        echo '<td>'.$exameCompl->getFuncionario()->getNomeFuncionario().'</td>';
+        echo '<td>Exame Complementar</td>';
+        echo '<td>-</td>';
+        echo '<td>-</td>';
+        echo '<td>'.$exameCompl->getExameCompl()->getExame().'</td>';
+        echo '<td>-</td>';
+        echo '<td>-</td>';
+        echo '<td>-</td>';
+        echo '<td>-</td>';
+        echo '</tr>';
+    }
+}
+echo "</tbody></table>";
+// ------------------------------------------------------------- |
+
+$totalConsultas = count($listaConsultas);
+echo <<<TOPO
+    <p class="italic">Exames Complementares: {$examesComplementares}</p>
+    <p class="italic subl text-right">Total de Exames Realizados: {$totalConsultas}</p>
+TOPO;
+    
+?>    
+<table class='table table-striped'>
+    <thead>
+        <tr>
+            <td colspan="4" class="text-center italic">FUNCIONÁRIOS QUE NÃO REALIZARAM EXAME NO PERÍODO DE <?php echo $periodo["ini"] ?> A <?php echo $periodo["fim"] ?></td>
+        </tr>
+        <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Função</th>
+            <th>Ultimo Exame</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        $total = 0;
+
+        /* @var $funcionario \Tcmed\Entity\Funcionario */
+        foreach ($listaFuncionarios as $value) {
+            $funcionario = $value["funcionario"];
+            /* @var $historico \Tcmed\Entity\HistOcupacional */
+            $historico = $value["histOcupacional"];
+
+            $total++;
+
+            $ultimaConsulta = "-";
+            $listConsulta = $funcionario->getListConsulta();
+            if (!empty($listConsulta)) {
+                $ultimaConsulta = end($listConsulta);
+                /* @var $ultimaConsulta \Tcmed\Entity\Consulta */
+                $ultimaConsulta = $ultimaConsulta->getDtConsulta();
+            }
+
+            echo '<tr>';
+            echo '<td>' . $funcionario->getId() . '</td>';
+            echo '<td>' . $funcionario->getNomeFuncionario() . '</td>';
+            echo '<td>' . (($historico) ? $historico->getOcupacao('cargo', ['cargo']) : '') . '</td>';
+            echo '<td>' . $ultimaConsulta . '</td>';
+            echo '</tr>';
+        }
+
+        if (empty($listaFuncionarios)) {
+            echo '<tr>';
+            echo '<td class="text-center" colspan="4">Todos os funcionários cadastrados nesta empresa realizaram exame no período de ' . $periodo["ini"] . ' a ' . $periodo["fim"] . '</td>';
+            echo '</tr>';
+        }
+        ?>
+    </tbody>
+</table>
+<p class="italic subl text-right">Total de Funcionários que não Realizaram Exames: <?php echo $total ?></p>
+
+<div style="width: 200px">
+    <?php
+    $img = $param('all','medicoDirAss') . $medico->getAssinatura();
+    echo '<img width="180" height="45" style="margin-bottom: -10px" src="' . $img . '">';
+    ?>
+    <p class="txt-center" style="font-size: 10px">
+        ____________________________________<br>Medico Coordenador<br><?php echo $medico->getNomeMedico() . "<br>CRM " . $medico->getCrm() ?>
+    </p>
+</div>
+
+<?php
+echo $fechaFolha; // ============================================================= FIM FOLHA

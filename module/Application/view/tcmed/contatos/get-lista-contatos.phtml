@@ -1,0 +1,154 @@
+<?php
+$table = $this->table();
+$route = 'tcmed/default';
+?>
+<legend>Lista de Contatos 
+    <button id="addContato" class="pull-right btn btn-success">
+        <i class="fa fa-plus"></i> Contato
+    </button>
+</legend>
+<?php
+$lambda = function($value, $data) {
+    if (!empty($data[0])) { // Quando não for vazio, significa que é um contato
+        echo "\t<td nowrap>",
+        '<span class="hand delete-contato" data-id="' . $data[3] . '" title=""><i class="fa fa-trash"></i> Del</span>',
+        "</td>", PHP_EOL;
+    } else {
+        echo "\t<td nowrap>",
+        '<span class="hand delete-meioContato" data-id="' . $data[3] . '" title=""><i class="fa fa-trash"></i> Del</span>',
+        "</td>", PHP_EOL;
+    }
+};
+
+$table->setLambda($lambda);
+$table->openTable(TRUE);
+$table->renderThead(['Contato', 'Tipo', 'Meio de Contato', 'Ação']);
+
+/* @var $contato \Tcmed\Entity\Contato */
+foreach ($this->contatos as $contato) {
+    $principal = ($contato->getPrincipal()) ? 'star' : 'star-o';
+    $iconPrincipal = '<i class="fa fa-' . $principal . '"></i>';
+    $iconPrincipal = ""; // APAGAR ESTA LINHA
+
+    $table->renderLine([
+        $iconPrincipal . $contato->getNomeContato(),
+        "",
+        '<span class="hand"><i class="fa fa-plus"></i> Incluir</span>',
+        $contato->getId(),
+    ]);
+
+    /* @var $meioContatos \Tcmed\Entity\MeioContato */
+    $meioContatos = $contato->listMeioContato();
+    foreach ($meioContatos as $meioContato) {
+        $principal = ($meioContato->getPrincipal()) ? 'star' : 'star-o';
+        $iconPrincipal = '<i class="fa fa-' . $principal . '"></i> ';
+        $iconPrincipal = ""; // APAGAR ESTA LINHA
+
+        $table->renderLine([
+            "",
+            $iconPrincipal . $meioContato->getTipoMeioContato()->getDescricao(),
+            $meioContato->getMeioDeContato(),
+            $meioContato->getId(),
+        ]);
+    }
+}
+$table->renderCloseTable();
+
+$fields = array(
+    "entity" => $this->data['entity'],
+    "idEntity" => $this->data['id'],
+);
+?>
+<br>
+<br>
+
+<div class="modal fade" id="modal-addContato" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" data-id="0">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Observação</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="nomeContato">Nome do Contato</label>
+                        <input type="text" class="form-control" id="nomeContato">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                <button id="salvar-contato" type="button" class="btn btn-primary" data-dismiss="modal">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+
+        function atualizaLista() {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "contatos", 'action' => 'getListaContatos'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                type: "POST",
+                data: {
+                    entity: fields.entity,
+                    id: fields.idEntity
+                },
+                callback: function (data) {
+                    $("#listContatos").html(data);
+                }
+            });
+        }
+
+        
+        $('.delete-meioContato').click(function () {
+            var id = $(this).attr('data-id');
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "meioContatos", 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + id,
+                callback: function () {
+                    atualizaLista();
+                }
+            });
+        });
+
+        $('#addContato').click(function () {
+            $('#modal-addContato').modal();
+            return false;
+        });
+
+        $('#salvar-contato').click(function () {
+            var $modal = $('#modal-addContato');
+            
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "contatos", 'action' => 'addContatoInEntity'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    entity: fields.entity,
+                    id: fields.idEntity,
+                    nomeContato: $modal.find("#nomeContato").val(),
+                    principal: 0
+                },
+                callback: function (data) {
+                    atualizaLista();
+                }
+            });
+        });
+        
+        $('.delete-contato').click(function () {
+            var id = $(this).attr('data-id');
+            
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "contatos", 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + id,
+                callback: function () {
+                    atualizaLista();
+                }
+            });
+        });
+
+    });
+</script>
+

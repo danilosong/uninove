@@ -1,0 +1,96 @@
+<?php
+/**
+ * +===========================================================================+
+ * | VIEW INDEX - v1.5
+ * +===========================================================================+
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @version 1.5
+ *
+ */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('application');
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+?>
+<h3><?php echo $title ?></h3>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route,array('controller'=>$controller,'action'=>'new')); ?>">Novo</button>
+</p>
+<?php
+
+$table->openTable(TRUE);
+//$table->setLambda(function($value, $data) {
+//    echo '<td>value</td>', PHP_EOL;;
+//});
+
+$table->renderThead([
+    ['label' => "id"],
+    ['label' => "Nome"  ],
+    ['label' => "NIT", 'options' => 'title="Número de Registro do Trabalhador"'],
+    ['label' => "Responsavel por"  ],
+    ['label' => "CREA", 'options' => ' title="Conselho Regional de Engenharia"'],
+    ['label' => "Assina"],
+    ['label' => "Situação"],
+    ['label' => "Ação"],
+]);
+//$table->setTdopt([
+//    'class="small-txt"',
+//    '',
+//    '',
+//    '',
+//    'class="small-txt"',
+//    'class="small-txt"',
+//    'class="small-txt"'
+//]);
+/* @var $contato \Tcmed\Entity\Contato */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getNome(),
+        $entity->getNit(),
+        $entity->getRespPor(),
+        $entity->getRegConCla(),
+        $entity->getAssina()? "SIM":"NÃO",
+        $entity->getStatus(),
+        $entity->getId()
+    ]);
+}
+$table->renderCloseTable();
+
+echo '<center>', $this->paginationControl($this->data,'Sliding','partials/paginator'), '</center>';
+
+// Var de transferencia PHP to JS
+$transp = array(
+
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+    });
+
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+</script>

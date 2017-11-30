@@ -1,0 +1,149 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$horizontal = $fh->getHorizontal();
+$fh->setHorizontal(FALSE);
+$fh->renderFieldsetIni('Antecedentes ',['notOpenLine'=>TRUE, 'fAtrb' => 'id="Anteced"'])->setPreFix('questionario');
+
+
+$inputsAntecedentes = $fh->getForm()->getPrefixInterrogatio(3);
+foreach ($inputsAntecedentes as $prefix) {
+    $type = 'textArea';
+    $sexo = 'MASCULINO';
+    if(is_array($prefix)){
+        $sexo   = $prefix[2];
+        $type   = $prefix[1];
+        $prefix = $prefix[0];
+    }  
+    /**
+     * @author Paulo Watakabe <watakabe@gmail.com>
+     * @todo adicionar atributo data na classe help do zend
+     * \vendor\zendframework\zend-form\src\View\Helper\AbstractHelper.php
+     */
+    $fh->openLine()->setPreFix($prefix);
+    switch ($type) {
+        case 'data':
+            $fh->openCol('12')->calend('resposta',[],['data' => $sexo])->closeCol();         
+            break;
+        case 'checkbox':
+            $fh->openCol('12')->checkbox('respostaCheck',[],['data' => $sexo])->closeCol();         
+            break;
+        case 'textArea':
+            $fh->openCol('12')->textArea('resposta',[],['data' => $sexo])->closeCol();            
+            break;
+    }
+    $fh->closeLine()->removePreFix();
+}
+$fh->openLine()->openCol('12');
+    echo $fh->align($fh->buildButton(['onClick' => 'alteraSexoAntecedentes()', 'class' => 'btn btn-success'],'Altera Sexo'));
+$fh->closeCol()->closeLine();            
+
+
+$fh->renderFieldsetFim()->removePreFix();   
+$fh->setHorizontal($horizontal);
+echo '<div id="popSexoAlterado"></div>';
+?>
+
+<script lang="javascript">
+    var sexo          = "<?php echo $d["sexo"]; ?>";
+    var idFuncionario = "<?php echo $d["idFuncionario"]; ?>";
+    var isValidAntecedentes = function(){
+        $antecedentes = $("#Anteced");
+        removeAlert($antecedentes);
+        var flag = validaAntecendeUnisex($antecedentes);
+        if(sexo === 'FEMININO' && !validaAntecendeFeminino($antecedentes)){
+            flag = false;
+        }
+        return flag;
+    };
+    
+    var setLayoutAntecendentes = function (){
+        $("#Anteced").find('[data="FEMININO"]').each(function(index,ele){
+            if(sexo === 'MASCULINO'){
+                $(ele).closest('.form-group').hide();
+            }
+            if(sexo === 'FEMININO'){
+                $(ele).closest('.form-group').show();
+            }
+        });   
+        $funcionarioSexo = $("#funcionarioSexo");
+        if($funcionarioSexo.size() === 1){
+            $funcionarioSexo.val(sexo);
+        }
+        $spanFunSexo = $("#spanFunSexo");
+        if($spanFunSexo.size() === 1){
+            $spanFunSexo.html(sexo);
+        }
+    };
+    
+    var alteraSexoAntecedentes = function (){
+        if(sexo === "FEMININO"){
+            sexo = "MASCULINO";
+        }else{
+            sexo = "FEMININO";
+        }
+        setLayoutAntecendentes();
+        action.processa({       
+            type: "POST",
+            url: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'funcionarios', 'action' => 'alteraSexo'), [], FALSE, FALSE); ?>" + "/" + idFuncionario,
+            ret: "#popSexoAlterado",
+            data : {
+                idFuncionario : idFuncionario,
+                sexo          : sexo
+            },
+            savePage : false,
+            last : false
+        });
+    };
+
+    var validaAntecendeUnisex = function($antecedentes){
+        var flag = true;
+        $antecedentes.find(".row").each(function(index, ele) {
+            var $divRow = $(ele);
+            if($divRow.find("textarea").val() === ""){
+                makeDivError($divRow.find("div:eq(0)"), $divRow.find("label").html());
+                flag = false;
+            }   
+            if(index >= 2){
+                return false;
+            }
+        });
+        return flag;
+    };
+
+    var validaAntecendeFeminino = function($antecedentes){    
+        $data = $antecedentes.find("input[type=text]");
+        $noDum = $antecedentes.find("input[type=checkbox]");
+        $textArea = $antecedentes.find("textarea").last();
+        if($noDum.eq(0).prop('checked') && $data.val() !== ""){ // valida se preencha data dum e marcou opcao que diz nao ter dum
+            makeDivError($data.parent('div').parent('div'), 'Por favor Corrigir a incoêrencia Não pode haver data do ultimo DUM com o campo assinalado(Assinale aqui se não houver DUM Justifique Abaixo:)', false);
+            return false;        
+        }
+        if(!$noDum.eq(0).prop('checked') && $textArea.val() === "" && $data.val() === ""){ // não marcou opcao que diz nao ter dum e colocou o motivo no textArea
+            makeDivError($noDum.parent('div').parent('div'), 'Por favor Inserir a Data do DUM !! <br> Caso não exista Justificar!!! Abaixo com NDN ou <br> Ex "DUM: amenorréia por uso de ACHI."', false);
+            return false;
+        }
+        if(!$noDum.eq(0).prop('checked') && $textArea.val().indexOf("DUM") === -1 && $data.val() === ""){ // não preencheu a data dum e nem colocou a palavra dum no textArea
+            makeDivError($data.parent('div').parent('div'), 'Por favor Preencher data do ultimo DUM Assinale abaixo caso não houver DUM e Justifique Abaixo:', false);
+            return false;        
+        }
+        if(($textArea.val() === "" || $textArea.val().indexOf("DUM") === -1) && $data.val() !== ""){ // Caso preencha a data dum e textArea nao existir a palavra dum faz o preenchimento automatico do textArea
+            $textArea.val(($textArea.val() === "" ? ("") : ($textArea.val() + "\n")) + "DUM: "+ $data.val());
+        }
+
+        return true;
+    };
+    
+    $(function(){
+        /**
+         * Ajustar layout de visualizacao 
+         */
+        setLayoutAntecendentes();
+        /**
+         * Esconder o input com resultado da alteração do sexo do funcionario.
+         */
+        $('#popSexoAlterado').hide();
+    });
+
+</script>

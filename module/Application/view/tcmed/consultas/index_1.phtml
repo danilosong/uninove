@@ -1,0 +1,231 @@
+<?php
+ 
+/* @var $fh    \Application\View\Helper\FormHelp */
+/* @var $table \Application\View\Helper\Table */
+/* @var $acl   \Application\View\Helper\Acl */
+$param      = $this->Param();
+$table      = $this->table();
+$acl        = $this->Acl($this->UserIdentity());
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1><? echo $this->dataView['titulo']; ?></h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => $action)); ?>">Limpar</button>
+</p>
+<?php
+$fh->getForm()->loadSelectTipo(TRUE);
+$partial = $this->partialObj('tcmed');
+$fh->setHorizontal(false);
+$fh->formInit();
+        // === DADOS DO EMPRESA  ====================================================
+        $fh->openCol(12)->setPreFix('consulta');
+            $partial->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'cpfAllow' => FALSE]);
+        $fh->closeCol();    
+    $fh->lineDown();
+        $fh->setPreFix('funcionario');
+        $idFuncionario = $fh->getIdFor('idFuncionario');
+        $fh->openCol(3)->number('referenciaFun')->closeCol();
+        $referenciaFun = $fh->getLastId();
+        $fh->openCol(9)->text('nomeFuncionario', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+        $nomeFuncionario = $fh->getLastId();
+        $fh->removePreFix('funcionario');
+    $fh->lineDown();
+        $fh->openCol(12)->setHorizontal(true)->renderInputMultiCheckbox('resultado',['labelWidth' => 3])->closeCol()->setHorizontal(false);
+    $fh->lineDown();
+        $fh->openCol(12)->setHorizontal(true)->renderInputMultiCheckbox('normal',['labelWidth' => 3])->closeCol()->setHorizontal(false);
+    $fh->lineDown();
+        $fh->openCol(12)->setHorizontal(true)->renderInputCheckbox('catAberto',['position' => 'right'],['label' => 'Exibir se tem CAT ou se Pediu Abertura'])->closeCol()->setHorizontal(false);
+    $fh->lineDown();
+        $fh->openCol(6)->select('tipo')->closeCol();
+        $fh->removePreFix('consulta');
+    $fh->lineDown();
+        $fh->openCol(3)->calend('ini',[],['label' => 'Realizado de: '])->closeCol();
+        $fh->openCol(3)->calend('fim',[],['label' => 'Realizado até: '])->closeCol();
+    $fh->lineDown();
+        $fh->openCol(12)->submit('submit',0,['value' => 'Pesquisar'])->closeCol();
+    $fh->lineDown();
+        $fh->openCol(3,9)->text('limitePag',['labelWidth' => 8])->closeCol();
+    $fh->closeLine();
+
+    
+    // === OPCOES DA TABELA ========================================================
+    if ($acl('tcmed:fichaClinicas:*', 'allow')) {
+        $lambda = function($value, $data) {
+            echo "\t<td nowrap>",
+                    '<span class="hand" onClick="showASO(\'', $value, '\')" title="Exibir ASO em PDF na Tela"><i class="fa fa-file-pdf-o"></i> </span>',
+                    '&nbsp;&nbsp;&nbsp;',
+                    '<span class="hand" onClick="openFichaClinica(\'', $value, '\',this)" title="Abrir Ficha clinica"><i class="fa fa-paste"></i> </span>',
+                    '&nbsp;&nbsp;&nbsp;',
+                    '<span class="hand" onClick="showProntuario(\'', $value, '\',this)" title="Exibir o prontuario desta consulta"><i class="fa fa-file-text"></i> </span>',
+                    '&nbsp;&nbsp;&nbsp;',
+                    '<span class="hand" onClick="del(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> </span>',
+                 "</td>", PHP_EOL;  
+        };
+    } else {
+        $lambda = function($value, $data) {
+            echo "\t<td nowrap>",
+                    '<span class="hand" onClick="showASO(\'', $value, '\')" title="Exibir ASO em PDF na Tela"><i class="fa fa-file-pdf-o"></i> </span>',
+                    '&nbsp;&nbsp;&nbsp;',
+                    '<span class="hand" onClick="showProntuario(\'', $value, '\',this)" title="Exibir o prontuario desta consulta"><i class="fa fa-file-text"></i> </span>',
+                    '&nbsp;&nbsp;&nbsp;',
+                    '<span class="hand" onClick="del(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> </span>',
+                 "</td>", PHP_EOL;  
+        };
+    }   
+    $table->setLambda($lambda);
+    // ===================================================================== FIM ===
+    
+    $table->openTable(TRUE);
+    $table->setEditLine('first');
+    $table->setOrderList($this->dataView['orderBy']);
+    $table->renderThead([
+        'Ação',
+        ['label' => 'Consulta', 'order' => 'dtConsulta'], 
+        ['label' => 'Administradora', 'order' => 'a.fantasiaAdm'], 
+        'Empresa', 
+        'Funcionario',
+        'Medico',
+        'Clinica', 
+        ['label' => 'Resultado'  , 'order' => 'resultado'], 
+        ['label' => 'Normal'     , 'order' => 'normal'], 
+        ['label' => 'Ocupacional', 'order' => 'ocupacional'], 
+        ['label' => 'Retorno'    , 'order' => 'dtRetorno'], 
+        ['label' => 'Validade'   , 'order' => 'validade'], 
+        'observacao Final', 
+        ['label' => 'CAT Aberto' , 'order' => 'catAberto'], 
+        ['label' => 'Abrir CAT'  , 'order' => 'abrirCat'], 
+        'Ocupação', 
+    ]);
+    /* @var $entity \Tcmed\Entity\Consulta */
+    foreach ($this->data as $entity) {
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getDtConsulta(),
+            $entity->getAdministradora(),
+            $entity->getEmpresa(),
+            $entity->getFuncionario(),
+            $entity->getMedico(),
+            $entity->getClinica(),
+            $param($entity->getResultado(),'FC_Resultado'),
+            $param($entity->getNormal(),'FC_normal'),
+            $param($entity->getOcupacional(),'FC_Ocupacional'),
+            $entity->getDtRetorno(),
+            $param($entity->getValidade(),'FC_validade'),
+            $entity->getObservacaoFinal(),
+            $entity->getCatAberto(TRUE),
+            $entity->getAbrirCat(TRUE),
+            $entity->getHistOcupacional(),
+        ]);
+    }
+    $table->renderCloseTable();
+    
+$fh->formEnd();
+// === TRANSPORTE ==============================================================
+$fields = array_merge(
+        $partial->fieldsEmpresa, 
+        [
+            "idFuncionario" => $idFuncionario,
+            "nomeFuncionario" => $nomeFuncionario,
+            "referenciaFun" => $referenciaFun,
+//            "fantasiaClinica" => $fantasiaClinica,
+//            "idClinica" => $idClinica,
+        ]
+    );
+// ===================================================================== FIM ===
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    
+    var isValid = function() {
+        return true;
+    };
+    
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);        
+    }
+    var atualiza = function() {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'edit'), [], FALSE, FALSE); ?>",
+            frm : true            
+        });        
+    };
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    
+    var showASO = function (idConsulta) {
+        var request = {
+            url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'showASO'), [], FALSE, FALSE); ?>" + "/" + idConsulta,
+            type: "POST",
+        };
+        $.processa(request);
+    };
+    
+    var openFichaClinica = function (key) {
+        var request = {url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(request);
+    };
+    
+    var showProntuario = function(key) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showPdf'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+    };
+    
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        console.log(fields);
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            width: 800,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            params: {
+                subOpcao : 'new'
+            },
+            filters: function (data) {
+                data.rules = {
+                    razaoSocialAdm    : $$(fields.razaoSocialAdm).val(),
+                    referenciaSubhold : $$(fields.referenciaSubhold).val(),
+                    empresa           : $$(fields.idEmpresa).val()
+                };
+                return data;
+            },
+            responseTo: {
+                referenciaFun    : [fields.referenciaFun],                
+                cnpj             : [fields.cnpj],
+                idEmpresa        : [fields.idEmpresa],
+                razaoSocialEmp   : [fields.razaoSocialEmp],
+                referenciaEmp    : [fields.referenciaEmp],
+                idAdministradora : [fields.idAdministradora],
+                razaoSocialAdm   : [fields.razaoSocialAdm],
+                referenciaSubhold: [fields.referenciaSubhold],
+                funcionario      : [fields.idFuncionario],
+                fantasiaHold     : [fields.fantasiaHold]
+            },
+            showCols: ["nomeFuncionario", "fantasiaAdm", "fantasiaEmpresa", "cpf"]
+        });
+        
+    });
+</script>

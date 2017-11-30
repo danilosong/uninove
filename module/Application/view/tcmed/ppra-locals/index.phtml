@@ -1,0 +1,144 @@
+<?php
+/*
+ * @author Paulo Watakabe <watakabe05@gmail.com>
+ * @version 1.0
+ * @since 23/03/2017
+ */
+/* @var $table \Application\View\Helper\Table */
+/* @var $fh    \Application\View\Helper\FormHelp */
+/* @var $partial    \Application\View\Helper\PartialObj */
+/* @var $form       \Tcmed\Form\PpraLocal */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$form       = $this->form;
+$formId     = 'showListPpraLocal';
+$ret        = $form->get('ret')->getValue();
+
+$form->setAttribute('id', $formId);
+$form->setAttribute('target', $ret);
+$table   = $this->table();
+$fh      = $this->formHelp($this,$form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj();
+
+// Lê as mensagens do servidor através do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+if($ret == '#inter'){
+    $fh->formInit();
+    $_POST['formId'] = $formId;
+}else{
+    $form->remove('ret');
+    $fh->renderFieldsetIni()->renderAllHidden();
+    $formId = true;
+}
+
+$fh->openCol(8);
+?>
+<div id="ppraLocalIndexMenu">
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p>    
+    <button type="button" class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Atualizar</button>
+</p>
+<br />
+</div>
+<?php
+$fh->closeCol()->openCol(4)->select('limitePag',['labelWidth' => 6,'clean' => FALSE,'extra' => ['icon' => 'search', 'js' => "atualizaPag()"]]);
+$fh->closeCol()->lineDown();
+$fh->openCol(12);
+
+
+    $lambda = function($value, $data) {
+        echo "\t", '<td nowrap style="font-size: 14pt;">',
+                '<span class="hand" onClick="del(\'', $value, '\',this)" title="Excluir"><i class="fa fa-trash"></i></span>',
+             "</td>", PHP_EOL;   
+    };
+    $table->setLambda($lambda);
+    $table->openTable(TRUE);
+    $table->setEditLine('first');
+    $table->setOrderList($this->dataView['orderBy']);
+    $table->renderThead([
+        'Ação'
+        ,['label' => 'Local'             , 'order' => 'nome'           ]
+        ,['label' => 'criado em'         , 'order' => 'createdAt'      ]
+        ,['label' => 'Criado por:'       , 'order' => 'createdBy'      ]
+        ,['label' => 'Alterado em'       , 'order' => 'updatedAt'      ]
+        ,['label' => 'Alterado por:'     , 'order' => 'updatedBy'      ]
+        ,['label' => 'Status'            , 'order' => 'status'         ]
+        ]);
+    /* @var $entity \Tcmed\Entity\PpraLocal */
+    foreach ($this->data as $entity) {
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getNome(),
+            $entity->getCreatedAt('full'),
+            $entity->getCreatedBy('nomeUsuario'),
+            $entity->getUpdatedAt(),
+            $entity->getUpdatedBy('nomeUsuario'),
+            $entity->getStatus(),
+        ]);
+    }
+    $table->renderCloseTable();
+$fh->closeCol()->closeLine();
+
+if($ret == '#inter'){
+    $fh->formEnd();
+}
+// === TRANSPORTE ==============================================================
+$fields = [
+    'ret'   => $ret
+    , 'frm' => $formId
+];
+// ===================================================================== FIM ===
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    var fieldsPpraLocals = <?php echo json_encode($fields) ?>;
+        
+    var del = function(key,obj) {
+        var msg = "Deseja mesmo excluir este registro?";
+//        gModal.reset('confirm',2).setMsg(msg).setClickOk(function(){
+//        }).showModal();
+        if(confirm(msg)){
+            var $form = $(obj).closest('form');
+            var $ret   = $form.find('input[id="ret"]');
+            var retOld = $ret.val();
+            $ret.val(fieldsPpraLocals.ret);
+            $form.processa({
+                url    : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key
+                , type : "POST"
+                , ret  : fieldsPpraLocals.ret
+                , data : {
+                    subOpcao : 'loadCad'
+                }
+            });
+            $ret.val(retOld);
+        }
+    };
+    
+    
+    var atualizaPag = function(){        
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>" 
+            , frm: fieldsPpraLocals.frm
+            , ret : fieldsPpraLocals.ret
+            , data: {
+                subOpcao : 'loadCad'
+            }
+        });
+    };
+    
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        // Esconder menu superior do index
+        if('#inter' !== fields.ret){
+            $('#ppraLocalIndexMenu').hide();
+        }
+    });
+</script>

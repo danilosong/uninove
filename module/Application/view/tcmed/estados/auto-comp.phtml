@@ -1,0 +1,26 @@
+<?php 
+/* @var $entity \Tcmed\Entity\Estado */
+if($this->resultSet){
+    $array = [];
+
+    if($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idEstado' => 'ID' ,
+            'menu_uf' => 'Estado' ,
+            'menu_nomePais' => 'Pais' ,
+            'menu_idPais' => 'Pais codigo' ,
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idEstado' => $entity->getId(),
+                'uf' => $entity->getUf(),
+                'nomePais' => $entity->getPais()->getNomePais(),
+                'idPais' => $entity->getPais()->getId(),
+            ];
+        }
+    }
+
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

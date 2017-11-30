@@ -1,0 +1,205 @@
+<?php
+/**
+ * +===========================================================================+
+ * | VIEW INDEX - v1.5
+ * +===========================================================================+
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @version 1.5
+ *
+ */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('application');
+
+$form       = $this->form;
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$partial    = $this->partialObj('application');
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh         = $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action' => $action,
+), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+?>
+<br />
+<br />
+<legend>
+    <button id="add" class="btn btn-primary"><i class='fa fa-plus'></i> Novo</button>
+    <?= $title ?>
+</legend>
+<div class='row'>
+    <div class="col-md-12">
+        <?
+        $fh->setHorizontal(TRUE);
+        $fh->openCol(6)->select('modelo')->closeCol();
+        $inpModelo = $fh->getLastId();
+        $fh->setHorizontal(FALSE);
+        ?>
+        <button id="loadModeloCronograma" class="btn btn-primary">Carregar modelo</button>
+    </div>
+</div>
+<?php
+
+$table->openTable(TRUE);
+$table->setLambda(function($value, $data) {
+    echo "<td><span class='hand edit' data-id='{$value}'><i class='fa fa-pencil'></i></span></td>", PHP_EOL;;
+});
+
+$table->renderThead([
+    ['label' => "Item"],
+    ['label' => "Grupo"],
+    ['label' => "Local"],
+    ['label' => "Ação"  ],
+    ['label' => "Meta"  ],
+    ['label' => "Estratégia e Metodologia"],
+    ['label' => "Prio."],
+    ['label' => "Resp."],
+    ['label' => "01"],
+    ['label' => "02"],
+    ['label' => "03"],
+    ['label' => "04"],
+    ['label' => "05"],
+    ['label' => "06"],
+    ['label' => "07"],
+    ['label' => "08"],
+    ['label' => "09"],
+    ['label' => "10"],
+    ['label' => "11"],
+    ['label' => "12"],
+    ['label' => "Ação"],
+]);
+//$table->setTdopt([
+//    'class="small-txt"',
+//    '',
+//    '',
+//    '',
+//    'class="small-txt"',
+//    'class="small-txt"',
+//    'class="small-txt"'
+//]);
+/* @var $contato \Tcmed\Entity\Contato */
+foreach ($this->data as $entity) {
+    $meses = $entity->getMeses();
+
+    $table->renderLine([
+        $entity->getItem(),
+        $entity->getPpraVigenciaGrupo('nome'),
+        $entity->getPpraLocal('nome'),
+        $entity->getAcao(),
+        $entity->getMeta(),
+        $entity->getMetodologia(),
+        $entity->getPrioridade(),
+        $entity->getResponsavel(),
+        (in_array("1",  $meses)) ? "x":"",
+        (in_array("2",  $meses)) ? "x":"",
+        (in_array("3",  $meses)) ? "x":"",
+        (in_array("4",  $meses)) ? "x":"",
+        (in_array("5",  $meses)) ? "x":"",
+        (in_array("6",  $meses)) ? "x":"",
+        (in_array("7",  $meses)) ? "x":"",
+        (in_array("8",  $meses)) ? "x":"",
+        (in_array("9",  $meses)) ? "x":"",
+        (in_array("10", $meses)) ? "x":"",
+        (in_array("11", $meses)) ? "x":"",
+        (in_array("12", $meses)) ? "x":"",
+        $entity->getId()
+    ]);
+}
+$table->renderCloseTable();
+
+echo $this->partial('partials/modal', array());
+
+// Var de transferencia PHP to JS
+$transp = array(
+    'ppra'         => $this->params['ppra'],
+    'ppraVigencia' => $this->params['ppraVigencia'],
+    'ret'          => $this->params['ret'],
+    'inpModelo'    => $inpModelo,
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        $('#add').click(function() {
+            $.processa({
+                url     : "<?= $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                type    : "POST",
+                savePage: false,
+                data    : {
+                    ppra        : transp.ppra,
+                    ppraVigencia: transp.ppraVigencia,
+                    getForm     : true
+                },
+                callback: function (data, defaults) {
+                    gModal.reset('prompt',2)
+                        .setInputs(data)
+                        .setLabelOk('Incluir')
+                        .setSizeModal('lg')
+                        .setClickOk(function(){
+                            $('#formPpraVigCron').processa({
+                                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                                ret: transp.ret,
+                                savePage: false
+                            });
+                        })
+                        .showModal()
+                    ;
+                }
+            });
+        });
+
+        $('.edit').click(function() {
+            var id = $(this).data('id');
+
+            $.processa({
+                url     : "<?= $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>/" + id,
+                savePage: false,
+                callback: function (data, defaults) {
+                    gModal.reset('prompt',2)
+                        .setInputs(data)
+                        .setLabelOk('Salvar')
+                        .setSizeModal('lg')
+                        .setClickOk(function(){
+                            $('#formPpraVigCron').processa({
+                                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>",
+                                ret: transp.ret,
+                                savePage: false
+                            });
+                        })
+                        .showModal()
+                    ;
+                }
+            });
+        });
+        
+        $('#loadModeloCronograma').click(function(){
+            var modelo = $$(transp.inpModelo).val();
+            if(modelo == ''){
+                gModal.alert('Nenhum modelo foi escolhido!!!');
+                return;
+            }
+            gModal.confirm('Deseja mesmo importar este modelo ? <br> Atenção os dados atuais serão todos perdidos !!!', function(){
+                $.processa({
+                    type      : 'POST'
+                    ,url      : '<?= $this->url($route, array('controller' => $controller, 'action' => 'import'), [], FALSE, FALSE); ?>'
+                    ,ret      : transp.ret
+                    ,savePage : false
+                    ,data     : {
+                        modelo  : modelo,
+                        ret     : transp.ret,
+                        ppraVigencia : transp.ppraVigencia,
+                    }
+                });
+            });
+        });
+    });
+</script>

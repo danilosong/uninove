@@ -1,0 +1,390 @@
+<?php
+/** ===========================================================================|
+ * FORM - blocoItem
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 24-07-2016
+ * 
+ * IncludeView - v1
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$form = $this->form;
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial = $this->partialObj('application');
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$url = $this->url($route, compact('controller', 'action', 'id'), [], FALSE, $this->dataView['ajax']);
+$fh  = $this->formHelp($this, $form, $url);
+
+?>
+
+<style type="text/css">
+    /** =========== REGRAS CSS SORTABLE (jquery-sortable.js) =============== **/
+    .grab {
+        cursor: grab !important;
+    }
+
+    .dragged {
+        position: absolute;
+        opacity: 0.7;
+        z-index: 2000;
+    }
+
+
+    #listagem-sortable>table tr.placeholder {
+        position: relative;
+    }
+
+    #listagem-sortable>table tr.placeholder:before {
+        position: absolute;
+        /** Define arrowhead **/
+    }
+    /** ==================================================================== **/
+</style>
+
+<?php
+$fh->openCol(12, ['id' => 'form-tabela']);
+$fh->formInit('');
+
+$fh->openLine()->openCol(12, ["id" => "listagem-sortable"]);
+$table->openTable(TRUE);
+
+$table->setLambda(function($value, $data) {
+    /*
+     * Quando $value for array, então este <tr> contém campos de inclusão da 
+     * empresa na lista
+     */
+    if(is_array($value)) {
+        echo "<td nowrap>";
+        echo "<span class='hand salvar-item' data-id='{$value['empresa']['idEmpresa']}'><i class='fa fa-check'></i> Incluir</span>";
+        echo "<br>";
+        echo "<span class='hand cancel-item' data-id='{$value['empresa']['idEmpresa']}'><i class='fa fa-ban'  ></i> Remover</span>";
+        echo "</td>";
+        
+        return;
+    } 
+    
+    /*
+     * Para as empresas já incluídas, o botão de deletar empresa da lista
+     */
+    echo '<td class="acao" data-seq="' . $value . '"><span class="hand remove-item" data-seq="' . $value . '"><i class="fa fa-trash"></i> Del</span></td>', PHP_EOL;
+});
+
+$table->renderThead([
+    ['label' => 'Seq', 'options' => ' title="Sequência"'],
+    ['label' => 'H. Ini', 'options' => ' title="Hora Inicial"'],
+    ['label' => 'H. Fim', 'options' => ' title="Hora Final"'],
+    ['label' => 'Empresa'],
+    ['label' => 'Per.', 'options' => ' title="Data do Ultimo Agendamento"'],
+    ['label' => 'Endereco'],
+    ['label' => 'Cod Rua', 'options' => ' title="Código da rua"'],
+    ['label' => 'Nº Func', 'options' => ' title="Número de Funcionários"'],
+    ['label' => 'TC', 'options' => ' title="Tempo de Consulta"'],
+    ['label' => 'TT', 'options' => ' title="Tempo de Translado"'],
+    ['label' => 'Ação']
+]);
+/* @var $contato \Tcmed\Entity\Contato */
+foreach ($this->lista as $key => $data) {
+
+    /**
+     * +=======================================================================+
+     * | Carrega os inputs de edição do tempoCons e translado
+     * +=======================================================================+
+     */
+    $editTempoCons = <<<EOF
+    <div class="edit-row input-group">
+        <div class="input-group-btn">
+            <button class="btn btn-danger cancela-edicao"><i class="fa fa-ban"></i></button>
+        </div>
+        <input type="text" class="form-control" size="06" value="{$data['tempoCons']}">
+        <div class="input-group-btn">
+            <button class="btn btn-success salvar-edicao" data-name="tempoCons" data-seq="{$data['seq']}"><i class="fa fa-check"></i></button>
+        </div>
+    </div>
+EOF;
+
+    $editTranslado = <<<EOF
+    <div class="edit-row input-group">
+        <div class="input-group-btn">
+            <button class="btn btn-danger cancela-edicao"><i class="fa fa-ban"></i></button>
+        </div>
+        <input type="text" class="form-control"  size="06" value="{$data['translado']}">
+        <div class="input-group-btn">
+            <button class="btn btn-success salvar-edicao" data-name="translado" data-seq="{$data['seq']}"><i class="fa fa-check"></i></button>
+        </div>
+    </div>
+EOF;
+    /**
+     * +=======================================================================+
+     * | Carrega a tabela
+     * +=======================================================================+
+     */
+    $editPen  = '<i class="editable fa fa-pencil hand"></i>';
+    $empresa  = $data['empresa'];
+    $endereco = $empresa['endereco'];
+
+    $aux = isset($data['statusRelatorioEmp']) ? $data['statusRelatorioEmp'] : NULL;
+    
+    /**
+     * 
+     */
+    $rowColor = "";
+    ("INATIVO"     == $aux) && $rowColor = 'background-color: #d9534f; color: #fff';
+    ("REAGENDADO"  == $aux) && $rowColor = 'background-color: #5cb85c; color: #fff';
+    ("IMPRODUTIVO" == $aux) && $rowColor = 'background-color: #777;    color: #fff';
+    
+    $referencia  = $data['empresa']['referenciaEmp'];
+    $razaoSocial = $data['empresa']['razaoSocial'];
+
+    $table->renderLine([
+        $data['seq'] + 1 . ' <i class="grab handle fa fa-arrows"></i>',
+        $data['horaIni'],
+        $data['horaFim'],
+        "({$referencia}) {$razaoSocial}",
+        $empresa['dtPeriodico'],
+        $endereco['logradouro']['nomeLogradouro'] . ', ' . $endereco['numero'],
+        $empresa['codigoRua'],
+        $data['qtdFunItem'],
+        "<span 'text-edit'>{$data['tempoCons']} {$editPen}</span>{$editTempoCons}",
+        "<span 'text-edit'>{$data['translado']} {$editPen}</span>{$editTranslado}",
+        $data['seq'],
+            ], " style='{$rowColor}' ");
+}
+
+/**
+ * 
+ */
+if(isset($this->dataToEdit) and !empty($this->dataToEdit)) {
+    
+    $dataAdd     = $this->dataToEdit;
+    $addOptions  = '';
+    
+    $referencia  = $dataAdd['empresa']['referenciaEmp'];
+    $razaoSocial = $dataAdd['empresa']['razaoSocial'];
+    $numero      = $dataAdd['empresa']['endereco']['numero'];
+    $endereco    = $dataAdd['empresa']['endereco']['logradouro']['nomeLogradouro'];
+    
+    ob_start();
+    $fh->text('tempoCons',[], ['size'=> 6, 'value' => $dataAdd['tempoCons']]);
+    $fieldTempoCons = ob_get_clean();
+
+    ob_start();
+    $fh->text('translado',[], ['size'=> 6, 'value' => $dataAdd['translado']]);
+    $fieldTranslado = ob_get_clean();
+    
+    $table->renderLine([
+        "",
+        "",
+        "",
+        "({$referencia}) {$razaoSocial}",
+        $dataAdd['empresa']['dtPeriodico'],
+        "{$endereco}, {$numero}",
+        $dataAdd['empresa']['codigoRua'],
+        $dataAdd['empresa']['qtdFunc'],
+        $fieldTempoCons,
+        $fieldTranslado,
+        $dataAdd
+    ], "class='warning'");
+}
+
+$table->renderCloseTable();
+$fh->closeCol()->closeLine();
+
+echo <<<LEGEND
+    <center>
+        <strong>Legenda </strong>  
+        <span class="label label-success">Cond. Reagendados </span>
+        <span class="label label-default">Cond. Improdutivos</span>
+        <span class="label label-danger" >Cond. Inativos    </span>
+    </center>
+LEGEND;
+
+$fh->formEnd();
+$fh->closeCol();
+
+// Var de transferencia PHP to JS
+$transp = array(
+    'tempoCons' => ".teste",
+    'translado' => ".teste"
+);
+?>
+<br>
+<br>
+
+
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        var $table = $('#listagem-itens').find('table');
+        /** ====================================================================
+         *   SORTABLE
+         *  ====================================================================
+         *  Torna a tabela selecionada em sortable
+         */
+        $table.sortable({
+            containerSelector: 'table',
+            itemPath: '> tbody',
+            itemSelector: 'tr',
+            handle: '.handle',
+            placeholder: '<tr colspan="12" class="placeholder"></tr>',
+            onDrop: function () {
+                // Verifica a nova ordem
+                var lista = [];
+                $('.acao').each(function () {
+                    lista.push($(this).attr('data-seq'));
+                });
+
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => 'blocoItems', 'action' => 'reordenarBlocoItem'), [], FALSE, FALSE); ?>",
+                    type: 'POST',
+                    savePage: false,
+                    data: {
+                        novaSeq: JSON.stringify(lista)
+                    },
+                    ret: "#listagem-itens"
+                });
+            }
+        });
+
+        /**
+         * Salva um item na listagem de itens do bloco
+         */
+        $('.salvar-item').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'blocoItems', 'action' => 'addItemBloco'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                type: "POST",
+                data: {
+                    idEmpresa: $(this).data('id'),
+                    tempoCons: $(this).closest('tr').find('#tempoCons').val(),
+                    translado: $(this).closest('tr').find('#translado').val(),
+                },
+                callback: function (data) {
+                    $('#refresh-list').click();
+                    $("#listagem-itens").html(data);
+                },
+            });
+        
+        
+//            $(this).closest('form').processa({
+//                savePage: false,
+//                callback: function (data) {
+//                    $('#refresh-list').click();
+//                    $("#listagem-itens").html(data);
+//                },
+//            });
+
+        });
+
+        /**
+         * Cancela a inclusão do item na listagem do bloco
+         */
+        $('.cancel-item').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'blocoItems', 'action' => 'getListaBlocoItem'), [], FALSE, FALSE); ?>",
+                ret: "#listagem-itens",
+                savePage: false
+            });
+        });
+
+        /**
+         * Remove um item da listagem de itens do bloco
+         */
+        $('.remove-item').click(function () {
+            var seq = $(this).attr('data-seq');
+            gModal.reset("confirm", 1)
+                    .setClickOk(function () {
+                        $.processa({
+                            url: "<?php echo $this->url($route, array('controller' => 'blocoItems', 'action' => 'rmvItemBloco'), [], FALSE, FALSE); ?>/" + seq,
+                            savePage: false,
+                            ret: "#listagem-itens",
+                        });
+
+                        // Ao excluir item da lista de itens do bloco, 
+                        // atualizar listagem de empresa;
+                        $('#refresh-list').click();
+                    })
+                    .setLabelOk("SIM")
+                    .setLabelNg("NÃO")
+                    .setMsg('Deseja realmente remover este item?')
+                    .showModal();
+        });
+
+        var canEdit = true;
+        $('.editable').hide();
+        $('.editable').parent().hover(
+                function () {
+                    $(this).find('.editable').show();
+                },
+                function () {
+                    $(this).find('.editable').hide();
+                }
+        );
+
+        /**
+         * +===================================================================+
+         * |
+         * +===================================================================+
+         */
+        // Lê e armazena 
+        $('.edit-row').hide();
+        $('.editable').click(function () {
+            var $td = $(this).closest('td');
+            $td.find('span').hide();
+            $td.find('.edit-row').show();
+        });
+
+        $('.cancela-edicao').click(function () {
+            var $td = $(this).closest('td');
+            $td.find('.edit-row').hide();
+            $td.find('span').show();
+            return false;
+        });
+
+        $('.salvar-edicao').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'blocoItems', 'action' => 'editaItemBloco'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                type: "POST",
+                data: {
+                    seq: $(this).attr('data-seq'),
+                    field: $(this).attr('data-name'),
+                    newVal: $(this).closest('.edit-row').find('input').val()
+                },
+                ret: "#listagem-itens",
+            });
+            return false;
+        });
+
+//        var htmlEditCols = $('#edit-cols').html();
+//        //
+//
+//        var canEdit = true;
+//        var tempHtmlRow = "";
+//
+//        $('.editable').click(function () {
+//            if (!canEdit) {
+//                return false;
+//            }
+//
+//            canEdit = false;
+//            var $td = $(this).closest('td');
+//            var text = $td.find('span').html();
+//            var name = $(this).attr('data-name');
+//            tempHtmlRow = $td.html();
+//
+//            // Prepara o formulário de edição
+//            $td.html($('#edit-cols').html());
+//            $td.find().find('input').val(text);
+//
+////            $td.html('<div class="form-group"><div class="input-group"><i class="fa fa-ban"></i> <input class="form-control" size="06" name="' + name + '" type="text" value="' + text + '"></div></div> <i class="fa fa-check"></i>');
+//        });
+    });
+</script>
+

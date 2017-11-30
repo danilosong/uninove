@@ -1,0 +1,251 @@
+<?php
+/**
+ * filtros e listagem de prontuarios
+ * @author Paulo Watakabe <watakabe05@gmail.com>
+ * @version 1.0  
+ * @since 19-05-2016 
+ */
+/* @var $fh    \Application\View\Helper\FormHelp */
+/* @var $table \Application\View\Helper\Table */
+$param      = $this->Param();
+$table      = $this->table();
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$entity     = $this->entity;
+$form       = $this->form;
+$id           = $form->getValue('id', 0);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1><? echo $this->dataView['titulo']; ?></h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => $action)); ?>">Limpar</button>
+</p>
+<?php
+$fh->getForm()->loadSelectTipo(TRUE);
+$partial = $this->partialObj('tcmed');
+$fh->setHorizontal(false);
+$fh->formInit()->setPreFix('consulta');
+        // === DADOS DO EMPRESA  ====================================================
+        $fh->openCol(12);
+            $partial->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'cpfAllow' => FALSE]);
+        $fh->closeCol();    
+    $fh->lineDown();
+        $fh->setPreFix('funcionario');
+        $idFuncionario = $fh->getIdFor('idFuncionario');
+        $fh->openCol(3)->number('referenciaFun')->closeCol();
+        $referenciaFun = $fh->getLastId();
+        $fh->openCol(9)->text('nomeFuncionario', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+        $nomeFuncionario = $fh->getLastId();
+        $fh->removePreFix('funcionario');    
+    $fh->lineDown();
+        $fh->openCol(6)->select('tipo')->closeCol();
+    $fh->lineDown();
+        $fh->openCol(3)->renderInputCalend('ini')->closeCol();
+        $fh->openCol(3)->renderInputCalend('fim')->closeCol();
+        $fh->removePreFix('consulta');
+    $fh->lineDown();
+        $fh->openCol(12)->submit('submit',0,['value' => 'Pesquisar'])->closeCol();
+    $fh->lineDown();
+        $fh->openCol(9);
+
+?>
+    <button class="btn btn-primary" onclick="checkAllOrUncheckAll(this); return false;">Marcar Todos</button>
+    <button class="btn btn-primary" onclick="return geraMarcados(this);">Gerar Marcados</button>
+    <button class="btn btn-primary" onclick="return geraMarcadoRecibos(this);">Gerar Marcados com Recibo</button>
+<?
+    $fh->closeCol()->openCol(3)->select('limitePag',['labelWidth' => 8])->closeCol();
+    $fh->closeLine();
+    
+    $table->setLambda(function($value, &$data){
+        echo '<td nowrap>',
+        '<input type="checkbox" class="chkProntuario" value="',$value, '" name="showProntuario[]" />',
+        '&nbsp;&nbsp;&nbsp;',
+        '<span class="hand" onClick="showProntuario(\'', $value, '\',this)" title="Exibir o prontuario desta consulta"><i class="fa fa-file-text"></i> </span>',
+        '&nbsp;&nbsp;&nbsp;',
+        '<span class="hand" onClick="openFichaClinica(\'', $value, '\',this)" title="Abrir Ficha clinica"><i class="fa fa-paste"></i> </span>',
+        '&nbsp;&nbsp;&nbsp;',
+        '<span class="hand" onClick="showASOOfIndex(\'', $value, '\',this)" title="Exibir ASO em PDF na Tela"><i class="fa fa-file-pdf-o"></i> </span>',
+        '</td>', PHP_EOL; 
+        
+    });
+    $table->openTable(TRUE);
+    $table->setEditLine('first');
+    $table->setOrderList($this->dataView['orderBy']);
+    $table->renderThead([
+        'Ação',
+        ['label' => 'Consulta'       , 'order' => 'dtConsulta'], 
+        ['label' => 'Administradora' , 'order' => 'a.fantasiaAdm'], 
+        ['label' => 'Empresa'        , 'order' => 'em.fantasiaEmpresa'], 
+        ['label' => 'Funcionario'    , 'order' => 'f.nomeFuncionario'], 
+        ['label' => 'Medico'         , 'order' => 'm.nomeMedico'], 
+        ['label' => 'Clinica'        , 'order' => 'c.fantasiaClinica'], 
+        ['label' => 'Resultado'      , 'order' => 'resultado'], 
+        ['label' => 'Normal'         , 'order' => 'normal'], 
+        ['label' => 'Ocupacional'    , 'order' => 'ocupacional'], 
+        ['label' => 'Retorno'        , 'order' => 'dtRetorno'], 
+        ['label' => 'Validade'       , 'order' => 'validade'], 
+        'observacao Final',     
+        ['label' => 'CAT Aberto'     , 'order' => 'catAberto'], 
+        ['label' => 'Abrir CAT'      , 'order' => 'abrirCat'], 
+        'Ocupação', 
+    ]);
+    /* @var $entity \Tcmed\Entity\Consulta */
+    foreach ($this->data as $entity) {
+        $table->renderLine([
+            $entity->getId(),
+            $entity->getDtConsulta(),
+            $entity->getAdministradora(),
+            $entity->getEmpresa()->getFantasiaEmpresa(),
+            $entity->getFuncionario()->getNomeFuncionario(),
+            $entity->getMedico()->getNomeMedico() . '(CRM:' . $entity->getMedico()->getCrm() . ')',
+            $entity->getClinica()->getFantasiaClinica(),
+            $param($entity->getResultado(),'FC_Resultado'),
+            $param($entity->getNormal(),'FC_normal'),
+            $param($entity->getOcupacional(),'FC_Ocupacional'),
+            $entity->getDtRetorno(),
+            $param($entity->getValidade(),'FC_validade'),
+            $entity->getObservacaoFinal(),
+            $entity->getCatAberto(TRUE),
+            $entity->getAbrirCat(TRUE),
+            $entity->getHistOcupacional(),
+        ]);
+    }
+    $table->renderCloseTable();    
+    
+$fh->formEnd();
+// === TRANSPORTE ==============================================================
+$fields = array_merge(
+        $partial->fieldsEmpresa, 
+        [
+            "idFuncionario"    => $idFuncionario
+            ,"nomeFuncionario" => $nomeFuncionario
+            ,"referenciaFun"   => $referenciaFun
+        ]
+    );
+// ===================================================================== FIM ===
+?>
+<br />
+
+<script lang="javascript">
+    
+    var isValid = function() {
+        return true;
+    };
+    
+    var atualiza = function() {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'edit'), [], FALSE, FALSE); ?>",
+            frm : true            
+        });        
+    };
+    
+    var showProntuario = function(key, obj) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showPdf'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+    };
+    
+    var openFichaClinica = function(key, obj) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'show'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+    };
+    
+    var showASOOfIndex = function(key, obj) {
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => 'fichaClinicas', 'action' => 'showASO'), [], FALSE, FALSE); ?>" + "/" + key,
+        });
+    };
+    
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => 'fichaclinicas', 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    
+    var geraMarcadoRecibos = function(obj){
+        return geraMarcados(obj, {subOpcao : 'comRecibo'});
+    };
+    
+    var geraMarcados = function(obj,data){
+        if(data == null){
+            data = {subOpcao : 'semRecibo'};
+        }
+        if($(".chkProntuario").is(':checked')){
+            $.processa({
+                url : '<?php echo $this->url($route, array('controller' => $controller, 'action' => 'selecionados'), [], FALSE, FALSE); ?>',
+                frm : true,
+                data : data
+            });
+        }else{
+            alert('Nenhum registro foi selecionado!!!');
+        }
+        return false;
+    };
+    
+    var checkAllOrUncheckAll = function(obj){
+        $obj = $(obj);
+        if($obj.html() == 'Marcar Todos'){
+            $(".chkProntuario").prop( "checked", true );
+            $obj.html('Desmarcar Todos');
+        }else{
+            $(".chkProntuario").prop( "checked", false );
+            $obj.html('Marcar Todos');            
+        }
+    };
+    
+    $(function () {
+        
+        
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        $.extend(fields, fields, window.funcaoCallBackPartialEmpresa.fields);
+        console.log(fields);
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            width: 800,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            params: {
+                subOpcao : 'type1'
+            },
+            filters: function (data) {
+                data.rules = {
+                    referenciaSubhold : $$(fields.referenciaSubhold).val(),
+                    empresa           : $$(fields.idEmpresa).val()
+                };
+                return data;
+            },
+            callback: function (data){
+                $$(fields.fantasiaHold    ).val(data.idHold          );
+                $$(fields.idAdministradora).val(data.idAdministradora);
+                $$(fields.referenciaSubhold).val(data.referenciaAdm   );
+                $$(fields.razaoSocialAdm  ).val(data.fantasiaAdm     );
+                $$(fields.idEmpresa       ).val(data.idEmpresa       );
+                $$(fields.referenciaEmp   ).val(data.referenciaEmp   );
+                $$(fields.razaoSocialEmp  ).val(data.fantasiaEmpresa );
+                $$(fields.idFuncionario   ).val(data.funcionario     );
+                $$(fields.referenciaFun   ).val(data.referenciaFun   );
+                $$(fields.cnpj            ).val(data.cnpj            );
+            },
+            showCols: ["nomeFuncionario", "fantasiaAdm", "fantasiaEmpresa", "cpf"]
+        });
+        
+    });
+</script>

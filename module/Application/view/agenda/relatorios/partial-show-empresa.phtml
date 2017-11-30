@@ -1,0 +1,98 @@
+<?php
+   /**
+    * 
+    * @author Paulo Watakabe <watakabe05@gmail.com>
+    * @version 1.0  
+    * @since 15-08-2016
+    */
+/* @var $table      \Application\View\Helper\Table      */
+/* @var $fh         \Application\View\Helper\FormHelp   */
+/* @var $entity     \Agenda\Entity\RelatorioDetEmp      */
+$entity     = &$obj;
+$table      = $d['table'];
+
+$lambda = function ($value, &$data) {   
+    echo "\t<td nowrap>",
+            '<span class="hand" onClick="editRelatorioDetEmp(\'', $value, '\')" title="Preencher dados da visita Medica"><i class="fa fa-pencil"></i> Edit','</span>', PHP_EOL,
+            '<br />',
+            '<br />',
+            '<br />',
+            '<span class="hand" onClick="deltRelatorioDetEmp(\'', $value, '\')" title="Remover Empresa do Relatorio"><i class="fa fa-trash"></i> Del','</span>', PHP_EOL,
+         "</td>", PHP_EOL;   
+};
+
+    $table->openTable(['noScrool' => TRUE, 'default' => TRUE]);
+    if(!empty($d['showAdm'])){
+        $table->renderCaption($d['showAdm']);
+    }
+    $table->setEditLine('first');
+    $table->setLambda($lambda);
+    $table->setTdopt([
+        ' class="small"'
+        ,''
+        ,''
+        ,''
+        ,''
+        ,''
+        ,' nowrap class="small"'
+        ,''
+        ,' nowrap class="small"'
+        ,''
+        ,' nowrap class="small"'
+        ,''
+    ]);
+    $table->renderThead([
+        'Ação'
+        ,['label' => 'Condominio'        ]
+        ,['label' => 'Vidas'             ]
+        ,['label' => 'Medico'            ]
+        ,['label' => 'Data'              ]
+        ,['label' => 'Real.'             ]
+        ,['label' => 'Realizados Nomes'  ]
+        ,['label' => 'Real. Ambu'        ]
+        ,['label' => 'Real. Ambu Nomes'  ]
+        ,['label' => 'Ausentes'          ]
+        ,['label' => 'Ausentes Nomes'    ]
+        ,['label' => 'Obs'               ]
+    ]);
+    // Carregar Ausentes
+    $realizado   = '';
+    $ambulatorio = '';
+    $ausente     = '';
+    $ind = ['rea' => 0, 'amb' => 0, 'aus' => 0, 'tot' => 0];
+    $relatorioDetFuncs = $entity->listRelatorioDetFunc();
+    /* @var $relatorioDetFunc \Agenda\Entity\RelatorioDetFunc */
+    foreach ($relatorioDetFuncs as $relatorioDetFunc) {
+        $ind['tot']++;
+        if($relatorioDetFunc->getRealizou()){
+            $realizado .= substr($relatorioDetFunc->getNome(), 0 , 20) . '<br>';
+            $ind['rea']++;
+            continue;
+        }
+        if($relatorioDetFunc->getRealizouAmb()){
+            $ambulatorio .= substr($relatorioDetFunc->getNome(), 0 , 20) . '<br>';
+            $ind['amb']++;
+            continue;
+        }
+        $ind['aus']++;
+        $ausente .= substr($relatorioDetFunc->getNome(), 0 , 20) . '<br>';
+    }
+    $anexo = '';
+    if(!empty($entity->getAnexo())){
+        $anexo = '<button type="button" class="btn btn-primary btn-Open" id="' . $entity->getId() . '">Abrir Anexo</button><br />';
+    }
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getEmpresa()->getRazaoSocial(),
+        $ind['tot'],
+        $entity->getMedico()->getNomeMedico(),
+        $entity->getAgendadoEm(),
+        $ind['rea'],
+        $realizado,
+        $ind['amb'],
+        $ambulatorio,
+        $ind['aus'],
+        $ausente,
+        $anexo . $entity->getObs(),
+    ]);
+    $table->renderCloseTable();

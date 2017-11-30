@@ -1,0 +1,96 @@
+<?php
+$data = $this->data;
+$menu = $this->Menu();
+
+$p = $this->Param();
+$route = $p('route', 'defaultRoute');
+$controller = "Index";
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/**
+ * @var $menuShow Contem o item selecionado ou o primeiro item do array de menu
+ */
+$menuShow = (isset($data["menuShow"])) ? $data["menuShow"] : $p('menu', 'defaultMenu');
+
+/**
+ * Monta o menu de navegacao dos heads (PCMSO, PPP, Sistema...)
+ */
+echo '<ul class="nav nav-pills pull-right" role="tablist">';
+$first = TRUE;
+foreach ($menu as $itemMenu => $val) {
+    $class = "callmenu" . (($menuShow == $itemMenu) ? " active" : "");
+    echo '<li role="presentation" class="' . $class . '" data-id="' . $itemMenu . '"><a href="javascript:void(0);"><i class="' . $val["options"]["icon"] . '"></i> ' . strtoupper($itemMenu) . '</a></li>';
+    $first = FALSE;
+}
+echo '</ul>';
+
+/**
+ * Limita o $menu para dispor apenas dos dados do header selecionado
+ */
+$menu = $menu[$menuShow];
+/**
+ * Exibe o nome do header selecionado
+ */
+echo '<h2><i class="' . $menu["options"]["icon"] . '"></i> ' . strtoupper($menuShow) . '</h2><hr>';
+
+/**
+ * Monta as linhas, colunas e os menus/submenus
+ * @var $count Contador utilizado para fechar a linha quando este atingir o limite
+ * @var $limit Limite de colunas na linha
+ * @var $colSize Tamanho da coluna entre as linhas (baseado no modelo grid-sistem do bootstrap)
+ */
+$count = 0;
+$limit = 4;
+$colSize = (0 == 12 % $limit) ? 12 / $limit : 3;
+
+echo '<div class="row">'; // ===================================================
+foreach ($menu as $key => $item) {
+    // @todo hack que elimina as opcoes setadas dentro do menu
+    if ("options" == $key) {
+        continue;
+    }
+    // Quebra de linha se o contador alcancar o limite
+    if ($limit == $count) {
+        echo '</div><div class="row">';
+        $count = 0;
+    }
+
+    $count++;
+
+    // Monta tabela de submenus
+    echo '<div class="col-md-' . $colSize . '"><div class="list-group hideOn">';
+    // Nomeia a tabela com o nome do menu
+    echo '<a class="list-group-item active"><i class="' . $item["options"]["icon"] . '"></i> ' . $key . '</a>';
+
+    //Pra cada submenu de menu, renderizar
+    foreach ($item as $subitem => $attrs) { //-------------¬ RENDERIZA OS SUBMENUS
+        // @todo hack que elimina as opcoes setadas dentro do menu
+        if ("options" == $subitem) {
+            continue;
+        }
+        echo '<a href="javascript:void(0);" onclick="' . $attrs["options"]["url"] . '" class="list-group-item"> <i class="' . $attrs["options"]["icon"] . '"></i> ' . $subitem . '</a>';
+    }
+
+    echo '</div></div>';
+}
+echo '</div>'; // ==============================================================
+?>
+<script type="text/javascript">
+    $(function () {
+        $(".list-group").show("slow");
+        $(".callmenu").click(function () {
+            var menuShow = $(this).attr("data-id")
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'buildIndex'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    menuShow: menuShow
+                }
+            });
+            module.Sidemenu.hideSideBar();
+        });
+
+    });
+</script>

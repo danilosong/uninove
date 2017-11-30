@@ -273,7 +273,7 @@ class AbstractFilter extends InputFilter {
                     ),
                 ),
                 array(
-                    'name' => 'Tcmed\Form\Validator\ValidaCpf',
+                    'name' => 'Adm\Form\Validator\ValidaCpf',
                 ),
             ],
         ));
@@ -305,7 +305,7 @@ class AbstractFilter extends InputFilter {
                     ),
                 ),
                 array(
-                    'name' => 'Tcmed\Form\Validator\ValidaCnpj',
+                    'name' => 'Adm\Form\Validator\ValidaCnpj',
                 )
             ],
         ));
@@ -337,7 +337,7 @@ class AbstractFilter extends InputFilter {
                     ),
                 ),
                 array(
-                    'name' => 'Tcmed\Form\Validator\ValidaPis',
+                    'name' => 'Adm\Form\Validator\ValidaPis',
                 ),
             ],
         ));

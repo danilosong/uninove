@@ -1,0 +1,24 @@
+<?php 
+/* @var $entity \Tcmed\Entity\Hold */
+if($this->resultSet){
+    $array = [];
+
+    if($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idHold' => 'ID',
+            'menu_fantasiaHold' => 'Nome Fantasia',
+            'menu_referenciaHold' => 'Referencia',
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idHold' => $entity->getId(),
+                'fantasiaHold' => $entity->getFantasiaHold(),
+                'referenciaHold' => $entity->getReferenciaHold(),
+            ];
+        }
+    }
+
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

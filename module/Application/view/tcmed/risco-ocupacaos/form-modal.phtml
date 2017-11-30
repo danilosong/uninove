@@ -1,0 +1,124 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$entity     = $this->entity;
+$form       = $this->form;
+
+$form->setAttribute('id', 'formModalRiscoOcup');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh =  $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action'     => $action,
+), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit();
+$fh->setHorizontal(true);
+    $idRiscoOcupacao = $fh->getIdFor('idRiscoOcupacao');
+    $idOcupacao      = $fh->getIdFor('idOcupacao');
+
+        $fh->openCol(8)->select('riscoOcupacao')->closeCol();
+            $fh->openCol(4); echo $fh->buildButton(['id' => 'btn-clone-risco'], 'Copiar Este Risco', 'warning'); 
+        $fh->closeCol();
+    $fh->lineDown();
+
+    $fh->setPreFix('risco');
+        $idRisco = $fh->getIdFor('idRisco');
+        $risco   = $fh->getIdFor('risco');
+
+        $fh->openCol(6)->text('risco',[
+            "extra"    => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"],
+            "dt-clear" => $idRisco
+        ])->closeCol();
+    $fh->removePreFix('risco');
+
+    $fh->lineDown();
+    
+    $fh->openCol(12)->text('tipo')->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(12)->text('agente')->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(6)->select('prioridade')->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(6)->number('classifAgente',['labelWidth' => '8'])->closeCol();
+    $inpClaAge = $fh->getLastId();
+    $fh->openCol(6)->number('classifExposicao',['labelWidth' => '8'])->closeCol();
+    $inpClaExp = $fh->getLastId();
+
+    $fh->lineDown();
+
+    $fh->openCol(6)->number('controle',['labelWidth' => '8'])->closeCol();
+    $fh->openCol(6)->number('somatoria',['labelWidth' => '8'])->closeCol();
+    $inpSomatoria = $fh->getLastId();
+
+    $fh->lineDown();
+
+$fh->setHorizontal(false);
+
+    $fh->openCol(12);
+        echo '<legend>Dados necessários no PPP</legend>';
+    $fh->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(6)->text('intensConc')->closeCol();
+    $fh->openCol(6)->text('tecnicaUtil')->closeCol();
+
+$fh->formEnd();
+
+// Var de transferencia PHP to JS
+$transp = compact('risco', 'idRisco', 'inpClaAge', 'inpClaExp', 'inpSomatoria');
+?>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+
+        $$(transp.risco).auto({
+            primary: "risco",
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'riscos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            filters: function (query) {
+                query["subOpcao"] = "";
+            },
+            responseTo: {
+                idRisco: [transp.idRisco]
+            },
+            showCols: ["risco"]
+        });
+        
+        var setSomatoria = function(){
+            var vlrAge = $$(transp.inpClaAge).val();
+            var vlrExp = $$(transp.inpClaExp).val();
+            if(vlrAge == ''){
+                vlrAge = 0;
+            }
+            if(vlrExp == ''){
+                vlrExp = 0;
+            }
+            var resul = 1 * vlrExp + 1 * vlrAge ; // converter string para inteiro e somar
+            $$(transp.inpSomatoria).val(resul);
+        };
+        
+        $$(transp.inpClaAge).keyup(setSomatoria);
+        $$(transp.inpClaExp).keyup(setSomatoria);
+        
+        
+        
+        
+    });
+
+</script>

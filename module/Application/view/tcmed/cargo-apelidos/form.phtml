@@ -1,0 +1,61 @@
+<h3><?php
+    echo $this->dataView['titulo'];
+    $controller = 'cargoApelidos';
+    $route = 'tcmed/default';
+    ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp
+ * @author Allan Davini */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro de Apelido de Cargos:');
+$fh->setPreFix('cargo');
+    $idCargo = $fh->getIdFor('idCargo');
+
+    $fh->openCol('12')->text('cargo', ['dt-clear' => $idCargo])->closeCol();
+    $cargo = $fh->getLastId();
+
+$fh->lineDown()->removePreFix();
+
+$fh->openCol('12')->text('apelido')->closeCol();
+$fh->closeLine();
+$partialObject = $this->partialObj('tcmed');
+$partialObject->partial('descricao-cargos/partial-form', $fh, ['this' => &$this]);
+$fh->openLine();
+$fh->openCol('12')->select('status')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+$fieldsCargoApelidos = [
+    "cargo" => $cargo,
+    "idCargo" => $idCargo,
+];
+
+$fieldsCargoApelidos = array_merge($partialObject->fieldsDescricaoCargo, $fieldsCargoApelidos);
+?>
+
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        var fields = <?php echo json_encode($fieldsCargoApelidos) ?>;
+
+        $$(fields.cargo).auto({
+            primary: "cargo",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (query) {
+                query["rules"] = {"status": "ativo"};
+            },
+            callback: function (data) {
+                $$(fields.descricao).val(data["descricao"])
+                $$(fields.idCargo).val(data["idCargo"])
+            },
+            showCols: ["cargo", "descricao"]
+        });
+    });
+
+</script>

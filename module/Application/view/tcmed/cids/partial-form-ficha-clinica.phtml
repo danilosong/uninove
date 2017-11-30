@@ -1,0 +1,92 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$horizontal = $fh->getHorizontal();
+$fh->setHorizontal(FALSE);
+
+$fh->renderFieldsetIni('C.I.D. 10',['notOpenLine'=>TRUE, 'fAtrb' => 'id="fieldCID"'])->setPreFix('cid');
+$qtdCid = $fh->getForm()->getCidSeqId();
+$label = [];
+for ($i = 0 ; $i < $qtdCid; $i++) {
+    $idCid        = 'idCid'        . $i ;
+    $numeroCid    = 'numeroCid'    . $i ;
+    $descricaoCid = 'descricaoCid' . $i ;
+    $fh->openLine();
+    $fh->openCol('3')->text('numeroCid['    . $i . ']', array_merge($label,['clean' => false])                       )->closeCol();
+    $fh->openCol('9')->text('descricaoCid[' . $i . ']', array_merge($label,['dt-clear' => $idCid . "," . $numeroCid]))->closeCol();
+    $fh->closeLine();
+    $label = ['noLabel' => TRUE];
+    echo <<<EOT
+    <script lang="javascript">
+
+        $(function () {
+
+            var fieldsCid = {
+                idCid: "{$idCid}",
+                numeroCid: "{$numeroCid}",
+                descricaoCid: "{$descricaoCid}"
+            };
+
+            /* AUTOCOMPLETE: cid descrição  */
+            $$(fieldsCid.descricaoCid).auto({
+                primary: "descricaoCid",
+                width: 600,
+                serviceUrl: "{$d['this']->url('tcmed/default', array('controller' => 'cids', 'action' => 'autoComp'), [], FALSE, FALSE)}",
+                filters: function(query){
+                    query["subOpcao"] = "";
+                },
+                responseTo: {
+                    "idCid"        : [fieldsCid.idCid],
+                    "numeroCid"    : [fieldsCid.numeroCid]
+                },
+                showCols : ["numeroCid", "descricaoCid"]
+            });
+            /* AUTOCOMPLETE: cid numero  */
+            $$(fieldsCid.numeroCid).auto({
+                primary: "numeroCid",
+                width: 600,
+                serviceUrl: "{$d['this']->url('tcmed/default', array('controller' => 'cids', 'action' => 'autoComp'), [], FALSE, FALSE)}",
+                filters: function(query){
+                    query["subOpcao"] = "";
+                },
+                responseTo: {
+                    "idCid"        : [fieldsCid.idCid],
+                    "descricaoCid" : [fieldsCid.descricaoCid]
+                },
+                showCols : ["numeroCid", "descricaoCid"]
+            });
+        });
+
+    </script>
+EOT;
+}
+
+$fh->renderFieldsetFim()->removePreFix();   
+
+$fh->setHorizontal($horizontal);
+
+?>
+
+<script lang="javascript">
+
+    // validar preenchimento dos campos CIDs 
+    var isValidCID = function(){
+        var flag = true;      
+        var $fieldCID = $("#fieldCID");
+        removeAlert($fieldCID);      
+        // validar CIDs
+        flag2 = false;
+        $fieldCID.find(".row").each(function(index, ele) {
+            if($(ele).find("input").eq(0).val() !== ""){
+                flag2 = true;
+                return index;
+            }
+        });
+        if(flag2 === false){
+            makeDivError($fieldCID.parent('div'), 'Dever ser Preenchido ao menos o Diagnóstivo Principal com codigo CID', null, false);
+        }
+        return flag;
+    };
+    
+</script>

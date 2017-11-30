@@ -1,0 +1,22 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+/* @var $entity \Tcmed\Entity\PpraVigencia */
+$entity       = $this->entity;
+
+//echo '<h4>', $title, '</h4>';
+
+if($entity AND $entity->getPpra()):
+    $linhas = explode(PHP_EOL, $entity->getPpra()->getTrabalho());
+    foreach ($linhas as $linha):
+?>
+    <p class="MsoNormal" style="text-align: justify;">
+        <span style="font-size: 12pt; line-height: 115%; font-family: Arial, sans-serif;"> 
+            <?= $linha;?>
+        </span>        
+    </p>
+<?        
+    endforeach;
+endif;

@@ -1,0 +1,306 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$style = 'position:absolute;z-index:999999;background-color:#fff;';
+$horizontal = $fh->getHorizontal();
+$fh->setHorizontal(FALSE);
+
+$fh->openLine()->setPreFix('endereco');
+    $idEndereco = $fh->getIdFor('idEndereco');
+    $fh->setPreFix('logradouro');
+    $idLogradouro = $fh->getIdFor('idLogradouro');   
+    $fh->openCol('3')->icone('cep',['span_id' => 'span_cep', 'style' => $style, 'extra' => ['icon'=>'search', 'js'=>'buscarCep();']],['onKeyUp' => 'buscarCep()'])->closeCol();
+    $cep = $fh->getLastId();
+$fh->lineDown();    
+    $fh->setPreFix('tipoLogradouro');
+    $idTipoLogradouro = $fh->getIdFor('idTipoLogradouro');   
+    $fh->openCol('2')->text('tipo', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+    $tipoLogradouro = $fh->getLastId();
+    $fh->removePreFix();
+    $fh->openCol('5')->text('nomeLogradouro',['span_id' => 'span_rua', 'style' => $style, 'extra' => ['icon'=>'search', 'js'=>'buscarRua()']],['onKeyUp' => 'buscarRua()'])->closeCol();
+    $nomeLogradouro = $fh->getLastId();
+    $fh->removePreFix();
+    $fh->openCol('2')->text('numero')->closeCol();
+    $numero = $fh->getLastId();
+    $fh->openCol('3')->text('complemento')->closeCol();
+    $complemento = $fh->getLastId();
+$fh->lineDown();
+    $fh->setPreFix('logradouro')->setPreFix('bairro');
+    $idBairro = $fh->getIdFor('idBairro');        
+    $fh->openCol('4')->text('nomeBairro')->closeCol();
+    $nomeBairro = $fh->getLastId();    
+    $fh->setPreFix('cidade');
+    $idCidade = $fh->getIdFor('idCidade');
+    $fh->openCol('4')->text('nomeCidade')->closeCol();
+    $nomeCidade = $fh->getLastId();
+    $fh->setPreFix('estado');
+    $idEstado = $fh->getIdFor('idEstado');
+    $fh->openCol('2')->text('uf')->closeCol();
+    $estado = $fh->getLastId();
+    $fh->setPreFix('pais');
+    $idPais = $fh->getIdFor('idPais');
+    $fh->openCol('2')->text('nomePais',[],['value' => 'Brasil','readOnly' => 'true'])->closeCol();            
+    $pais = $fh->getIdFor('nomePais');        
+    $fh->removePreFix()->removePreFix()->removePreFix()->removePreFix()->removePreFix();
+    
+$oldEndereco = $fh->getForm()->getValue('endereco[fullEndereco]', '');
+(is_null($oldEndereco) || empty($oldEndereco)) && $oldEndereco = false;
+$oldEndereco && $fh->lineDown()->openCol(12);
+    $oldEndereco && $fh->renderInputText('fullEndereco');
+$oldEndereco && $fh->closeCol();
+    $fh->removePreFix('endereco');
+
+$fh->closeLine()->setHorizontal($horizontal);
+//
+// === TRANPORTE ==============================================================
+$fields = [
+    'idEndereco'              => $idEndereco
+    ,'idTipoLogradouro'       => $idTipoLogradouro
+    ,'tipoLogradouro'         => $tipoLogradouro
+    ,'idLogradouro'           => $idLogradouro
+    ,'nomeLogradouro'         => $nomeLogradouro
+    ,'idBairro'               => $idBairro
+    ,'nomeBairro'             => $nomeBairro
+    ,'idCidade'               => $idCidade
+    ,'nomeCidade'             => $nomeCidade
+    ,'idEstado'               => $idEstado
+    ,'estado'                 => $estado   
+    ,'nomePais'               => $pais
+    ,'idPais'                 => $idPais
+    ,'complemento'            => $complemento
+    ,'numero'                 => $numero
+    ,'cep'                    => $cep
+];
+// ===================================================================== FIM ===
+?>
+<script lang="javascript">
+    var fieldsEnderecoPartial = <?php echo json_encode($fields) ?>;
+    
+    $(function(){
+        // =====================================================================
+        /**
+         * @property {Object} fields Campos de transferencia do PHP, que serão
+         * utilizados no javascript
+         */
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        // Pesquisar acao  Categorias cadastradas
+        $$(fields.tipoLogradouro).auto({
+            primary: "tipo",
+            width: 400,
+            serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'tipoLogradouros', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            callback: function (data) {
+                $$(fields.idTipoLogradouro).val(data.id);
+            },
+            showCols: ["id", "tipo"]
+        });
+        
+    });
+
+    var params = {
+        fields: {
+            tipoLogradouro : ["<?php echo $tipoLogradouro; ?>"],
+            logradouro     : ["<?php echo $nomeLogradouro; ?>"],
+            numero         : ["<?php echo $numero; ?>"],
+            bairro         : ["<?php echo $nomeBairro; ?>"],
+            cidade         : ["<?php echo $nomeCidade; ?>"],
+            estado         : ["<?php echo $estado; ?>"],
+            pais           : ["<?php echo $pais; ?>"],
+            cep            : ["<?php echo $cep; ?>"]
+        },
+        extra:{
+            url            : "/end/completes/buscaCep",
+            urlRua         : "/end/completes/buscaRua",
+            ExibirMsg      : true,
+            timeForWhait   : 1000,
+            timeForEnter   : false,
+            spanCep        : "#span_cep",
+            spanRua        : "#span_rua",
+            loadingCEP     : false
+        }  
+    };
+
+
+    var closeJanRua = function(){
+        $(params["extra"]["spanRua"]).css('height','0px');
+        $(params["extra"]["spanRua"]).css('width','0px');
+        $(params["extra"]["spanRua"]).html('');
+        setMsgCep('');
+    };
+
+    var setCampos = function(obj){
+        $.each(obj, function (key, val) {
+            params["fields"][key] = val;
+        });
+    };   
+
+    var buscarRua = function(){
+        if(params.extra.loadingCEP){
+            return;
+        }
+        var rua = params["fields"]["logradouro"];
+        var tRua = params["fields"]["tipoLogradouro"];
+        if($(g(rua)).val() == ""){
+            return;
+        }        
+        setMsgCep("Buscando endereço! Aguarde! Pesquisando Logradouro " + $(g(tRua)).val());
+        if(params["extra"]["timeForEnter"] != false){
+            setMsgCep("Aguardando digitação do usuario");
+            clearTimeout(params["extra"]["timeForEnter"]);
+        }
+        params["extra"]["timeForEnter"] = setTimeout(function(){
+            setMsgCep("Pesquisando pela nome da rua digitada Aguarde!!");
+            startBuscarRua();
+            
+        },params["extra"]["timeForWhait"]);
+    };
+
+    var startBuscarRua = function(){       
+        $.processa({
+            url : params['extra']['urlRua']
+            ,type : 'POST'
+            ,data : {
+                tipoLogradouro : $(g(params["fields"]["tipoLogradouro"])).val(),
+                logradouro     : $(g(params["fields"]["logradouro"])).val(),
+                format         : 'json'
+            }
+            ,callback : function(data, defaults){
+                setMsgCep("Encontrado com sucesso");
+                $(params["extra"]["spanRua"]).css('height','250px');
+                $(params["extra"]["spanRua"]).css('width','800px');
+                $(params["extra"]["spanRua"]).css('overflow-y','scroll');
+                $(params["extra"]["spanRua"]).html(data);
+                setTimeout("setMsgCep('')", 2000);
+            }
+        });
+    };
+
+    //<========================================================================>
+    var buscarCep = function(){
+        params.extra.loadingCEP = true;
+        setTimeout(function(){
+            params.extra.loadingCEP = false;            
+        }, params.extra.timeForWhait);
+        var cep = params["fields"]["cep"];
+        if($(g(cep)).prop("readOnly")){
+            return;
+        }
+        if($(g(cep)).val().length < 8){
+            return;
+        }
+        setMsgCep("Buscando endereço! Aguarde! Pesquisando CEP " + $(g(cep)).val());
+        $.processa({
+            url : params['extra']['url']
+            ,type : 'POST'
+            ,data : {
+                cep : $(g(cep)).val(),
+                format : 'json'
+            }
+            ,callback : function(data, defaults){
+                setMsgCep("Encontrado ");
+                setCepInForm(JSON.parse(data));
+            }
+        });
+    };
+
+    var g = function(id){
+        var ele = document.getElementById(id);
+        return ele;
+    };
+
+    var setMsgExibir = function(op){
+        params["extra"]["ExibirMsg"] = op ;
+    };
+
+    var setMsgCep = function(msg){
+        if(!params["extra"]["ExibirMsg"]){
+            return ;
+        }
+        $(params["extra"]["spanCep"]).html(msg);
+    };
+
+    var setCepInForm = function(d,close){
+        switch(d.resultado){
+        case '1':
+            setSelect(params["fields"]["tipoLogradouro"],d.tipo_logradouro);
+            var logradouro = d.logradouro;
+            if(logradouro.search(",") == -1){
+                $(g(params["fields"]["logradouro"])).val(d.logradouro);                
+            }else{
+                var res = logradouro.split(",");
+                $(g(params["fields"]["logradouro"])).val(res.shift());                
+                $(g(params["fields"]["numero"])).val(res.join(' '));                
+            }
+            $(g(params["fields"]["bairro"])).val(d.bairro);
+            $(g(params["fields"]["cidade"])).val(d.cidade);
+            setSelect(params["fields"]["estado"],d.uf);
+            setSelect(params["fields"]["pais"],d.pais);         
+            $(g(params["fields"]["cep"])).val(d.cep);
+            setMsgCep("Encontrado com Sucesso!!" + d.ajax);
+            break;
+        case '2':
+            $(g(params["fields"]["cidade"])).val(d.cidade);
+            setSelect(params["fields"]["estado"],d.uf);
+            setSelect(params["fields"]["pais"],d.pais);
+            setMsgCep("Encontrado com Sucesso!! Cep de Cidade com logradouro único" + d.ajax);
+            break;
+        default:
+            setMsgCep("CEP não encontrado!");
+            break;
+        }
+        $(g(params["fields"]["logradouro"])).toUp();
+        $(g(params["fields"]["bairro"])).toUp();
+        $(g(params["fields"]["cidade"])).toUp();
+        $(g(params["fields"]["cidade"])).toUp();
+        setTimeout("setMsgCep('')", 3000);
+        if(close){     
+            closeJanRua();
+        }
+
+    };
+
+
+    var setSelect = function(ide,vlr){
+        var Select = document.getElementById(ide);  
+        if($(Select).prop("tagName") == 'INPUT'){
+            $(Select).val(vlr);
+            return;
+        }
+        var qtd  = Select.options.length ;
+        for (i = 0; i < qtd; i++) {
+            if(Select.options[i].label == vlr){
+                Select.selectedIndex = i;
+                break;
+            }
+        }    
+    };
+
+    var getAbevLog = function(tipo){
+        var tipo2 = '';
+        switch(tipo){
+            case "Avenida":             tipo2 = "Av.";      break;
+            case "Rua":                 tipo2 = "R.";       break;
+            case "Alameda":             tipo2 = "Al.";      break;
+            case "Praça":               tipo2 = "Pç.";      break;
+            case "Estação":             tipo2 = "Esta.";    break;
+            case "Estrada":             tipo2 = "Estr.";    break;
+            case "Aeroporto":           tipo2 = "Aer.";     break;
+            case "Condomínio":          tipo2 = "Cond.";    break;
+            case "Conjunto":            tipo2 = "Conj.";    break; 
+            case "Distrito":            tipo2 = "Dist.";    break;
+            case "Esplanada":           tipo2 = "Espl.";    break;
+            case "Favela":              tipo2 = "Fav.";     break;
+            case "Travessa":            tipo2 = "Tv.";      break;
+            case "Largo":               tipo2 = "Lg.";      break;
+            case "Jardim":              tipo2 = "Jd.";      break;
+            case "Praia":               tipo2 = "Pr.";      break;
+            case "Viaduto":             tipo2 = "Vd.";      break;
+            case null:                  tipo2 = "Error.";   break;
+            default :                   tipo2 = tipo;
+        } 
+        return tipo2;
+    };   
+
+</script>

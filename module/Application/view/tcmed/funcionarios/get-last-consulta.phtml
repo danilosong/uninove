@@ -1,0 +1,43 @@
+<?php
+
+/* @var $table \Application\View\Helper\Table 
+ * @author Danil Dorotheu <danilo.dorotheu@live.com>
+ * 
+ */
+$table = $this->table();
+
+$table->openTable(TRUE);
+$table->renderThead([
+    'Realizado',
+    'Empresa',
+    'Medico',
+    'Tipo Consulta',
+    'Diagnosticos',
+    'alterado/normal',
+    'Coclusão',
+    'Ação'
+]);
+$lambda = function ($value,$data){
+    echo '<td><a><i class="fa fa-eye"></i> Ver ASO</a></td>';
+};
+$table->setLambda($lambda);
+
+foreach ($this->data as $entity) {
+    $showCids = '<ul>';
+    foreach ($entity->listCid() as $cid) {
+        $showCids .= '<li>' . $cid->getNumeroCid() . '</li>';
+    }
+    $showCids .= '</ul>';
+    /* @var $entity \Tcmed\Entity\Consulta */
+    $table->renderLine([
+        $entity->getDtConsulta(),
+        $entity->getEmpresa()->getRazaoSocial(),
+        $entity->getMedico()->getNomeMedico(),
+        $entity->getTipo(),
+        $showCids,
+        $entity->getNormal(),
+        $entity->getResultado(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();

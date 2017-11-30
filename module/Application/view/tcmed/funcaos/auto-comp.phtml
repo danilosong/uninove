@@ -1,0 +1,69 @@
+<?php
+
+$listaFuncao = $this->resultSet["funcao"];
+$listaApelido = $this->resultSet["funcaoApelido"];
+
+/* @var $entity \Tcmed\Entity\Funcao */
+if($this->resultSet){
+    
+    switch ($this->subOpcao){
+        case "simple":
+            $array[] = [
+                "menu_idFuncao" => "ID Funcao",
+                'menu_funcao' => "Funcao",
+                "menu_idDescricao" => "ID Descricao",
+                'menu_descricao' => "Descricao"
+            ];
+            
+            foreach ($listaFuncao as $entity){
+                 $array[] =[
+                    "idFuncao" => $entity->getId(),
+                    "funcao" => $entity->getFuncao(),
+                    "idDescricao" => $entity->getDescricaoFuncao()->getIdDescricaoFuncao(),
+                    "descricao" => $entity->getDescricaoFuncao()->getDescricao(),
+                ];
+            }
+                
+            break;
+        default:
+            if (!empty($listaFuncao) || !empty($listaApelido)) {
+
+                $array = [];
+
+                if ($this->subOpcao == '' || !isset($this->subOpcao)) {
+                    $array[] = [
+                        "menu_id" => 'ID',
+                        "menu_funcao" => 'Funcao/Apelido',
+                        "menu_tipo" => 'Tipo',
+                        "menu_idFuncao" => 'ID Funcao' //Para exportar caso seja apelido
+                    ];
+                    /* @var $funcao \Tcmed\Entity\Funcao */
+                    foreach ($listaFuncao as $funcao) {
+                        $array[] = [
+                            "id" => $funcao->getId(),
+                            "funcao" => $funcao->getFuncao(),
+                            "tipo" => "funcao",
+                            "idFuncao" => "",
+                        ];
+                    }
+
+                    /* @var $apelido \Tcmed\Entity\FuncaoApelido */
+                    foreach ($listaApelido as $apelido) {
+                        $array[] = [
+                            "id" => $apelido->getId(),
+                            "funcao" => $apelido->getApelido(),
+                            "tipo" => "apelido",
+                            "idFuncao" => $apelido->getFuncao()->getId(),
+                        ];
+                    }
+                
+                }
+            }
+            break;
+    }
+        
+
+    echo json_encode($array);
+} else {
+    echo '{}';
+}

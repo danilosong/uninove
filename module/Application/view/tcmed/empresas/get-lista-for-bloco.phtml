@@ -1,0 +1,33 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$table->openTable(TRUE);
+//$lambda = function($value, $data) {
+//    echo '<td>value</td>', PHP_EOL;;
+//};
+//$table->setLambda($lambda);
+$table->renderThead(['Seq', 'Administradora', 'Cod Empresa', 'Razão Social', 'Periódico', 'Endereço', 'CEP', 'Cód Rua', 'Vidas', 'Ação']);
+/* @var $entity \Tcmed\Entity\Empresa */
+$count = 0;
+foreach ($this->resul as $entity) {
+    $count++;
+    
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getAdministradora()->getRazaoSocial(),
+        $entity->getReferenciaEmp(),
+        $entity->getRazaoSocial(),
+        $entity->getPeriodicidade(),
+        '',
+        '',
+        '',
+        $entity->getQtdFunc(),
+        $entity->getId(),
+    ]);
+}
+
+echo '<td>Total</td>';
+echo '<td colspan="9">'.$count.' registros</td>';
+
+$table->renderCloseTable();

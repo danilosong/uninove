@@ -1,0 +1,23 @@
+<?php
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+
+$routeParams = array(
+    'controller' => $controller,
+    'action' => $action
+);
+
+echo "<iframe id='iframeAso' width='100%' height='500' frameborder='0' src='{$this->url($route, $routeParams, [], FALSE, FALSE)}'></iframe>";
+
+?>
+<script type="text/javascript">
+    $(function(){
+        /**
+         * Alterar a altura para visualização do aso
+         */
+        $('#iframeAso').height($(document).height() * 0.89);
+
+    });
+</script>

@@ -1,0 +1,540 @@
+<?php
+/**
+ * +===========================================================================+
+ * | VIEW INDEX - v1.5
+ * +===========================================================================+
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @version 1.5
+ * @since 
+ * 
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$partial = $this->partialObj('application');
+$seqEdit = $this->seqEdit;
+$entity = ($this->entity) ? $this->entity : FALSE;
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$param = $this->Param();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* +----------------------------------------------------------------------------
+ * | MODAL
+ * +----------------------------------------------------------------------------
+ *  Injeta no HTML, o modal
+ */
+echo $this->partial('partials/modal');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+?>
+<style type="text/css">
+    /** =========== REGRAS CSS SORTABLE (jquery-sortable.js) =============== **/
+    .grab {
+        cursor: grab !important;
+    }
+
+    .dragged {
+        position: absolute;
+        opacity: 0.7;
+        z-index: 2000;
+    }
+
+
+    #listagem-sortable>table tr.placeholder {
+        position: relative;
+    }
+
+    #listagem-sortable>table tr.placeholder:before {
+        position: absolute;
+        /** Define arrowhead **/
+    }
+
+    .edit-row {
+        background-color: #ff0;
+    }
+
+    .colored-input input{
+        background-color: #F4FF89;
+    }
+
+    /** ==================================================================== **/
+</style>
+
+<?php
+/* ----- TITULO ------ */
+echo "<h4>{$title}</h4>";
+
+/*
+ * +===========================================================================+
+ * | Formulário de inclusão de novos horários
+ * +===========================================================================+
+ * |
+ */
+$fh->formInit()->openCol(12);
+$fh->openLine();
+
+$fh->getIdFor('id');
+
+$fh->setHorizontal(TRUE);
+$fh->openCol(10, ['id' => 'checkNomeDiaSemana'])->renderInputMultiCheckbox('nomeDiaSemana', [
+    'position' => FALSE, 'noClean' => true
+])->closeCol();
+
+$fh->openCol(2)->buildButton(['id' => 'limpar-lista-horarios','class' => 'pull-right'], '<i class="fa fa-eraser"></i>', 'primary', TRUE)->closeCol();
+
+$fh->setHorizontal(FALSE);
+
+$fh->lineDown();
+
+$fh->openCol(2)->text('horIni')->closeCol();
+$horIni = $fh->getLastId();
+
+
+$fh->openCol(2, ['class' => 'colored-input'])->text('intervaloIni')->closeCol();
+$intervaloIni = $fh->getLastId();
+
+$fh->openCol(2, ['class' => 'colored-input'])->text('intervaloFim')->closeCol();
+$intervaloFim = $fh->getLastId();
+
+$fh->openCol(2)->text('horFim')->closeCol();
+$horFim = $fh->getLastId();
+
+list($mes, $ano) = explode('/', $this->dateRef);
+$fh->openCol(4)->calend('diasTrab', [
+    "clean" => FALSE,
+    "noMask" => TRUE,
+    "params" => [
+        "format" => "dd",
+        "autoclose" => FALSE,
+        "multidate" => TRUE,
+        "defaultViewDate" => [
+            "year" => $ano,
+            "month" => $mes - 1,
+        ],
+        "daysOfWeekDisabled" => "0, 6",
+        "daysOfWeekHighlighted" => "1,2,3,4,5"
+    ]
+])->closeCol();
+//$fh->openCol(4, ["class" => "calend-date"])->text('diasTrab', [
+//    "clean" => FALSE,
+//    "extra" => ["icon" => "calendar"]
+//])->closeCol();
+$diasTrab = $fh->getLastId();
+
+$fh->lineDown();
+
+if (isset($seqEdit)) {
+    $title = "Cancela a edição do item da lista";
+    $fh->openCol(2, 4)->buildButton(['id' => 'cancela-edicao', 'class' => 'btn-block', 'title' => $title], "<i class='fa fa-times'></i>", "danger", TRUE)->closeCol();
+    $title = "Finaliza e salva a edição do item da lista";
+    $fh->openCol(2)->buildButton(['id' => 'salva-edicao', 'class' => 'btn-block', 'title' => $title], "<i class='fa fa-check'></i>", "success", TRUE)->closeCol();
+} else {
+    $title = "Inclui o item na lista";
+    $fh->openCol(2, 5)->buildButton(['id' => 'inclui-item', 'class' => 'btn-block', 'title' => $title], "Adicionar", "success", TRUE)->closeCol();
+}
+
+$fh->jumpLine(1);
+
+$fh->closeLine();
+$fh->closeCol()->formEnd();
+/* |
+ * +===========================================================================+
+ */
+
+$table->openTable(TRUE);
+$lambda = function($value, $data) {
+    echo '<td class="acao" data-seq="' . $value . '">'
+    . '<span class="hand remove-item" title="Remover este item"><i class="fa fa-trash"></i> Del</span>'
+    . '<span class="hand edita-item"  title="Editar este item"> <i class="fa fa-pencil"></i> Edit</span>'
+    . '</td>', PHP_EOL;
+};
+$table->setLambda($lambda);
+$table->renderThead([
+    ['label' => 'seq', 'options' => ' title="Sequência"'],
+    ['label' => 'Entrada'],
+    ['label' => 'Saída Almoço'],
+    ['label' => 'Volta almoço'],
+    ['label' => 'Saída'],
+    ['label' => 'Dias da Semana'],
+    ['label' => 'Dias de Trabalho'],
+    ['label' => 'Ação']
+]);
+/* @var $contato \Tcmed\Entity\Contato */
+foreach ($this->data as $seq => $data) {
+
+    $nomeDiaSemana = [];
+    foreach ($data['nomeDiaSemana'] as $nomeDia) {
+        $aux = $param($nomeDia, "dia_semana");
+        $nomeDiaSemana[] = substr($aux, 0, 3);
+    }
+
+    $style = (isset($seqEdit) and $seq == $seqEdit) ? 'style="background-color: #ff0;"' : '';
+
+    $table->renderLine([
+        $seq + 1 . ' <i class="grab handle fa fa-arrows"></i>',
+        $data['horIni'],
+        (empty($data['intervaloIni'])) ? '-' : $data['intervaloIni'],
+        (empty($data['intervaloFim'])) ? '-' : $data['intervaloFim'],
+        $data['horFim'],
+        implode(", ", $nomeDiaSemana),
+        $data['diasTrab'],
+        $seq
+            ], $style);
+}
+$table->renderCloseTable();
+
+// Var de transferencia PHP to JS
+$transp = array(
+    "horIni" => $horIni,
+    "horFim" => $horFim,
+    "intervaloIni" => $intervaloIni,
+    "intervaloFim" => $intervaloFim,
+    "diasTrab" => $diasTrab,
+    "seqEdit" => $seqEdit,
+    "mes" => $mes,
+    "ano" => $ano,
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        /**
+         * 
+         * @param {type} days
+         * @param {type} daysIn
+         * @returns {void}
+         */
+        function getDateBy(day) {
+            day = day || "01";
+
+            var aux = $("#mesTo").find('option:selected').val().split('/');
+            return new Date(aux[1], (aux[0] - 1), day);
+        }
+
+        /**
+         * Edita um item na lista
+         */
+        $('.edita-item').click(function () {
+            var seq = $(this).parent().attr('data-seq');
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'editaItemLista'), [], FALSE, FALSE); ?>/" + seq,
+                ret: "#lista-horarios",
+                savePage: false
+            });
+        });
+
+        /**
+         * @description Valida se no formulário, o médico foi selecionado. 
+         * Se não houver médico, exibir mensagem de erro ao usuário;
+         * 
+         * @returns {boolean}         
+         */
+        function validaMedico() {
+            if ('' != $$('#medico[nomeMedico]').val()) {
+                return true;
+            }
+
+            $.notify({
+                message: "Escolha um médico antes!",
+                type: "danger"
+            });
+            return false;
+        }
+        ;
+
+        /**
+         * @description Valida os campos de Entrada (horIni), Saída (horFim) 
+         * e Dias (diasTrab). Se um destes campos estiver vazio, então exibir 
+         * erro e retornar false;
+         * 
+         * @returns {boolean}         
+         */
+        function validaCampos() {
+            var auxA = $$(transp.horIni).isEmpty();
+            var auxB = $$(transp.horFim).isEmpty();
+            var auxC = $$(transp.diasTrab).isEmpty();
+
+            if (auxA || auxB || auxC) {
+                $.notify({
+                    message: "Verifique se os campos de Entrada, Saída e Dias estão preenchidos corretamente!",
+                    type: "danger"
+                });
+                return false;
+            }
+
+            return true;
+
+        }
+
+        /**
+         * Inclui um novo item na lista
+         */
+        $('#inclui-item').click(function () {
+            if (!validaMedico()) {
+                return false;
+            }
+
+            if (!validaCampos()) {
+                return false;
+            }
+
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'salvaItemLista'), [], FALSE, FALSE); ?>",
+                ret: "#lista-horarios",
+                savePage: false
+            });
+        });
+        
+        /**
+         * 
+         */
+        $('#limpar-lista-horarios').click(function(){
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showListaHorarios'), [], FALSE, FALSE); ?>",
+                ret: "#lista-horarios",
+                savePage: false
+            });
+        });
+
+        /**
+         * Remove um item da lista
+         */
+        $('.remove-item').click(function () {
+            var seq = $(this).parent().attr('data-seq');
+            gModal.reset("confirm", 1)
+                    .setClickOk(function () {
+                        $.processa({
+                            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'removeItemLista'), [], FALSE, FALSE); ?>/" + seq,
+                            ret: "#lista-horarios",
+                            savePage: false
+                        });
+                    })
+                    .setLabelOk("SIM")
+                    .setLabelNg("NÃO")
+                    .setMsg('Deseja realmente remover este item?')
+                    .showModal();
+
+        });
+
+        /**
+         * Cancela a edição de um item
+         */
+        $('#cancela-edicao').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showListaHorarios'), [], FALSE, FALSE); ?>",
+                ret: "#lista-horarios",
+                savePage: false
+            });
+        });
+
+        /**
+         * Limpa os campos
+         */
+        $('#limpa-campos').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showListaHorarios'), [], FALSE, FALSE); ?>",
+                ret: "#lista-horarios",
+                savePage: false
+            });
+        });
+
+        /**
+         * Sava a edição de um item
+         */
+        $('#salva-edicao').click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'salvaItemLista'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    seqEdit: transp.seqEdit
+                },
+                ret: "#lista-horarios",
+                savePage: false,
+            });
+        });
+
+        $$(transp.horIni).mask("99:99");
+        $$(transp.horFim).mask("99:99");
+        $$(transp.intervaloIni).mask("99:99");
+        $$(transp.intervaloFim).mask("99:99");
+
+        /**
+         * Carrega o calendário otimizado para listar os dias de trabalho
+         */
+        var $calendate = $$(transp.diasTrab);
+
+        /**
+         * Seta o campo de diasTrab com os valores contidos no parametro 'lista'.
+         * @param {type} lista
+         * @returns {undefined}         
+         */
+        function setInputDiasBy(lista) {
+            if ("" == lista[0] || 0 == lista.length) {
+                return false;
+            }
+
+            $calendate.datepicker("setDates", $.map(lista, function (dia, i) {
+                return new Date(transp.ano, transp.mes - 1, dia);
+            }));
+        }
+
+        /**
+         * ATENÇÃO: Sempre que algum dia for carregado, estes dias deverão ser
+         * tratados por estre trecho, para que o calendário seja setado para o 
+         * mês/ano correto. Não deveria ser desta forma, mas para solucionar
+         * o erro da forma mais rápida, este método foi necessário.
+         *  
+         *  - Lê os dias inseridos no campo diasTrab
+         *  - Preenche o campo diasTrab com os dias tratados pela funcao 'setInputDiasBy';
+         * @type type         
+         */
+        var listaDias = $$(transp.diasTrab).val().split(',');
+        setInputDiasBy(listaDias);
+
+        /**
+         * @description Baseado no numero referente ao dia da semana (sendo domingo, 0 e 
+         * sábado, 6) contido no parametro daySelected, além dos parametros 
+         * month e year, são retornados todos os dias cujo quais pertencem ao dia
+         * da semana. Por exemplo, se for selecionado uma segunda feira (1) do 
+         * mes 9 de 2016, os dias 5,12,19 e 26 serão retornados
+         * 
+         * @param {type} month
+         * @param {type} year
+         * @param {type} daySelected
+         * @returns {Array}
+         */
+        function getDaysBy(month, year, daySelected) {
+            var getTot = new Date(year, month, 0).getDate();
+            var days = [];
+            /*
+             * OBS: Não sei pq, mas no 'new Date' abaixo, tive que decrementar 1
+             * do param month, pois estava pegando 1 mes a frente ao mes de ref. 
+             */
+            for (var i = 1; i <= getTot; i++) {
+                var newDate = new Date(year, month - 1, i);
+                if (newDate.getDay() == daySelected) {
+                    days.push(i);
+                }
+            }
+
+            return days;
+        }
+
+        /**
+         * Adiciona dias no input datepicker
+         * 
+         * @param {array} days
+         * @param {jQueryElement} $calendate
+         * @returns {void}  
+         */
+        function addDays(days, daysIn) {
+            if (daysIn[0] === "") {
+                daysIn.splice(0, 1);
+            }
+
+            $.each(days, function (o, day) {
+                // Transforma em int e aplica 0 na frente do numero quando < 10 
+                day = ('0' + day).slice(-2);
+
+                var pos = daysIn.indexOf(day);
+                if (pos === -1) {
+                    daysIn.push(day);
+                }
+            });
+
+            return daysIn;
+        }
+
+        /**
+         * Adiciona dias no input datepicker
+         * 
+         * @param {array} days
+         * @param {jQueryElement} $calendate
+         * @returns {void}  
+         */
+        function rmvDays(days, daysIn) {
+            if (daysIn[0] === "") {
+                daysIn.splice(0, 1);
+            }
+
+            $.each(days, function (o, day) {
+                // Transforma em int e aplica 0 na frente do numero quando < 10 
+                day = ('0' + day).slice(-2);
+
+                var pos = daysIn.indexOf(day);
+                if (pos > -1) {
+                    daysIn.splice(pos, 1);
+                }
+
+            });
+
+            return daysIn;
+        }
+
+        /**
+         * Quando selecionar um dia da semana em  
+         */
+        $("#checkNomeDiaSemana").find('input[type="checkbox"]').click(function () {
+            /*
+             * Retorna todos os dias que coincidem com o diaSemana (exemplo: todos
+             * os dias que pertencem a segunda-feira do mês 09 do ano de 2016)
+             */
+            var days = getDaysBy(transp.mes, transp.ano, $(this).val());
+            var daysIn = $calendate.val().split(',');
+            var listDays = [];
+
+            if ($(this).is(":checked")) {
+                listDays = addDays(days, daysIn);
+            } else {
+                listDays = rmvDays(days, daysIn);
+            }
+
+            setInputDiasBy(listDays);
+        });
+
+        /** ====================================================================
+         *   SORTABLE
+         *  ====================================================================
+         *  Torna a tabela selecionada em sortable
+         */
+        var $table = $('#lista-horarios').find('table');
+        $table.sortable({
+            containerSelector: 'table',
+            itemPath: '> tbody',
+            itemSelector: 'tr',
+            handle: '.handle',
+            placeholder: '<tr colspan="12" class="placeholder"></tr>',
+            onDrop: function () {
+                // Verifica a nova ordem
+                var lista = [];
+                $('.acao').each(function () {
+                    lista.push($(this).attr('data-seq'));
+                });
+
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'reordenarItemLista'), [], FALSE, FALSE); ?>",
+                    type: 'POST',
+                    savePage: false,
+                    data: {
+                        novaSeq: JSON.stringify(lista)
+                    },
+                    ret: "#lista-horarios"
+                });
+            }
+        });
+
+    });
+</script>
+

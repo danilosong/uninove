@@ -1,0 +1,21 @@
+<?php
+$fh = &$obj;
+
+//echo '<pre>' , var_dump(get_class_methods($fh));die;
+
+$fh->closeLine()->renderFieldsetIni('Endereco')->setPreFix('endereco');
+        $fh->openCol('6')->text('numero')->closeCol();
+    $fh->openCol('6')->text('complemento')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('status')->closeCol(); 
+//$fh->lineDown();
+//    $fh->openCol('12')->select('logradouro')->closeCol();   
+//$fh->lineDown();
+    $this->partialObj('tcmed')->partial('logradouros/partial-form', $fh,['this'=>&$d["this"]]);  
+
+$fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
+?>
+
+<script lang="javascript">   
+    
+</script>

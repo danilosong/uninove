@@ -1,0 +1,30 @@
+<?php
+/**
+ * Exibir o anexo do relatorio  
+ * @author Paulo Watakabe <watakabe05@gmail.com>
+ * @version 1.0  
+ * @since 02-09-2016
+ */
+/* @var $entity     \Agenda\Entity\RelatorioDetEmp            */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$entity     = $this->entity;
+
+
+
+$path = $entity->getAnexo();
+    if($path != ''){
+        $imgPath = '<img src="' . $this->Image($path) . '" style="width: 100%" />';
+    }else{
+        $imgPath = 'Anexo Não encontrado';
+    }
+    echo <<<EOF
+        <div style="margin:0px">
+            {$imgPath}
+            </span>
+        </div>
+EOF;
+            
+            

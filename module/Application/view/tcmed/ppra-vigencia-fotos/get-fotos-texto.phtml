@@ -1,0 +1,76 @@
+<?
+
+    $lastLocal = false;
+    $cont      = 0;
+    $valsLocal = [];
+    $param     = $this->Param();
+
+    foreach ($this->fotos as $foto) {
+        $local = $foto->getPpraLocal("nome");
+        !isset($valsLocal[$local]) && $valsLocal[$local] = [];
+
+        $valsLocal[$local][] = $foto;
+    }
+
+    $tdStyles = "text-align: center; border-right: 1px solid #000; border-bottom: 1px solid #000;";
+    $trStyles = "";
+?>
+
+<table width="100%" style="border-left: 1px solid #000; border-top: 1px solid #000;">
+    <tbody>
+        <? foreach ($valsLocal as $nomeLocal => $fotos): ?>
+            <tr style="<?=$trStyles?>">
+                <td style="<?=$tdStyles?> font-weight: bold; font" colspan="2"><?=$nomeLocal?></td>
+            </tr>
+            <?
+                $restam    = count($fotos) ;
+                $contLinha = 0;
+                $rodape    = PHP_EOL;
+
+                foreach ($fotos as $foto){
+                    if(0 == $contLinha) {
+                        echo "<tr style='{$tdStyles}'>" . PHP_EOL;
+                    }
+                    $contLinha++;
+                    $ultimo = (1 == $restam) && (1 == $contLinha);
+
+                    $img = $foto->getPath();
+                    $path= $param('dir', 'ppraVigFoto_dir') . $img;
+                    $info = getimagesize($path);
+//                    if($info[0] < $info[1]){
+//                        $imgHeight = ' height: 90mm;';
+//                    }else{
+//                        $imgHeight = '';
+//                    }
+                    if($info[0] < $info[1]){
+                        $newHeight = 300;
+                        $imgHeight = " height: {$newHeight}px ;";
+                        $imgWidth  = ' width : ' . number_format($info[0] / $info[1] * $newHeight, 0) . 'px ;';
+                    }else{
+                        $newWidth = 300;
+                        $imgHeight = ' height: ' . number_format($info[1] / $info[0] * $newWidth, 0) . 'px ;';
+                        $imgWidth  = " width : {$newWidth}px ;";
+                    }
+                    $src = $this->Image($path, TRUE);
+
+                    $tdOpt   = $ultimo ? "colspan='2'"                 : "";
+                    $tdSize  = $ultimo ? " height: 100mm; width: 100%;": " width: 50%;";
+                    $imgSize = $ultimo ? " height: 100mm; width: 80%;" : " width: 80mm; margin : 0;" . $imgHeight;
+                    echo       "<td style='{$tdStyles}{$tdSize}' {$tdOpt}>" . PHP_EOL . 
+                            "<img style='{$imgHeight}{$imgWidth}' src='{$src}' data-realpath='{$path}' />" . PHP_EOL . "</td>" . PHP_EOL;
+                    $rodape .= "<td style='{$tdStyles}' {$tdOpt}>Legenda: {$foto->getLegenda()}</td>" . PHP_EOL;
+                    $restam--;
+
+                    $ultimo && $contLinha++;
+
+                    if(1 < $contLinha) {
+                        echo "</tr>" . PHP_EOL;
+                        echo "<tr>{$rodape}</tr>" . PHP_EOL;
+                        $contLinha = 0;
+                    }
+                }
+            ?>
+
+        <? endforeach; ?>
+    </tbody>
+</table>

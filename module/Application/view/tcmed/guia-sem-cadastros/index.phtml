@@ -1,0 +1,71 @@
+
+<?php
+/* @var $table \Application\View\Helper\Table
+ * @author Allan Davini */
+$table = $this->table();
+$param = $this->Param();
+$controller = 'guiaSemCadastros';
+$route = 'tcmed/default';
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1>Guia para Condominios sem Cadastro</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<?php
+$lambda = function($value, $data) {
+    echo '<td nowrap><span class="hand exibirGuia" data-id="'.$value.'"><i class="fa fa-external-link-square"></i> Exibir Guia</span></td>';
+};
+$table->setLambda($lambda);
+
+$table->openTable(TRUE);
+$table->renderThead(['Nome Funcionario', 'Cpf', 'Tipo de Exame', 'Sexo', 'Cargo', 'Status', 'Ação']);
+/* @var $guia \Tcmed\Entity\Guia */
+foreach ($this->data as $entity) {
+    $guia = $entity->getGuia();
+
+    $table->renderLine([
+        $guia->getNomeFuncionario(),
+        $guia->getCpf(),
+        $param($guia->getTipo(), 'FC_tipo_exame'),
+        $param($guia->getSexo(), 'opcao_sexo'),
+        $guia->getOcupacao()->getCargo()->getCargo(),
+        $param($guia->getStatus(), 'status_tabela'),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    $(function () {
+
+        
+        $(".exibirGuia").click(function(){
+            var key = $(this).attr("data-id");
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showGuia'), [], FALSE, FALSE); ?>" + "/" + key
+                });
+        });
+    });
+</script>

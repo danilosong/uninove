@@ -1,0 +1,123 @@
+<? 
+/* @var $agenda \Tcmed\Entity\AgendaAmbul */ 
+?>	
+        <div class='aso'>
+		<div class='topot1'>
+			ASO - ATESTADO DE SAÚDE OCUPACIONAL<br />
+			<? echo $agenda->getEmpresa('razaoSocial');?> (<? echo $agenda->getEmpresa('referenciaEmp');?>)<br /> 
+                        <span class='meio2t2'><?= $agenda->getEmpresa('endereco');?></span>
+		</div>
+		<div class='topo'>
+			<img src="<? echo $param('all','asoDirImage'); ?>tcmed3.jpg" class='topologo'>
+			Site: www.tcmed.com.br<br />
+			E-mail: tc.med@tcmed.com.br<br />
+			TECNO MED ASS E SERV TÉC. EM MED. LTDA<br />
+			<span class='meio2t2'>
+			Rua Cincinato Braga,59 3 Andar Cj 3D1 Tel: 3266-5850 - São Paulo - SP
+			</span>
+		</div>
+		<div class='meio1'>
+			Em cumprimento ao Programa de Controle Médico de Saúde Ocupacional (PCMSO) - 
+			NR7 - da portaria 3.217/78 do Ministerio do trabalho.<br />
+			Atesta que o Sr(a) 
+                        <span class='meio1t1'>
+                        <? echo $agenda->getFuncionario()->getNomeFuncionario(); ?>
+                        </span><br />
+			Idade de
+                        <? 
+                        /* @var $interval \DateInterval */
+                        $interval = $agenda->getChegada(TRUE)->diff($agenda->getFuncionario()->getDtNascimento(TRUE));
+                        echo $interval->y; 
+                        ?>
+                        Anos e 
+                        <? echo $interval->m; ?> 
+                        meses portador do RG: <span class='meio1t1'>
+                        <? echo $agenda->getFuncionario()->getRg();  ?> 
+                        </span> CPF: <span class='meio1t1'>
+                        <? echo $agenda->getFuncionario()->getCpf();  ?> 
+                        </span><br />
+			<br /> 
+			Função:	<span class='meio1t1'>
+                        <? 
+                        $histoOcupacional = $agenda->getFuncionario()->getHistOcupacional('atual');  
+                        if($histoOcupacional->count() == 1){
+                            $ocupacaoAtual = $histoOcupacional->get(0)->getOcupacao();  
+                        }
+                        echo $ocupacaoAtual->getCargo(TRUE);  
+                        ?> 
+                        </span><br />
+			Setor:	<span class='meio1t1'>
+                        <? echo $ocupacaoAtual->getSetor();  ?> 
+                        </span><br />
+			Data da Consulta <span class='meio1t1'>
+                        <? echo $agenda->getChegada();  ?> 
+                        </span> as ___:___ horas.<br />
+			<br /> 
+			Exame médico:	<span class='meio1t1'>
+                        <? echo $param($agenda->getTipoConsulta(), "FC_tipo_exame");  ?> 
+                        </span><br />
+			Foi considerado:	<span class='meio1t1'>
+                        |__| Apto  |__| Inapto  |__| Pendente |__| Apto Com Restrição 
+                        </span><br />
+			Atestado Validado:	<span class='meio1t1'>
+                        POR 1 ANO 
+                        </span><br />
+			Riscos da função:	<span class='meio1t1'>
+                        <?
+                            $riscos = "Ausência de Riscos Ocupacionais Específicos";
+                            foreach ($ocupacaoAtual->listOfCargoRiscos() as $key => $ent) {
+                                if ($key === 0) {
+                                    $riscos = $ent->getRisco()->getRisco() ;
+                                }else{
+                                    $riscos .= ',' . $ent->getRisco()->getRisco() ;
+                                }
+                            }                        
+                            echo $riscos;
+                        ?>                             
+                        </span><br />
+			Obs. ASO:<span class='meio1t1'>
+                            <br>                             
+                            <br>                             
+                            <br>                             
+                            <br>                             
+                        </span>		
+		</div>
+		<div class='meio2'>			
+			<img src="<? echo $param('all','asoImageMedAss'); ?>" class='meio2ass' alt='Assinatura do Medico'><br />
+                        <?  if(!is_null($agenda->getMedico())){
+                                echo "Médico Examinador:<span class='meio2t1'>"
+                                ,$agenda->getMedico('nomeMedico')
+                                ," CRM:"
+                                ,$agenda->getMedico('crm')
+                                ,"</span>";
+                            }else{
+                                echo'Carimbo e Assinatura do Médico Examinador:';
+                            }  
+                        ?>                             
+                        <br />
+                        <span class='meio2t2'>
+                        <? 
+                            if(!is_null($agenda->getClinica())){
+                                echo "Exame realizado na Clinica: " . $agenda->getClinica()->getRazaoSocial() . "<br />"; 
+                                echo "Endereço: " . $agenda->getClinica()->getEndereco()->__toString() ; 
+                            }
+                        ?>
+                        </span>
+		</div>
+		<div class='meio2'>			
+			Médico Coordenador: <span class='meio2t1'>
+                            ARTHUR MOREIRA RICCA CRM-31332
+                        </span><br />		
+		</div>
+		<div class='rodape'>
+			Assumo inteira responsabilidade pelas informações prestadas durante esta consulta 
+			médica- ocupacional, declarando que não omiti nenhum dado relevante, relativo a 
+			minha saúde, que possa interessar ou alterar o meu diagnóstico.<br />
+			Recebi a 2 via do ASO em <? echo date('d/m/Y'); ?>.
+                        <br />
+                        <br />
+                        <br />
+			Ass. do Funcionário:__________________________________________.<br />
+                        <div class='rodapet1'>Via <? echo $via, ' ', $agenda->getEmpresa()->getReferenciaEmp(), '/', $agenda->getFuncionario()->getReferenciaFun(); ?></div>
+		</div>
+	</div>

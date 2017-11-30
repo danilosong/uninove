@@ -4,11 +4,11 @@ $action       = $this->dataView['action'];
 $route        = $this->dataView['route'];
 $title        = $this->dataView['titulo'];
 $entity       = $this->entity;
-/* @var $form \Tcmed\Form\Colaborador */
+/* @var $form \Adm\Form\Colaborador */
 $form         = $this->form;
 $id           = $form->getValue('id', 0);
 $partial      = $this->partialObj('application');
-$tcmedPartial = $this->partialObj('tcmed');
+$tcmedPartial = $this->partialObj('adm');
 
 echo '<h3>', $title, '</h3><br />';
 

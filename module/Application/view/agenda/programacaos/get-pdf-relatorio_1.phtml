@@ -1,0 +1,174 @@
+<style type="text/css">
+    /* =========================================================================
+     * CSS Bootstrap table simulation
+     * @TODO tabelabootstrap
+     */
+    .table{
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: #333;
+        font-size: 10px;
+    }
+
+    .table tr, 
+    .table td, 
+    .table th {
+        border: 1px solid #ccc;
+    }
+    
+    .table thead tr {
+        border-bottom: 2px solid #ddd;
+    }
+    
+    .table thead th {
+        background-color: #eee;
+        font-size: 14px;
+    }
+    
+    .table td{
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    
+    .table-striped tr:nth-child(even) {
+        background: #f9f9f9
+    }
+    /* ====================================================================== */
+    
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    #pdf-relatorio{
+        width: 270mm;
+        padding: 10px;
+    }
+    
+    .text-right{
+        text-align: right;
+    }
+
+    .titlecol {
+        font-size: 14px;
+        font-weight: bold; 
+    }
+    
+    #tabela-topo {
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        border: 1px solid #222;
+        width:  100%;
+    }
+    
+</style>
+
+<div id="pdf-relatorio">
+    <table id="tabela-topo">
+        <tr>
+            <td style="width: 300px;">
+                <img width="260px" src="/var/www/tcmed/data/clinicaDir/clinica.png">
+            </td>
+            <td>
+                <?php
+                echo "<h3>{$dataView['titulo']}</h3>";
+
+                $datetime = new \DateTime('now');
+                echo "<h3>Hora: {$datetime->format('H:i')} Data: {$datetime->format('d/m/Y')}</h3>"
+                ?>
+            </td>
+        </tr>
+    </table>
+    <br>
+
+    <?php
+    /* @var $entity \Agenda\Entity\Bloco */
+    /* @var $blocoItem Agenda\Entity\BlocoItem */
+
+    $thead = <<<THEAD
+    <thead>
+        <tr>
+            <th>Hora</th>
+            <th>Cod</th>
+            <th>Administradora</th>
+            <th>Empresa</th>
+            <th>Endereço</th>
+            <th>Bairro</th>
+            <th>Ref</th>
+            <th>Qtd</th>
+            <th style="width: 40px">Rea</th>
+        </tr>
+    </thead>  
+THEAD;
+
+    $limFirstPage = 36;
+    $limOthersPages = 42;
+
+    $openTable = "<table class='table table-striped'>{$thead}<tbody>";
+    $closeTable = "</tbody></table>";
+    $quebraPagina = "<div style='page-break-before: always;'></div>";
+
+    // Armazena o valor do ultimo 'agendadoEm'
+    $lastAgendadoEm = '';
+
+    // Contador
+    $cont = $limFirstPage;
+
+    $contadorEmpresa = 0;
+    $contadorFuncionario = 0;
+
+    echo $openTable; // ========================================= OPEN TABLE ===
+
+    foreach ($data as $entity) {
+        $listaBlocoItem = $entity->listaBlocoItem();
+
+        if ($cont < count($listaBlocoItem)) {
+            echo $closeTable;
+            echo $quebraPagina;
+            echo $openTable;
+            $cont = $limOthersPages;
+        }
+
+        $agendadoEm = $entity->getAgendadoEm();
+        if ($agendadoEm != $lastAgendadoEm) {
+            echo "<tr style='background-color: #bbb;'><td></td><td colspan='8' class='titlecol'>Dia: {$agendadoEm}</td></tr>";
+            $lastAgendadoEm = $agendadoEm;
+
+            $cont--;
+        }
+
+        foreach ($listaBlocoItem as $blocoItem) {
+            echo '<tr>';
+            echo "<td>{$blocoItem->getHoraIni()}</td>";
+            echo "<td class='text-right'>{$blocoItem->getEmpresa('referenciaEmp')}</td>";
+            
+            $nomeAdm = substr($blocoItem->getEmpresa('administradora', ['razaoSocial']), 0, 13);
+            echo "<td>{$nomeAdm}</td>";
+            echo "<td>{$blocoItem->getEmpresa('razaoSocial')}</td>";
+            echo "<td>{$blocoItem->getEmpresa('endereco', ['exibeEnderecoSimples'])}</td>";
+            echo "<td>{$blocoItem->getEmpresa('endereco', ['logradouro', ['bairro', ['nomeBairro']]])}</td>";
+            echo "<td>{$blocoItem->getEmpresa('codigoRua')}</td>";
+            echo "<td>{$blocoItem->getQtdFunItem()}</td>";
+            echo "<td></td>";
+            echo '</tr>';
+
+            $contadorFuncionario += $blocoItem->getQtdFunItem();
+            $contadorEmpresa++;
+
+            $cont--;
+        }
+    }
+
+    echo "<tr  style='background-color: #bbb;'>";
+    echo "<td colspan='3' class='text-right titlecol'> Total de Empresas</td>";
+    echo "<td  class='titlecol'>{$contadorEmpresa}</td>";
+    echo "<td colspan='2' class='text-right titlecol'> Total de Funcionarios</td>";
+    echo "<td colspan='2' class='titlecol'>{$contadorFuncionario}</td>";
+    echo "<td></td>";
+    echo "</tr>";
+    
+    echo $closeTable; // ======================================= CLOSE TABLE ===
+    ?>
+</div>
+

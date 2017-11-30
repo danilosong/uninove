@@ -1,0 +1,169 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+$controller = 'cats';
+
+$horizontal = $fh->getHorizontal();
+$fh->setHorizontal(FALSE);
+
+$fh->renderFieldsetIni('',['fAtrb' => 'id="fieldOfCat"'])->setPreFix('cat');
+$fh->renderHiddenFor('cat');
+$cat         = $fh->getIdFor('idCat');
+$funcionario = $fh->getIdFor('idFuncionario');
+$empresa     = $fh->getIdFor('idEmpresa');
+$administ    = $fh->getIdFor('idAdministradora');
+$clinica     = $fh->getIdFor('idClinica');
+$consulta    = $fh->getIdFor('idConsulta');
+
+    $fh->openCol('3')->text('catNumero')->closeCol();
+        $catNumero = $fh->getLastId();
+    $fh->openCol('2')->calend('dtCat')->closeCol();
+        $dtCat = $fh->getLastId();
+    $fh->openCol('4')->textArea('catObservacao')->closeCol();
+        $catObservacao = $fh->getLastId();
+    $fh->openCol('3'); echo 'catAnexo (melhoria Anexar CAT)'; $fh->closeCol();
+        $catAnexo = $fh->getLastId();
+
+$fh->lineDown();    
+    $fh->openCol('12')->renderInputButtonOnly('addCatInFC',['id' => 'btnEnviaCat'])->closeCol();
+
+$fh->closeLine();
+
+$fh->renderFieldsetFim()->removePreFix();   
+$fh->setHorizontal($horizontal);
+?>
+
+<script lang="javascript">
+
+    var fCat = {
+        cat            : "<?php  echo $cat           ; ?>"
+        , funcionario  : "<?php  echo $funcionario   ; ?>"
+        , empresa      : "<?php  echo $empresa       ; ?>"
+        , administ     : "<?php  echo $administ      ; ?>"
+        , clinica      : "<?php  echo $clinica       ; ?>"
+        , consulta     : "<?php  echo $consulta      ; ?>"
+        , catNumero    : "<?php  echo $catNumero     ; ?>"
+        , dtCat        : "<?php  echo $dtCat         ; ?>"
+        , catObservacao: "<?php  echo $catObservacao ; ?>"
+        , catAnexo     : "<?php  echo $catAnexo      ; ?>"
+    };
+   
+    /**
+     * Pega somente o fieldset de cats e monta os inputs para inserção no banco
+     * Depois limpa os campos da tela para nao fazer inserção em duplicidade
+     * 
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.0
+     */ 
+    var saveCatInFichaClinica = function(){
+        keepDefaultDataCat();
+        var obj = {
+            data : $("#fieldOfCat").serializeObject(),
+            type : "POST",
+            savePage : false,
+            url  : "<?php echo $d['this']->url('tcmed/default', array('controller' => $controller, 'action' => 'quickSave'), [], FALSE, FALSE); ?>",
+            ret  : "#listaCat"
+        };
+        action.processa(obj);
+        action.getEl(fCat.funcionario  ).val(defaultDataCat.funcionario);
+        action.getEl(fCat.empresa      ).val(defaultDataCat.empresa    );
+        action.getEl(fCat.administ     ).val(defaultDataCat.administ   );
+        action.getEl(fCat.clinica      ).val(defaultDataCat.clinica    );
+        action.getEl(fCat.consulta     ).val(defaultDataCat.consulta   );
+        action.getEl(fCat.cat          ).val("");
+        action.getEl(fCat.catNumero    ).val("");
+        action.getEl(fCat.dtCat        ).val("");
+        action.getEl(fCat.catObservacao).val("");
+        action.getEl(fCat.catAnexo     ).val("");
+        bkpTbody = "";
+    };
+    
+    var defaultDataCat = "";
+    var keepDefaultDataCat = function(){
+        if(defaultDataCat === ""){
+            defaultDataCat = {
+                funcionario : $$(fCat.funcionario).val(),
+                empresa     : $$(fCat.empresa    ).val(),
+                administ    : $$(fCat.administ   ).val(),
+                clinica     : $$(fCat.clinica    ).val(),
+                consulta    : $$(fCat.consulta   ).val()        
+            };
+        }
+    };
+    
+    /**
+     * Edita os dados de um registro da listagem
+     * Faz backup do tbody atual
+     * busca no BD os dados do registro passando o id como parametro e recebendo um array de dados
+     * Recebe o array de dados e seta os inputs com os dados recebido
+     * Remove o tr da listagem demostrando que ele esta sendo editado
+     * Caso o usuario desista de editar o registro e edit outro o tr removido será recolocado.
+     * 
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.0
+     * @param {string} key ID do registro em questão
+     * @param {object} spn Span de onde o clicado para edição
+     */
+    var bkpTbody = "";
+    var editCatInFC = function(key, spn){ 
+        if(bkpTbody != ""){
+            $(spn).parent().parent().parent().html(bkpTbody); 
+            bkpTbody = "";
+        }
+        keepDefaultDataCat();
+        var obj = {
+            type     : "GET",
+            savePage : false,
+            url      : "<?php echo $d['this']->url('tcmed/default', array('controller' => $controller, 'action' => 'quickEdit'), [], FALSE, FALSE); ?>" + "/" + key,
+            callback : function(val){
+                var dados = eval(val);
+                if(dados[0] == "error"){
+                    if(dados[1] != ""){
+                        alert(dados[1]);
+                    }
+                    return;
+                }
+                $$(fCat.cat          ).val(dados[0]);
+                $$(fCat.funcionario  ).val(dados[1]);
+                $$(fCat.empresa      ).val(dados[2]);
+                $$(fCat.administ     ).val(dados[3]);
+                $$(fCat.clinica      ).val(dados[4]);
+                $$(fCat.consulta     ).val(dados[5]);
+                $$(fCat.catNumero    ).val(dados[6]);
+                $$(fCat.dtCat        ).val(dados[7]);
+                $$(fCat.catAnexo     ).val(dados[9]);
+                $$(fCat.catObservacao).val(dados[8]);
+            }
+        };
+        action.processa(obj);       
+        var tr = $(spn).parent().parent(); 
+        bkpTbody = $(tr).parent().html();
+        tr.fadeOut(400, function(){
+            tr.remove();
+        });
+    };
+    
+    /**
+     * Deleta o registro do BD passando como parametro o Id do registro
+     * Faz um confirmação antes e atualiza a listagem da tela
+     *  
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.0
+     * @param {string} key ID do registro em questão
+     */ 
+    var delCatInFC = function(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        gModal.confirm(msg,function(){
+            var obj = {
+                data : $("#fieldOfCat").serializeObject(),
+                type : "POST",
+                url  : "<?php echo $d['this']->url('tcmed/default', array('controller' => $controller, 'action' => 'quickDelete'), [], FALSE, FALSE); ?>" + "/" + key,
+                ret  : "#listaCat",
+                savePage : false
+            };
+            action.processa(obj);
+            bkpTbody = "";
+        });
+    };
+    
+</script>

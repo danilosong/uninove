@@ -1,0 +1,194 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+$partial    = $this->partialObj('application');
+$param      = $this->Param();
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+?>
+<br />
+<br />
+<legend>
+    <button id="addFoto" class="btn btn-primary"><i class='fa fa-plus'></i> Novo</button>
+    <?= $title ?>
+</legend>
+<?php
+
+$table->openTable(TRUE);
+
+$table->setLambda(function($value, $data) {
+    echo "<td width='150'>";
+        echo "<span class='hand editFoto' data-id='{$value}'>";
+            echo "<i class='fa fa-pencil'></i> Editar";
+        echo "</span>";
+        echo "&nbsp;&nbsp;&nbsp;";
+        echo "<span class='hand removeFoto' data-id='{$value}'>";
+            echo "<i class='fa fa-trash'></i> Remover";
+        echo "</span>";
+        echo "<br>";
+        echo "<br>";
+        echo "<span class='hand girar90R' data-id='{$value}'>";
+            echo "<i class='fa fa-rotate-right'></i> Girar 90º";
+        echo "</span>";
+        echo "<br>";
+        echo "<br>";
+        echo "<span class='hand girar90L' data-id='{$value}'>";
+            echo "<i class='fa fa-rotate-left'></i> Girar -90º";
+        echo "</span>";
+    echo "</td>", PHP_EOL;;
+});
+
+$table->renderThead([
+    ['label' => "id"  ],
+    ['label' => "Local"],
+    ['label' => "Legenda"],
+    ['label' => "Foto"],
+    ['label' => "Ação"],
+]);
+
+foreach ($this->data as $entity) {
+
+    $img = $entity->getPath();
+    $src = $this->Image($param('dir', 'ppraVigFoto_dir') . $img);
+
+    $table->setTdopt([
+       '',
+       '',
+       '',
+       "width='300'",
+       "",
+    ]);
+
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getPpraLocal('nome'),
+        $entity->getLegenda(),
+        "<img width='300' src='{$src}'/>",
+        $entity->getId()
+    ]);
+}
+$table->renderCloseTable();
+
+echo $this->partial('partials/modal', array());
+
+// Var de transferencia PHP to JS
+$transp = array(
+    'ppra'         => $this->params['ppra'        ],
+    'ret'          => $this->params['ret'         ],
+    'ppraVigencia' => $this->params['ppraVigencia'],
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        $('#addFoto').click(function() {
+            $.processa({
+                url     : "<?= $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                type    : "POST",
+                savePage: false,
+                data    : {
+                    ppra        : transp.ppra,
+                    ppraVigencia: transp.ppraVigencia,
+                    getForm     : true
+                },
+                callback: function (data, defaults) {
+                    gModal.reset('prompt',2)
+                        .setInputs(data)
+                        .setLabelOk('Incluir')
+                        .setSizeModal('lg')
+                        .setClickOk(function(){
+                            $("#formPpraVigenciaFoto").processa({
+                                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                                ret: transp.ret,
+                                savePage: false,
+                            });
+                        })
+                        .showModal()
+                    ;
+                }
+            });
+        });
+        
+        var execGirar = function(id,ori){
+            $.processa({
+                url     : "<?= $this->url($route, array('controller' => $controller, 'action' => 'girar'), [], FALSE, FALSE); ?>/" + id,
+                type    : "POST",
+                savePage: false,
+                ret     : transp.ret,
+                data    : {
+                    ppra        : transp.ppra,
+                    ppraVigencia: transp.ppraVigencia,
+                    ret         : transp.ret,
+                    id          : id,
+                    subOpcao    : ori
+                }
+            });           
+        };
+
+        $('.girar90R').click(function() {
+            var id = $(this).data('id');
+            execGirar(id,'right');
+        });
+        
+        $('.girar90L').click(function() {
+            var id = $(this).data('id');
+            execGirar(id,'left');
+        });
+        
+        $('.editFoto').click(function() {
+            var id = $(this).data('id');
+            $.processa({
+                url     : "<?= $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>/" + id,
+                type    : "POST",
+                savePage: false,
+                data    : {
+                    ppra        : transp.ppra,
+                    ppraVigencia: transp.ppraVigencia,
+                    getForm     : true
+                },
+                callback: function (data, defaults) {
+                    gModal.reset('prompt',2)
+                        .setInputs(data)
+                        .setLabelOk('Incluir')
+                        .setClickOk(function(){
+                            $("#formPpraVigenciaFoto").processa({
+                                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>",
+                                ret: transp.ret,
+                                savePage: false,
+                            });
+                        })
+                        .showModal()
+                    ;
+                }
+            });
+        });
+
+        $(".removeFoto").click(function () {
+            var id = $(this).data("id");
+
+            gModal.reset("confirm", 1)
+            .setClickOk(function () {
+                $.processa({
+                    url     : "<?= $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>/" + id,
+                    savePage: false,
+                    ret     : transp.ret,
+                })
+            })
+            .setLabelOk("SIM")
+            .setLabelNg("NÃO")
+            .setMsg('Deseja realmente remover esta imagem?')
+            .showModal()
+            ;
+        });
+    });
+</script>

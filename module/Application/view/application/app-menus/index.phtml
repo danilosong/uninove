@@ -14,7 +14,7 @@ $partial = $this->partialObj();
 $ret = $form->get('ret')->getValue();
 
 // Lê as mensagens do servidor através do flashMessenger
-$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
 
 $fh->openCol(8);
 ?>

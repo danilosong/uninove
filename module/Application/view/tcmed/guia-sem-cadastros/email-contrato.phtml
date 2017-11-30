@@ -1,0 +1,63 @@
+<?php
+/* @var $param  \Application\View\Helper\Param */
+/* @var $guia   \Tcmed\Entity\Guia */
+/* @var $entity \Tcmed\Entity\GuiaSemCadastro */
+$param = $this->data['param'];
+$entity = $this->data['entity'];
+$guia = $entity->getGuia();
+$hr = date(" H "); 
+$saudacao = ($hr <= 12)?'Bom dia!':'Boa tarde!';
+$exame = $param($guia->getTipo(), 'FC_tipo_exame');
+if($guia->getEmpresa()){
+    $reativacao = "Reativa Cliente COD {$guia->getEmpresa()->getReferenciaEmp()}";
+}else{
+    $reativacao = '';
+}
+/*
+ * DATA DO PAGAMENTO DO CONTRATO EXEMPLO
+ * 26/04 A 25/05 VENCIMENTO 15/06 
+ */
+$date = new \DateTime('now');
+if($date->format('d') >= 26){
+    $date->add(new \DateInterval("P2M"));
+}else{
+    $date->add(new \DateInterval("P1M"));
+}
+echo <<<EOF
+<p>{$saudacao}!!!</p>
+<p></p>           
+<p>
+Autorizamos a contratação do Programa de Controle Médico de Saúde Ocupacional para o condomínio em assunto, 
+    estamos cientes de que a contratação deste serviço terá início de vigência a partir desta data e a cobrança 
+    mensal iniciará em 15/{$date->format('m/Y')}
+.
+</p>
+<p>
+Nome da Administradora:     {$entity->getAdministradora()->getFantasiaAdm()}
+</p>
+<p>
+Nome da Empresa:            {$entity->getNomeEmpresa()}
+</p>
+<p>
+Ramo de atividade :         {$entity->getAtividade()}
+</p>
+<p>
+Cnpj :                      {$entity->getCnpj()}
+</p>
+<p>
+Nome do Funcionario:        {$guia->getNomeFuncionario()}
+</p>
+<p>
+Exame:                      {$exame}
+</p>
+<p>
+{$reativacao}
+</p>
+<p>
+Qualquer dúvida é só ligar.<br>
+Tel: 11 3226-9626 Fax: 11 3226-9628<br>
+No aguardo.<br>
+Atenciosamente,<br>
+Vila Velha.
+</p>
+EOF;

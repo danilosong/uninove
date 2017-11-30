@@ -148,6 +148,10 @@ abstract class AbstractForm extends Form {
         if(isset($options["ret"])){
             $ret = $options["ret"];
         }
+        if(isset($options["name"])){
+            $name = $options["name"];
+            unset($options["name"]);
+        }
         // Setar a variavel controller caso exitir no options
         if (isset($options['controller'])) {
             $this->controller = $options['controller'];

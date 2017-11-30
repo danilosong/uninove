@@ -1,0 +1,187 @@
+<?php
+if ($this->data) {
+    /* @var $table \Application\View\Helper\Table */
+    $table = $this->table();
+    $controller = 'Funcionarios';
+    $route = 'tcmed/default';
+
+    $table->openTable(TRUE);
+    $table->renderThead(['Inicio', 'Fim', 'Status', 'Setor', 'Cargo', 'CBO', 'Função', 'Opções']);
+
+    $lambda = function($value, $data) {
+        if ($data[2] != "ativo") {
+            echo '<td><ul class="simple-list">',
+            '<li><i class="fa fa-plus"  onclick="reativarHist(' . $value . ')"></i> &nbsp;Reativar</li>',
+            '</td></ul>';
+        } else {
+            echo '<td><ul class="simple-list">',
+            '<li><i class="fa fa-plus"  onclick="getHistFunc(' . $value . ')"></i> &nbsp;Add Funcao</li>',
+            '<li><i class="fa fa-times" onclick="delHistOcup(' . $value . ')" ></i>&nbsp;Rmv Historico</li>',
+            '</td></ul>';
+        }
+    };
+
+    $table->setLambda($lambda);
+    $listaDataFim = [];
+    /* @var $entity \Tcmed\Entity\HistOcupacional */
+    foreach ($this->data as $entity) {
+        if ($entity->getStatus() != "ativo" && !$this->subOpcao == "getAll") {
+            continue;
+        }
+        $listaDataFim[] = $entity->getDtFim();
+        $listaFuncao = "";
+        $dataFim = '<i class="fa fa-pencil" onclick="modalChangeData(' . $entity->getId() . ')"></i> ' . $entity->getDtFim();
+        if ($entity->getHistoricoFuncao()) {
+
+            $listaFuncao .= '<ul class="simple-list">';
+            foreach ($entity->getHistoricoFuncao() as $historicoFuncao) {
+                if ($historicoFuncao->getStatus() != "ativo" && !$this->subOpcao == "getAll") {
+                    continue;
+                }
+
+                $funcao = $historicoFuncao->getFuncao()->getFuncao();
+                if ($historicoFuncao->getFuncaoApelido()) {
+                    $funcao = $historicoFuncao->getFuncaoApelido()->getApelido();
+                }
+
+                $option = '&nbsp;<i class="fa fa-times" onclick="delHistFunc(' . $historicoFuncao->getId() . ')"></i>&nbsp;';
+                if ($historicoFuncao->getStatus() != "ativo") {
+                    $option = '&nbsp;<i class="fa fa-plus" onclick="restoreHistFunc(' . $historicoFuncao->getId() . ')"></i>&nbsp;';
+                    $dataFim = $entity->getDtFim();
+                }
+
+                $listaFuncao .='<li>' . $option . $funcao . '</li>';
+            }
+            $listaFuncao .= "</ul>";
+        };
+
+        $table->renderLine([
+            $entity->getDtIni(),
+            $dataFim,
+            $entity->getStatus(),
+            $entity->getOcupacao()->getSetor()->getNomeSetor(),
+            $entity->getOcupacao()->getCargo()->getCargo(),
+            $entity->getOcupacao()->getCargo()->getCbo(),
+            $listaFuncao,
+            $entity->getId(),
+        ]);
+    }
+}
+?>
+<script>
+
+    $(function () {
+        var listaDataFim = "<?php echo (isset($listaDataFim[0])) ? $listaDataFim[0] : FALSE; ?>";
+        action.setPublic({"dataFim": listaDataFim}, "histOcup");
+    });
+
+
+    /**
+     * Deleta o Historico da funcao
+     * @param {int} key ID do Historico da funcao
+     * @author Danilo Dorotheu
+     */
+    function delHistFunc(key) {
+        if (!key || key == 0) {
+            return;
+        }
+        var msg = "Deseja mesmo excluir este registro?";
+        if (confirm(msg)) {
+            action.processa({
+                url: "<?php echo $this->url($route, array('controller' => "historicoFuncaos", 'action' => 'delete'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                ret: "#table_histOcupacional",
+                data: {
+                    "historicoFuncao": key,
+                    "funcionario": <?php echo $this->idFuncionario ?>
+                }
+            });
+            $("#get-hist-excluidos").prop("checked", false);
+        }
+    }
+
+    function reativarHist(key) {
+        if (!key || key == 0) {
+            return;
+        }
+        var msg = "Deseja realmente reativar este cadastro?";
+        if (confirm(msg)) {
+            action.processa({
+                url: "<?php echo $this->url($route, array('controller' => "histOcupacionals", 'action' => 'reactivate'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                ret: "#table_histOcupacional",
+                data: {
+                    "histOcupacional": key,
+                    "idFuncionario": <?php echo $this->idFuncionario ?>
+                }
+            });
+            $("#get-hist-excluidos").prop("checked", false);
+        }
+    }
+
+    /**
+     * Deleta o Historico da Ocupacao
+     * @param {type} key
+     * @author Danilo Dorotheu
+     */
+    function delHistOcup(key) {
+        if (!key || key == 0) {
+            return;
+        }
+        var msg = "Deseja mesmo excluir este registro?";
+        if (confirm(msg)) {
+            if (key) {
+                action.processa({
+                    url: "<?php echo $this->url($route, array('controller' => "histOcupacionals", 'action' => 'delete'), [], FALSE, FALSE); ?>",
+                    type: "POST",
+                    ret: "#table_histOcupacional",
+                    data: {
+                        "histOcupacional": key,
+                        "funcionario": <?php echo $this->idFuncionario ?>,
+                    }
+                });
+                $("#get-hist-excluidos").prop("checked", false);
+            }
+        }
+    }
+
+    /**
+     * Retorna o Modal do Historico da Funcao
+     * @author Danilo Dorotheu 
+     */
+    function getHistFunc(id) {
+
+        action.processa({
+            url: "<?php echo $this->url($route, array('controller' => "historicoFuncaos", 'action' => 'getFormHistFunc'), [], FALSE, FALSE); ?>" + "/" + id,
+            type: "POST",
+            data: {
+                idFuncionario: <?php echo $this->idFuncionario ?>,
+                idHistOcupacional: id
+            },
+            callback: function (data) {
+                var $modalData = $("#modalData");
+
+                $modalData.html(data);
+                $modalData.find(".modal").modal("show");
+            }
+        });
+    }
+
+    /**
+     * Retorna o Modal de trocar a data fim
+     * @author Danilo Dorotheu
+     */
+    function modalChangeData(id) {
+        action.processa({
+            url: "<?php echo $this->url($route, array('controller' => "histOcupacionals", 'action' => 'modalChangeData'), [], FALSE, FALSE); ?>" + "/" + id,
+            callback: function (data) {
+                var $modal = $("#modalChangeData");
+                $modal.html(data);
+                $modal.find(".modal").modal("show");
+            }
+        });
+    }
+
+
+
+</script>

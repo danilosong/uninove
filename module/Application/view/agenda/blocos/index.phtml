@@ -1,0 +1,366 @@
+<style type="text/css">
+    .warning-line>td,
+    .warning-line>td:hover {
+        background-color: #ffe766;
+    }
+</style>
+<?php
+/** ===========================================================================|
+ * Index - Blocos
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 18-06-2016
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$partial = $this->partialObj('tcmed');
+$form = $this->form;
+$form->setAttribute('id', "formSistema");
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+// Partial do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, $this->dataView['ajax']));
+?>
+<h3><?php echo $title ?></h3>
+<br />
+<?php
+$fh->formInit()->openCol(12); // ===============================================
+$fh->openLine();
+
+$fh->getIdFor('id');
+
+
+$fh->openCol(3)->calend('ini', [''], ['label' => 'Periódico'])->closeCol();
+$fh->openCol(3)->calend('fim', [], ['label' => 'Até'])->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(6)->select('anoAgendamento')->closeCol();
+$anoAgendamento = $fh->getLastId();
+
+$fh->lineDown();
+$fh->openCol(3)->checkbox('showOcultados', ['position' => 'right'])->closeCol();
+$showOcultados = $fh->getLastId();
+$fh->lineDown();
+$fh->openCol(3)->checkbox('showDuplicados', ['position' => 'right'])->closeCol();
+$showDuplicados = $fh->getLastId();
+$fh->lineDown();
+$fh->openCol(3)->checkbox('showEditaveis', ['position' => 'right'])->closeCol();
+$showEditaveis = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->openCol(2)->buildButton(['id' => 'pesquisar', 'class' => 'btn-block'], "Pesquisar", "primary", TRUE)->closeCol();
+$fh->openCol(2, 8)->buildButton(['id' => 'novo-bloco', 'class' => 'btn-block'], "Novo Bloco", "primary", TRUE)->closeCol();
+
+
+echo '<br><br>';
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setOrderList($this->dataView['orderBy']);
+
+/* @var $bloco \Agenda\Entity\Bloco */
+$lambda = function($bloco, $data) {
+
+    $idBloco = $bloco->getId();
+    
+    $blocoOculto    = $bloco->getIsOculto();
+    $blocoDuplicado = ("DUPLICADO" == $bloco->getStatus());
+    $blocoAgendado  = $bloco->getAgendadoEm(TRUE);
+    
+    echo '<td>';
+    
+    /*
+     * Só é possível ocultar e duplicar um bloco quando o bloco já estiver agendado
+     * para algum médico.
+     */
+    if($blocoAgendado) {
+        if($blocoOculto){
+            echo '<span title="Não ocultar este registro"     class="hand exibir" data-id="' . $idBloco . '"><i class="fa fa-eye"></i></span>&nbsp;&nbsp;&nbsp;';
+        }else{
+            echo '<span title="Ocultar este registro" class="hand ocultar" data-id="' . $idBloco . '"><i class="fa fa-eye-slash"></i></span>&nbsp;&nbsp;&nbsp;';
+        }
+
+        if(FALSE == $blocoDuplicado){
+            echo '<span title="Duplicar este bloco para o ano selecionado" class="hand duplicar" data-id="' . $idBloco . '"><i class="fa fa-clone"></i></span>&nbsp;&nbsp;&nbsp;';
+        }
+    }
+    
+    /*
+     * Só é possível editar um bloco que ainda não foi agendado.
+     */
+    if(FALSE == $blocoAgendado){
+        echo '<span title="Editar este bloco" class="hand editar" data-id="' . $idBloco . '"><i class="fa fa-pencil"></i></span>&nbsp;&nbsp;&nbsp;';
+    }
+    
+    echo '</td>', PHP_EOL;
+};
+$table->setLambda($lambda);
+$table->renderThead([
+    ['label' => "lista", 'order' => 'referencia'],
+    ['label' => "Pag's", 'order' => 'paginas', 'options' => ' title="Páginas"'],
+    ['label' => "Data", 'order' => 'agendadoEm'],
+    ['label' => "INA", 'options' => ' title="Quantidade de Condomínios Cancelados"'],
+    ['label' => "REA", 'options' => ' title="Quantidade de Condomínios Reagendados"'],
+    ['label' => "Dr(a) Nome", 'order' => 'm.nomeMedico'],
+    ['label' => "Qtd Emp", 'order' => 'qtdEmpresas', 'options' => ' title="Quantidade de Empresas no Bloco"'],
+    ['label' => "Qtd Fun", 'order' => 'qtdFunBloco', 'options' => ' title="Quantidade de Funcionários no Bloco"'],
+    ['label' => "Qtd Rea", 'options' => ' title="Quantidade de Realizados"'],
+    ['label' => "Cons", 'order' => 'totalTempoConsulta', 'options' => ' title="Tempo Total de Consulta"'],
+    ['label' => "Perc", 'order' => 'totalTempoConsulta', 'options' => ' title="Tempo Total de Percurso"'],
+    ['label' => "Ação"]
+]);
+/* @var $entity \Agenda\Entity\Bloco */
+foreach ($this->data as $entity) {
+    /*
+     * Trata a coluna lista (ID) para habilitar visualização da lista
+     */
+    $id = $entity->getId();
+    $referencia = $entity->getReferencia();
+    $referenciaData = "<a title='Exibir bloco' data-id='{$id}' class='hand abrir-lista'>{$referencia}</a>";
+
+    $qtdInativos = 0;
+    $qtdReagendados = 0;
+    $qtdRealizados = 0;
+
+    /* @var $blocoItem \Agenda\Entity\BlocoItem */
+    foreach ($entity->listaBlocoItem() as $blocoItem) {
+        $empresa = $blocoItem->getEmpresa();
+        if (!$empresa) {
+            continue;
+        }
+
+        /*
+         * Somatório de todas as empresas do bloco que estão inativas
+         */
+        if ("INATIVO" == $empresa->getStatus()) {
+            $qtdInativos++;
+        }
+
+        /*
+         * Caso exista algum relatório para a empresa do item, então ele será
+         * utilizado para contabilizar o total de reagendados e o total de realizados
+         */
+        $relatorio = $blocoItem->getEmpresa("retRelatorioDetEmpBy", [$entity->getAgendadoEm(TRUE)]);
+        if ($relatorio instanceof \Agenda\Entity\RelatorioDetEmp) {
+            $relatorio->getReagendar() && $qtdReagendados++;
+            $relatorio->getQtdRealizado() && $qtdRealizados++;
+        }
+    }
+
+    $table->renderLine([
+        $referenciaData,
+        implode(', ', $entity->getPaginas("indexed", "cleared")),
+        $entity->getAgendadoEm(),
+        $qtdInativos,
+        $qtdReagendados,
+        $entity->getMedico('nomeMedico'),
+        $entity->getQtdEmpresas(),
+        $entity->getQtdFunBloco(),
+        $qtdRealizados,
+        $entity->getTotalTempoConsulta(),
+        $entity->getTotalTempoTranslado(),
+        $entity
+    ]);
+}
+$table->renderCloseTable();
+$fh->closeCol();
+
+echo '<center>', $this->paginationControl($this->data, 'Sliding', 'partials/paginator'), '</center>';
+
+$fh->closeLine();
+$fh->closeCol()->formEnd(); // =================================================
+// Var de transferencia PHP to JS
+$transp = compact(
+        $anoAgendamento, $showDuplicados, $showOcultados, $showEditaveis
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        /**
+         * Retorna o anoAgendamento ou false (além da notificação do erro) quando
+         * o anoAgendamento é vazio (ou seja, nenhum ano foi selecionado);
+         * 
+         * @returns {Boolean}
+         */
+        function getAnoAgendamento() {
+            var anoAgendamento = $$(transp.anoAgendamento).find('option:selected').val();
+            if ("" != anoAgendamento) {
+                return anoAgendamento;
+            }
+
+            $.notify({
+                message: 'Escolha um ano no campo "Agendar para o ano" para continuar',
+                type: "danger"
+            });
+
+            return false;
+        }
+
+        $('#pesquisar').click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                type: "POST",
+            });
+        });
+
+        /**
+         * Adiciona um novo bloco baseado no ano definido em anoAgendamento;
+         */
+        $('#novo-bloco').click(function () {
+
+            var anoAgendamento = getAnoAgendamento();
+            if (!anoAgendamento) {
+                return;
+            }
+
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "new"), [], FALSE, FALSE); ?>",
+                data: {
+                    anoAgendamento: anoAgendamento,
+                    fakePost      : true
+                }
+            });
+        });
+        
+        /**
+         * Oculta um bloco
+         */
+        $('.ocultar').click(function() {
+            if(!confirm('Deseja realmente ocultar o bloco?')) {
+                return false;
+            }
+            
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => "ocultarBloco"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    idBloco : $(this).attr('data-id')
+                }
+            });
+        });
+        
+        /**
+         * Reexibe um bloco ocultado 
+         */
+        $('.exibir').click(function() {
+            if(!confirm('Deseja realmente reexibir o bloco?')) {
+                return false;
+            }
+            
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => "exibirBloco"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    idBloco : $(this).attr('data-id')
+                }
+            });
+        });
+
+        /**
+         * Ao clicar e confirmar, o status do bloco será marcado como oculto
+         */
+        $('.editar').click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "edit"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    id: $(this).attr('data-id'),
+                    fakePost: true
+                }
+            });
+        });
+
+        $('.duplicar').click(function () {
+            var id = $(this).attr('data-id');
+
+            var anoAgendamento = getAnoAgendamento();
+            if (!anoAgendamento) {
+                return;
+            }
+
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "duplicaBloco"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    id: id,
+                    anoAgendamento: anoAgendamento,
+                    fakePost      : true,
+                }
+            });
+        });
+
+        /**
+         * @event
+         * @description Abre a listagem deste bloco
+         */
+        $('.abrir-lista').click(function () {
+            var $el = $(this);
+            var id  = $el.data('id');
+            
+            // Quando a lista já estiver aberta, então fechá-la
+            if($el.closest('tr').next().hasClass('warning-line')) {
+                $el.closest('tr').next().find('.close-lista-itens').click();
+                return false;
+            }
+            
+            $el.closest('tr').addClass('warning-line');
+            
+            $.processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => "listaItensBloco"), [], FALSE, FALSE); ?>/" + id,
+                callback: function(htmlLista) {
+                    $el.closest('tr').after('<tr class="warning-line"><td><span class="close-lista-itens hand"><i class="fa fa-times"></i> Fechar</span></td><td colspan="11">'+htmlLista+'</td></tr>');
+                }
+            });
+        });
+        
+        $(document).on('click', '.close-lista-itens', function() {
+            $(this).closest('tr').prev().removeClass('warning-line');
+            $(this).closest('tr').remove();
+        });
+        
+        /*
+         * Cria efeito de radio para o showEditaveis, ou seja, se este botão
+         * for marcado, então os checkbox showOcultados e showDuplicados serão
+         * desmarcados.   
+         */
+        $$(transp.showEditaveis).radio(transp.showOcultados);
+        $$(transp.showEditaveis).radio(transp.showDuplicados);
+
+        $$(transp.showEditaveis).click(function () {
+            if (!getAnoAgendamento()) {
+                $(this).removeAttr("checked");
+            }
+        });
+    });
+
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+</script>
+

@@ -1,0 +1,125 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $clinica \Tcmed\Entity\Clinica */
+$table = $this->table();
+$clinica = $this->clinica;
+
+$controller = 'Clinicas';
+$route = 'tcmed/default';
+
+$incluirContato = '<button id="incluirContato" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Incluir</button>';
+$fecharContatos = '<button id="closeListaContatos" class="btn btn-danger pull-right"><i class="fa fa-times"></i> Fechar</button>';
+
+echo <<<EOF
+    <legend>Outros Contatos {$fecharContatos} {$incluirContato}</legend>
+EOF;
+
+$lambda = function($value, $data) {
+    echo <<<EOF
+    <td>
+        <span data-id="{$value}" class="hand excuirMeioContato">
+            <i class="fa fa-trash"></i> 
+        </span> 
+    </td>
+EOF;
+};
+$table->setLambda($lambda);
+
+$table->openTable(TRUE);
+$table->renderThead([
+    '<i class="fa fa-user"></i> Contato', 
+    '<i class="fa fa-phone"></i> Telefone',
+    '<i class="fa fa-mobile"></i> Celular',
+    '<i class="fa fa-envelope"></i> Email',
+    '<i class="fa fa-minus"></i>'
+]);
+
+foreach ($clinica->listContatos(["principal" => FALSE]) as $contato) {
+
+    $listaMeioContatos = $contato->listMeioContato(["principal" => FALSE]);
+    
+    if(1 > count($listaMeioContatos)){
+        continue;
+    }
+    
+    $telefone = $listaMeioContatos[0]->getMeioDeContato();
+    $celular = $listaMeioContatos[1]->getMeioDeContato();
+    $email = $listaMeioContatos[2]->getMeioDeContato();
+
+    $table->renderLine([
+        $contato->getNomeContato(),
+        $telefone,
+        $celular,
+        $email,
+        $contato->getId()
+    ]);
+}
+
+$table->renderCloseTable();
+?>
+<div id="modal-add"></div>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var idClinica = <?php echo $clinica->getId(); ?>;
+
+        $("#closeListaContatos").click(function () {
+            $("#listaContatos").hide("slow");
+            return false;
+        });
+
+        function refresh() {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getContatos'), [], FALSE, FALSE); ?>/" + idClinica,
+                callback: function (data) {
+                    $("#listaContatos").html(data);
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * @event Traz modal com informacoes de peso, altura, 
+         * pressao e temperatura 
+         */
+        $(".addMeioContato").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "addNewContato"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    "idContato": $(this).attr("data-id"),
+                    "idClinica": idClinica
+                },
+                callback: function (data) {
+                    $("#modal-add").html(data);
+                }
+            });
+            return false;
+        });
+
+        $(".excuirMeioContato").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "MeioContatos", 'action' => "delete"), [], FALSE, FALSE); ?>/" + $(this).attr("data-id"),
+                callback: function (data) {
+                    $.processa({
+                        url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getContatos'), [], FALSE, FALSE); ?>/" + idClinica,
+                        callback: function (data) {
+                            $("#listaContatos").html(data);
+                        }
+                    });
+                }
+            });
+            return false;
+        });
+
+        $("#incluirContato").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "addNewContato"), [], FALSE, FALSE); ?>/" + idClinica,
+                callback: function (data) {
+                    $("#modal-add").html(data);
+                }
+            });
+            return false;
+        });
+    });
+</script>

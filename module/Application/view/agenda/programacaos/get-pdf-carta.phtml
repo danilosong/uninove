@@ -1,0 +1,486 @@
+<style>
+    .folha {
+        width            : 190mm;
+        height           : 280mm;
+        border           : #000 solid 1px;
+        margin           : 0px;
+        padding          : 0px;
+        padding: 10px;
+    }
+
+    #logo-vilavelha {
+        float: right;
+        margin-top: -10px;
+        margin-right: -10px;
+    }
+
+    .efSombra{
+        font: bold 35px verdana, "Arial black", Helvetica, sans-serif;  
+        text-decoration: underline;
+        text-shadow: 0.1em 0.1em 0.2em black;
+        text-align : center;
+        padding-bottom   : 10px;
+    }
+
+
+    div.tudo { 
+        position:relative;      
+        background:#fff;        
+        top: 0;                     
+        height:15mm;               
+        margin:5px 0;
+        text-align: center;
+    }
+
+    div.texto {
+        margin-top: -47px;  
+        color:#000; 
+        text-decoration: underline;
+    }
+    
+    div.texto, div.efeito1b{
+        font: bold 34px verdana, "Arial black", Helvetica, sans-serif; 
+    }
+
+    div.efeito1b {
+        position:absolute;  
+        left: 62px;  
+        margin-top: 4px;  
+        margin-left: 4px;  
+        color:#A9A9A9;
+    }
+
+    p {
+        font-family : "Times New Roman", serif;
+        font-size   : 13px;
+        margin      : 0px;
+        text-align  : justify;
+    }
+
+    .conteudo{
+        height           : 230mm;
+        padding-left     : 10px;
+        padding-right    : 10px;
+    }
+
+    .t2{
+        font: bold 12px verdana, "Arial black", Helvetica, sans-serif;
+    }
+
+    .col-emp{
+        font: normal 10px Arial, Helvetica, sans-serif;
+    }
+
+    div.posi{         
+        font: bold 20px verdana, "Arial black", Helvetica, sans-serif;             
+        text-decoration: underline;                  
+        text-align: center;
+    }
+    
+    div.posi-short {
+        font: bold 14px verdana, "Arial black", Helvetica, sans-serif;             
+    }
+
+    div.posi2{
+        text-indent: 15px;  
+        text-align: justify;
+        font: bold 16px verdana, "Arial black", Helvetica, sans-serif;
+        padding          : 10px;
+        color : red;
+    }
+
+    div.posi3{
+        font: bold 25px verdana, "Arial black", Helvetica, sans-serif; 
+        text-align: center;
+    }
+
+    div.posi4{
+        font: normal 20px verdana, arial, Helvetica, sans-serif;  
+        text-align: center;
+    }
+
+    .viaCliente {
+        border     : 1px solid #000000 ;
+        position   : relative;
+        margin-left: 65% ;
+        top        : -10px ;
+        height     : 1cm;
+        width      : 5cm;
+        text-align: center;
+    }
+
+    p.F1{
+        font-family: "Times New Roman", serif;
+        font-size: 12px;
+        text-indent: 0%;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        text-align: justify;                 
+    } 
+
+    #cabecalho {
+        font-size: 12px;
+    }
+
+    .col0A p{
+        font-size: 14px;
+    }
+</style>
+
+<?php
+/* @var $blocoItem \Agenda\Entity\BlocoItem */
+
+
+/** ============================================================================
+ *  TEMPLATES
+ *  ============================================================================
+ */
+$rodape = <<<RODAPE
+    <div class="rodape-cart-1">
+        <p>Cordialmente,</p>
+        <table style="width:100%">
+            <tbody>
+                <tr>
+                    <td colspan="2" align="center"><img src="/var/www/tcmed/data/programacaoDir/linhaRodape.jpg"></td>
+                </tr>
+                <tr>
+                    <td>
+                       Vila Velha Serviços <br>
+                       Av. Ipiranga, 313, São Paulo, SP <br>
+                       CEP 01046-010 Fone: (11)3226.9605 <br>
+                       Email: pcmso@vilavelha.com.br
+                    </td>
+                    <td align='rigth'>
+                        <img id="logo-vilavelha" width="324px" src="/var/www/tcmed/data/programacaoDir/logoRodapeCarta.jpg">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>   
+RODAPE;
+
+$tituloPcmso = <<<TITULO
+    <div class="tudo">
+        <div class="efeito1b">EXAME MÉDICO PERIÓDICO</div>
+        <div class="texto">EXAME MÉDICO PERIÓDICO</div>
+    </div>
+TITULO;
+
+/* ========================================================================== */
+
+$dtm = new \DateTime('now');
+$month = $params($dtm->format('m'), "nome_mes");
+$dataFormatada = "São Paulo, {$dtm->format('d')} de {$month} de {$dtm->format('Y')}";
+
+$quebraPagina = "<div style='page-break-before: always;'></div>";
+
+$openFolha = "<div class='folha'><div class='conteudo'>";
+$closeFolha = "</div>{$rodape}</div>";
+
+
+echo $openFolha; /* ----------------------------------------------- FOLHA 1-- */
+
+echo <<<CABECALHO
+    <div>
+        <img id="logo-vilavelha" width="250px" src="/var/www/tcmed/data/programacaoDir/logoVilaVelha.png">
+    </div>
+
+    <div id='cabecalho'>
+        <p>{$dataFormatada}</p>
+        <p>À</p>
+        <b>{$administradora->getRazaoSocial()}</b>
+        <p>At. Depto Pessoal</p>
+    </div>
+        
+    {$tituloPcmso}
+    
+    <div>
+        <p>
+            De acordo com o Programa De Controle Médico De Saúde Ocupacional(PCMSO), elaborado para os Condomínios, foi agendado a 
+            realização dos exames periódicos do(s) Condomínio(s) identificado(s) abaixo:
+            Solicitamos verificarem o(s) endereço(s), caso exista divergência, favor entrar em contato com a Vila Velha.
+            <br>
+            <br>
+            Funcionários eventualmente ausentes receberão reconvocação escrita para realização do exame.
+        </p>
+    </div>
+CABECALHO;
+    
+$limitFirstPage = 8;
+$limitOthersPages = 13;
+$contador = $limitFirstPage;
+
+$ultimaData = '';
+$ultimoMedico = '';
+
+echo '<div>';
+foreach ($entities as $blocoItem) {
+
+    if (0 == $contador) {
+        echo $closeFolha;
+        echo $quebraPagina;
+        echo $openFolha;
+        $contador = $limitOthersPages;
+    }
+
+    $nomeMedico = $blocoItem->getBloco('medico', ['nomeMedico']);
+    $agendadoEm = $blocoItem->getBloco('agendadoEm');
+    $horaInicio = $blocoItem->getHoraIni();
+    $razaoSocial = $blocoItem->getEmpresa('razaoSocial');
+    $enderecoEmp = $blocoItem->getEmpresa('endereco', ['exibeEnderecoSimples']);
+    $referenciaEmp = $blocoItem->getEmpresa('referenciaEmp');
+    /* @var $bloco Agenda\Entity\Bloco */
+    $bloco = $blocoItem->getBloco();
+
+    if ($ultimoMedico != $nomeMedico) {
+        echo "<br>";
+        echo "<p class='t2'>Dr(a). {$nomeMedico}</p>";
+        $ultimoMedico = $nomeMedico;
+    }
+
+    $listaHMD = $bloco->listHorarioMedicoDia();
+    /* @var $horaMedDia Agenda\Entity\HorarioMedicoDia */
+    foreach ($listaHMD as $horaMedDia) {
+        $agendadoEm = $horaMedDia->getDateHoramed();
+        $horaInicio = $blocoItem->getHoraIni();
+
+        if ($bloco->getManyDays()) {
+            $horaInicio = $horaMedDia->getIni();
+        }
+
+        if ($ultimaData != $agendadoEm) {
+            echo "<p class='t2'>No dia {$agendadoEm}</p>";
+            $ultimaData = $agendadoEm;
+        }
+
+        echo "<table width='100%' style='padding-left: 20px'><tr>"
+        . "<td class='col-emp' width='60%'>{$horaInicio} hs &nbsp;&nbsp;&nbsp; {$razaoSocial} ($referenciaEmp)</td>"
+        . "<td class='col-emp' width='40%'> {$enderecoEmp}</td>"
+        . "</tr></table>";
+    }
+
+    $contador--;
+}
+echo '</div>';
+
+echo $closeFolha; /* ------------------------------------------FIM FOLHA 1 -- */
+
+foreach ($entities as $blocoItem):
+
+    $nomeMedico = $blocoItem->getBloco('medico', ['nomeMedico']);
+    $agendadoEm = $blocoItem->getBloco('agendadoEm');
+    $horaInicio = $blocoItem->getHoraIni();
+    $enderecoEmp = $blocoItem->getEmpresa('endereco', ['exibeEnderecoSimples']);
+    $referenciaEmp = $blocoItem->getEmpresa('referenciaEmp');
+    $razaoSocialEmp = $blocoItem->getEmpresa('razaoSocial');
+    $razaoSocialAdm = $blocoItem->getEmpresa('administradora', ['razaoSocial']);
+    $tipoEmpresa = ($blocoItem->getEmpresa('atividade') == "RESIDENCIAL") ? "do Condomínio" : "da Empresa";
+    /* @var $bloco Agenda\Entity\Bloco */
+    $bloco = $blocoItem->getBloco();
+    $listaHMD = $bloco->listHorarioMedicoDia();
+
+    echo $quebraPagina;
+    echo $openFolha; /* ----------------------------------- INICIO FOLHA 2 -- */
+
+    echo <<<CABECALHO2
+        <div class='posi3'>PROGRAMA-SE PARA FAZER O SEU</div>
+    
+        {$tituloPcmso}
+    
+        <div>
+            <div class='viaCliente'>Via {$tipoEmpresa}</div>
+        </div>
+    
+CABECALHO2;
+
+
+
+    /* @var $medico Tcmed\Entity\Medico */
+    $contadorMedico = 0;
+    $htmlMedicos = "<table class='tudo'><tr>";
+    foreach ($medicosCarta as $medico) {
+        if ($medico->getNomeMedico() == $nomeMedico) {
+            continue;
+        }
+
+        if (2 == $contadorMedico) {
+            $htmlMedicos .= '</tr><tr>';
+            $contadorMedico = 0;
+        }
+
+        $htmlMedicos .="<td width='50%' class='col1'><ul><li>Dr. {$medico->getNomeMedico()}</li></ul></td>";
+        $contadorMedico++;
+    }
+    $htmlMedicos .= "</tr></table>";
+
+
+    $datas = '';
+    $datas2 = '';
+
+    /* @var $horaMedDia Agenda\Entity\HorarioMedicoDia */
+    foreach ($listaHMD as $horaMedDia) {
+        $agendadoEm = $horaMedDia->getDateHoramed();
+        $horaInicio = $blocoItem->getHoraIni();
+
+        if ($bloco->getManyDays()) {
+            $horaInicio = $horaMedDia->getIni();
+        }
+
+        $datas .= "<b>{$agendadoEm} às {$horaInicio}</b><br>";
+        $datas2 .= "Data: <b>{$agendadoEm}</b> Hora: <b>{$horaInicio}</b><br>";
+    }
+
+    $posiClass = ($bloco->getManyDays()) ? 'posi-short' : '';
+
+    echo <<<HTML
+        <table>
+            <tbody>
+                <tr>
+                    <td><img src="/var/www/tcmed/data/programacaoDir/LogoMedExam.jpg" style="WIDTH: 300px; HEIGHT: 200px;" border="0"></td>
+                    <td  style='text-align: center'>
+                        <div class="posi3">$razaoSocialEmp</div>
+                        <div class="posi4">$razaoSocialAdm</div>
+                        <div class="posi {$posiClass}">{$datas}</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+            
+        <div class="posi2">
+            Informamos que na data acima comparecerá nas dependências 
+            {$tipoEmpresa} um dos médicos relacionados abaixo para realizar exames 
+            periódicos dos funcionários.
+        </div>
+            
+        <div>
+            <div class="tudo2">
+                <div class="posi3">
+                    <ul><li>Dr. {$nomeMedico}</li></ul>
+                </div>
+            </div>
+            {$htmlMedicos}
+        </div>
+            
+        <br>
+            
+        <div class="posi2">
+            Funcionários eventualmente ausentes receberão reconvocação 
+            escrita para realização do exame.
+        </div>
+            
+        <br>
+
+        <div class="posi">
+            <b>Obs.: Fixar este informativo em mural ou portaria do 
+                Condomínio para o conhecimento dos funcionários.
+            </b>
+        </div>
+HTML;
+
+    echo $closeFolha; /* ------------------------------------- FIM FOLHA 2 -- */
+
+    $comunicado = <<<COMUNICADO
+    <p class="F1">
+        Os funcionários deverão ser orientados com antecedência, para que compareçam no dia e hora marcados.
+    </p>
+
+    <p class="F1">
+        Recomendamos providenciar um espaço reservado e adequado para a realização dos exames.<br>Ex: Salão de festas.
+    </p>
+
+    <p class="F1">
+        Funcionários eventualmente ausentes receberão reconvocação escrita para realização do exame.
+    </p>
+
+    <p class="F1">
+        Em caso de uma eventual fiscalização do Ministério do Trabalho, é importante que o
+        condomínio possua os comprovantes dos exames médicos, pois a ausência dos mesmos poderá resultar em uma autuação.
+    </p>    
+COMUNICADO;
+
+    /**
+     * MONTA O CONTATO E O ENDERECO DA TECNOMED
+     */
+    $enderecoFormatado = '-';
+    $endereco = $clinica->getEndereco();
+    if ($endereco) {
+        $tipo = $endereco->getLogradouro('tipoLogradouro', ['tipo']);
+        $logradouro = $endereco->getLogradouro('nomeLogradouro');
+        $numero = $endereco->getNumero();
+        $complemento = $endereco->getComplemento();
+
+        $enderecoFormatado = "{$tipo} {$logradouro}, n {$numero} {$complemento}";
+    }
+
+    $contato = $clinica->listContatos(["principal" => TRUE]);
+
+    /* @var $clinica Tcmed\Entity\Clinica */
+    $enderecoTecnomed = <<<ENDERECO
+    <p class="F1">
+        Tecnomed<br>
+        End.: {$enderecoFormatado} <br>
+        {$clinica->getInfoAtendimento()}<br>
+        Fone: (11) 3266 5850
+    </p>
+ENDERECO;
+
+    /**
+     * 
+     */
+    $info = <<<INFO
+    <p class="F1">
+        Para atender a legislação, conforme programa integrado contratado serão realizados exames médicos
+        periódicos dos funcionários.</b>
+    </p>
+     
+    <p class="F1">
+        O médico identificado, da TECNOMED (empresa contratada), estará  no condomínio, dia e hora marcados,
+        para realizar os exames.<br>
+        Médico Dr.<b>{$nomeMedico}</b><br>
+        {$datas2}
+    </p>
+        
+    {$comunicado}
+    {$enderecoTecnomed}
+INFO;
+
+    echo $quebraPagina;
+    echo $openFolha; /* ----------------------------------- INICIO FOLHA 3 -- */
+
+    echo <<<HTML
+    <div class="col0A">
+        <p class="F1"><b>SÍNDICO</b></p>
+        <p class="F1">{$dataFormatada}</p>
+        <p class="F1">
+            Cond: {$razaoSocialEmp}<br>
+            End: {$enderecoEmp}<br>
+            Adm: {$razaoSocialAdm}<br>
+            Ref: EXAME MÉDICO - PCMSO<br>
+        </p>
+            
+        {$info}
+    </div>
+HTML;
+
+    echo $closeFolha; /* ------------------------------------- FIM FOLHA 3 -- */
+    echo $quebraPagina;
+    echo $openFolha; /* ----------------------------------- INICIO FOLHA 4 -- */
+
+    echo <<<HTML
+    <div class="col0A">
+        <p class="F1"><b>ZELADOR</b></p>
+        <p class="F1">{$dataFormatada}</p>
+        <p class="F1">
+            Cond: {$razaoSocialEmp}<br>
+            End: {$enderecoEmp}<br>
+            Adm: {$razaoSocialAdm}<br>
+            Ref: EXAME MÉDICO - PCMSO<br>
+        </p>
+            
+        {$info}
+    </div>
+HTML;
+
+    echo $closeFolha; /* ------------------------------------- FIM FOLHA 4 -- */
+endforeach;
+?>

@@ -1,0 +1,8 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+$data         = $this->data;
+
+echo $this->url($route, array('controller' => $data['controller'], 'action' => $data['action']), [], FALSE, FALSE); 

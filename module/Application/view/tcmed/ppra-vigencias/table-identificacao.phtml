@@ -1,0 +1,66 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+/* @var $entity \Tcmed\Entity\PpraVigencia */
+$entity       = $this->entity;
+ 
+if($entity AND $entity->getEmpresa()):
+?>
+    <table style="margin: 0; padding: 0; width: 100%;">
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #000; background-color: #E6E6E6; width: 40mm; text-align: center;height: 45px;">Empresa:</td>
+                <td style="border-top: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><h4>&nbsp;<?= $entity->getEmpresa('razaoSocial');?></h4></td>
+            </tr>
+            <tr>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;height: 45px;">Endereço:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $entity->getEmpresa('endereco',['format', ['l, n - m']]);?></td>
+                
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 25mm; text-align: center;">BAIRRO:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $entity->getEmpresa('endereco',['format',['b']]);?></td>
+            </tr>
+            <tr>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;height: 45px;">Cidade/Estado:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $entity->getEmpresa('endereco',['format',['c']]);?>
+                                                                                       /<?= $entity->getEmpresa('endereco',['format',['e']]);?></td>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 25mm; text-align: center;">CEP:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $entity->getEmpresa('endereco',['format',['k']]);?></td>
+            </tr>
+            <tr>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;height: 45px;">CNPJ:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $entity->getEmpresa('cnpj');?></td>
+            </tr>
+            <tr>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;height: 45px;">CNAE:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $entity->getEmpresa('cnae');?></td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Grau de Risco:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $entity->getEmpresa('grauRisco');?></td>
+            </tr>
+            <tr>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;height: 45px;">Atividade:</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $entity->getPpra()->getAtividade();?></td>
+            </tr>
+            <tr>
+                <td style="border-left: 1px solid #000; border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;height: 45px;">Funcionários</td>
+                <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3">
+                    <table style="margin: 0; padding: 0; width: 100%;">
+                        <tr>
+                            <th style="text-align: center; width: 34%;border-bottom: 1px solid #000;border-right: 1px solid #000;">Total</th>
+                            <th style="text-align: center; width: 33%;border-bottom: 1px solid #000;border-right: 1px solid #000;">Masculino</th>
+                            <th style="text-align: center; width: 33%;border-bottom: 1px solid #000;">Feminino</th>
+                        </tr>
+                        <tr style="text-align: center">
+                            <td style="border-right: 1px solid #000; text-align: center;"><?= $entity->getQtdFunc();?></td>
+                            <td style="border-right: 1px solid #000; text-align: center;"><?= $entity->getQtdFuncMas();?></td>
+                            <td style="text-align: center;"><?= $entity->getQtdFuncFem();?></td>
+                        </tr>
+                    </table>                        
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+<?
+endif;

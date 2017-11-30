@@ -1,0 +1,222 @@
+<?php
+$this->__set('controller', '');
+$this->__set('subMod', 'partials');
+include $this->partial('style-pdf');
+
+$openTable = <<<OPENTABLE
+    <table class='table table-striped'>
+        <thead>
+            <tr>
+                <th>Exames</th>
+                <th>Funcionário</th>
+                <th>Função</th>
+                <th>Tipo</th>
+                <th>Dt. Exame</th>
+                <th>Médico</th>
+                <th>ASO</th>
+            </tr>
+        </thead>
+        <tbody>
+OPENTABLE;
+
+$closeTable    = "</table><br>";
+$abreFolha     = "<div class='folha'>";
+$fechaFolha    = "</div>";
+$quebraPagina  = "<div style='page-break-before: always;'></div>";
+$dataAtual     = (new \DateTime('now'))->format('d/m/Y');
+$imageHold     = "";
+$totalSemExame = 0;
+$totalFunc     = 0;
+$totalExames   = 0;
+$totalGeralFun = 0; // Contador geral de Funcionarios
+$totalGeralExm = 0; // Contador geral de Exames 
+$quantEmpresas = count($result);
+
+foreach ($result as $data) {
+    /* @var $empresa \Tcmed\Entity\Empresa */
+    /* @var $clinica \Tcmed\Entity\Clinica */
+    $empresa        = $data['empresa'];
+    $clinica        = $data['clinica'];
+    $listaConsultas = $data['listaConsulta'];
+    
+    $totalEmps++;
+    $totalFunc = 0; // Contador de Funcionarios exibidos
+    $totalExames = 0; // Contador de Exames exibidos
+
+    if(empty($imageHold)) {
+        $path = $empresa->getAdministradora('hold', ['pathLogo']);
+        $imageHold = "<img style='width: 80px' id='imagemLogoHold' src='{$path}'>";
+    }
+    
+    echo <<<TOPO
+        <table style="width: 100%; background-color: #efefef; border: 1px solid #ddd;">
+            <tbody>
+                <tr class="bg0">
+                    <td rowspan="3" style='width: 30%;'>{$imageHold}</td>
+                    <td align="center" style='width: 40%;'><h3>EXAMES REALIZADOS</h3></td>
+                    <td rowspan="3" align="center" style='width: 30%;'><font class="f3c"><b>{$dataAtual}</b></font></td>
+                </tr>
+                <tr>
+                    <td class="tdb" align="center"><font class="f1c">Cod: {$empresa->getAdministradora('referenciaSubhold')} {$empresa->getAdministradora('razaoSocial')}</font></td>
+                </tr>
+                <tr>
+                    <td class="tdb" align="center">
+                        Cod: {$empresa->getReferenciaEmp()} {$empresa->getRazaoSocial()}<br><br>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+TOPO;
+    
+    echo $openTable;
+    
+    $tdVazio = "<tr><td colspan='7'>Não existem exames para esta empresa no período escolhido</td></tr>";
+
+    $lastFuncionario = null;
+                        
+    /* @var $consulta \Tcmed\Entity\Consulta */
+    /* @var $funcionario \Tcmed\Entity\Funcionario */
+    foreach ($listaConsultas as $consulta) {
+        
+        $quant = count($headers);
+        
+        /*
+         * Vars booleanas para verificar se o funcionario possui consulta e se o
+         * usuário deseja exibir estes funcionarios sem consulta
+         */
+        $isFuncionario = ($consulta instanceof Tcmed\Entity\Funcionario);
+
+        /*
+         * Irá exibir os funcionários pendentes apenas se 'examesPendentes'
+         * estiver selecionado na view
+         */
+        if ($isFuncionario AND ! isset($dataRequest['examesPendentes'])) {
+            continue;
+        }
+
+        /*
+         * Se consulta for na verdade um funcionário, então atribuir este Funcionario
+         * em $funcionario. Se não, ler o funcionario da consulta
+         */
+        $funcionario = ($isFuncionario) ? $consulta : $consulta->getFuncionario();
+
+        if ($lastFuncionario !== $funcionario) {
+            $totalFunc++;
+            $lastFuncionario = $funcionario;
+        }
+
+        /*
+         * Somente se o funcionário possuir consulta que $totalExames será 
+         * incrementado com +1
+         */
+        !$isFuncionario && $totalExames++;
+        $isFuncionario  && $totalSemExame++;
+
+        //                           |     Funcionario sem exames     |         Funcionário com exame     |
+        $exameDescr = $isFuncionario ? "Exame Vencido"                : "Exame Clínico";
+        $dtConsulta = $isFuncionario ? $funcionario->getUltimoExame() : $consulta->getDtConsulta();
+        $tipo       = $isFuncionario ? ""                             : $consulta->getTipo();
+        $medico     = $isFuncionario ? ""                             : $consulta->getMedico('nomeMedico');
+        $resultado  = $isFuncionario ? ""                             : $params($consulta->getResultado()  ,'FC_Resultado');
+        $cons       = $isFuncionario ? FALSE                          : $consulta;
+        
+        echo "<tr>";
+        echo "<td>{$exameDescr}</td>";
+        echo "<td>{$funcionario->getNomeFuncionario()}</td>";
+        echo "<td>{$funcionario->getOcupacao('cargo', [TRUE])->getCargo()}</td>";
+        echo "<td>{$tipo}</td>";
+        echo "<td>{$dtConsulta}</td>";
+        echo "<td>{$medico}</td>";
+        echo "<td>{$resultado}</td>";
+        echo "</tr>";
+    }
+    
+    if (0 == $totalFunc) {
+        echo $tdVazio;
+    }
+    
+    echo <<<TFOOT
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan='6' style='text-align: right; background-color: #ddd'>
+                    Total de Funcionarios
+                </td>
+                <td style='background-color: #ddd'>
+                    {$totalFunc}
+                </td>
+            </tr>
+            <tr>
+                <td colspan='6' style='text-align: right; background-color: #ddd'>
+                    Total de Exames
+                </td>
+                <td style='background-color: #ddd'>
+                    {$totalExames}
+                </td>
+            </tr>
+            <tr>
+                <td colspan='6' style='text-align: right; background-color: #ddd'>
+                    Total de Funcionários que não realizaram Exames
+                </td>
+                <td style='background-color: #ddd'>
+                    {$totalSemExame}
+                </td>
+            </tr>
+        </tfoot>
+    {$closeTable}
+TFOOT;
+
+    $img = "<img style='width: 160px; margin-right: 10px;'  id='imagemLogo' src='{$clinica->getPathLogo()}'>";
+    
+    echo <<<TOPO
+        <table style="width: 100%; background-color: #fff; border: 1px solid #ddd; margin-top: -22px;">
+            <tr>
+                <td style='padding: 20px; font-size: 11px;'>
+                    {$clinica->getFantasiaClinica()}<br>
+                    Endereco: {$empresa->getEndereco('enderecoFormatado')}<br>
+                    Fone: {$clinica->contatoPrincipal('meioDeContatoPrincipal', ['telefone'])} 
+                    Site: {$clinica->contatoPrincipal('meioDeContatoPrincipal', ['website'])}
+                </td>
+                <td style='text-align: right'>
+                    {$img}
+                </td>
+            </tr>
+        </table>
+        <hr>
+TOPO;
+    $quantEmpresas--;
+    
+    if(0 < $quantEmpresas) {
+        echo $quebraPagina;
+    }
+    
+    $totalGeralFun += $totalFunc;
+    $totalGeralExm += $totalExames;
+    
+}
+
+echo <<<TOPO
+        <table class='table table-striped'>
+            <thead>
+                <tr>
+                    <th colspan='2'>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Total de Funcionários:</td>
+                    <td>{$totalGeralFun}</td>
+                </tr>
+                <tr>
+                    <td>Total de Exames:</td>
+                    <td>{$totalGeralExm}</td>
+                </tr>
+                <tr>
+                    <td>Total de Condomínios</td>
+                    <td>{$totalEmps}</td>
+                </tr>
+            </tbody>
+        </table>
+TOPO;
+
+echo $fechaFolha;

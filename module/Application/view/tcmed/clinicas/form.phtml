@@ -1,0 +1,127 @@
+<?php
+    $controller = 'clinicas';
+    $route = 'tcmed/default';
+    /* @var $clinica \Tcmed\Entity\Clinica */
+    $clinica = $this->entity;
+    $partialObject = $this->partialObj('tcmed');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$fh->setHorizontal(FALSE);
+$fh->formInit();
+
+$pathLogo = $fh->getIdFor('pathLogo');
+
+$fh->openCol(12);
+$fh->renderFieldsetIni($this->dataView['titulo']);
+
+$fh->openCol(6)->select('tipo')->closeCol();
+$fh->openCol(6)->select('status')->closeCol();
+$fh->lineDown();
+$fh->openCol(6)->text('razaoSocial')->closeCol();
+$fh->openCol(6)->text('fantasiaClinica')->closeCol();
+
+$fh->lineDown();
+
+    $fh->openCol(8);
+        $fh->openLine();
+
+            $fh->openCol(12)->file('uploadLogo')->closeCol();
+            $fh->lineDown();
+            $fh->openCol(6)->cnpj('cnpj')->closeCol();
+            $fh->openCol(6)->text('inscricaoEstadual')->closeCol();
+
+        $fh->closeLine();
+    $fh->closeCol();
+
+    $fh->openCol(4);
+        $img = '';
+
+        if($this->entity) {
+            /* @var $entity \Tcmed\Entity\Hold */
+            $entity = $this->entity;
+            $src    = $this->Param('all','clinicaDir') . $entity->getPathLogo();   
+            $img    = $this->Image($src);
+        }
+        ?>
+
+        <div style="height: 135px; margin:0px" class="alert alert-info alert-dismissable input-group" role="alert" id="divPathLogo">
+            <img id='show-foto' style='width: 330px' src='<?= $img ?>' alt='Sem Imagem' class='img-thumbnail'>
+            <span class="input-group-btn" name="pathLogo" id="clean_pathLogo">
+                <button class="btn btn-default" type="button" id="btnPathLogo">
+                    <i class="fa fa-remove"></i>
+                </button>
+            </span>
+        </div>    
+        <?php
+    
+    $fh->closeCol();
+$fh->lineDown();
+
+$fh->openCol(12);
+$partialObject->partial('contatos/partial-form-contato', $fh, [
+    'this' => &$this,
+    'entity' => $entity,
+]);
+$fh->closeCol();
+
+$fh->lineDown();
+$fh->openCol(12)->text('infoAtendimento')->closeCol();
+$fh->lineDown();
+$fh->openCol(12)->select('matriz')->closeCol();
+$fh->renderFieldSetFim();
+
+$fh->lineDown();
+
+$fh->closeLine();
+$fh->openCol(12);
+$fh->renderFieldsetIni('Endereço', ['notOpenLine' => TRUE]);
+$this->partialObj('tcmed')->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
+$fh->renderFieldSetFim();
+$fh->closeCol();
+$fh->openLine();
+
+$fh->lineDown();
+
+$fh->openCol(2, 5)->Submit('submit', ["class" => "btn btn-success btn-block"])->closeCol();
+$fh->closeLine();
+
+$fh->formEnd();
+
+$fieldsClinica = [
+    "idClinica" => isset($this->entity) ? $this->entity->getId() : $fh->getForm()->get('idClinica')->getValue(),
+    "isEdit"    => ($this->dataView["action"] == "edit"),
+    "pathLogo"  => $pathLogo
+];
+?>
+<br>
+<script lang="javascritp">
+
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        var fields = <?php echo json_encode($fieldsClinica) ?>;
+
+        $('#btnPathLogo').click(function(){
+            if(confirm("Deseja realmente remover o logo?")){
+                $('#divPathLogo').find('img').attr('src', '');
+                $$('pathLogo').val('');
+                
+//                $.processa({
+//                    url: "<?php $this->url($route, array('controller' => $controller, 'action' => 'rmImage'), [], FALSE, FALSE); ?>/" + fields["idClinica"],
+//                    savePage: false,
+//                    callback: function (data) {
+//                        if(data == 'ok'){
+//                            $('#divPathLogo').html('Inserir a imagem aqui');
+//                        }else{
+//                            alert(data);
+//                        }
+//                    }
+//                });
+            }
+        });
+    });
+
+</script>

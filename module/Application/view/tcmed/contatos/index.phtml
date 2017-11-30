@@ -1,0 +1,284 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller  = $this->dataView['controller'];
+$action      = $this->dataView['action'];
+$route       = $this->dataView['route'];
+$dataRequest = $this->dataRequest;
+$table       = $this->table();
+$dataView    = $this->dataView;
+
+$fh      = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$partial = $this->partialObj('tcmed');
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+
+$partial->partial('contatos/add-meio-contato', null, ['this' => &$this, 'fh' => &$fh, 'dataView' => &$dataView]);
+//$partial->partial('contatos/edit-nome-contato', null, ['this' => &$this, 'fh' => &$fh]);
+
+$table->openTable(TRUE);
+
+$lambda = function($value, $data) {
+    echo "\t<td nowrap>";
+    // Este caso é um contato
+//    $aux = isset($this->dataRequest['deleteContato']) ? $this->dataRequest['deleteContato'] : "show";
+    if($value instanceof \Tcmed\Entity\MeioContato) {
+            echo '<span class="hand delete-meioContato" data-id="' . $value->getId() . '" title=""><i class="fa fa-trash"></i> Del</span>';
+    }else{
+        if("show" == $this->dataRequest['deleteContato']) {
+            echo '<span class="hand delete-contato" data-id="' . $value->getId() . '" title=""><i class="fa fa-ban"></i> Del</span>';
+        }
+    }
+    
+    echo "</td>", PHP_EOL;
+};
+
+$table->setLambda($lambda);
+$table->renderThead(['Nome do Contato', 'Tipo', 'Meio de Contato', 'Ação']);
+
+
+/* @var $contato \Tcmed\Entity\Contato */
+foreach ($this->data as $contato) {
+    
+    $editContato = <<<EOF
+        <div class="edit-row input-group">
+            <div class="input-group-btn">
+                <button class="btn btn-danger cancela-edicao"><i class="fa fa-ban"></i></button>
+            </div>
+            <input type="text" class="form-control"  size="10" data-old="{$contato->getNomeContato()}" value="{$contato->getNomeContato()}">
+            <div class="input-group-btn">
+                <button class="btn btn-success salvar-edicao" data-name="translado" data-id="{$contato->getId()}"><i class="fa fa-check"></i></button>
+            </div>
+        </div>
+EOF;
+
+    $isPrincipal    = $contato->getPrincipal();
+    $iconfa         = ($isPrincipal)? 'star' : 'star-o';
+    $titleChecked   = "{$contato->getNomeContato()} é o contato principal";
+    $titleUnchecked = "Clique para tornar {$contato->getNomeContato()} como contato principal";
+    $title          = ($isPrincipal)? $titleChecked : $titleUnchecked; 
+    $icon           = "<i title='{$title}' class='hand fa fa-{$iconfa} turn-principal-contato' data-id='{$contato->getId()}' data-contato='{$contato->getId()}'></i>";
+    $editPen        = '<i class="editable fa fa-pencil hand"></i>';
+    
+    $nomeContato = $contato->getNomeContato();
+    $table->renderLine([
+        "<span 'text-edit'>{$icon} {$nomeContato} {$editPen}</span>{$editContato}",
+        "",
+        "<span class='hand incluir-meioContato' data-id='{$contato->getId()}' data-nome='{$contato->getNomeContato()}'><i class='fa fa-plus'></i> Incluir</span>",
+        $contato,
+    ], ' class="info" ');
+        
+    /* @var $meioContatos \Tcmed\Entity\MeioContato */
+    $meioContatos = $contato->listMeioContato([], ['principal' => 'DESC']);
+    foreach ($meioContatos as $meioContato) {
+        
+        $editMeioDeContato = <<<EOF
+        <div class="edit-row input-group">
+            <div class="input-group-btn">
+                <button class="btn btn-danger cancela-edicao"><i class="fa fa-ban"></i></button>
+            </div>
+            <input type="text" class="form-control mask-{$meioContato->getTipoMeioContato('descricao')}"  size="10" data-old="{$meioContato->getMeioDeContato()}" value="{$meioContato->getMeioDeContato()}" placeholder="Digite o {$meioContato->getTipoMeioContato('descricao')}">
+            <div class="input-group-btn">
+                <button class="btn btn-success salvar-edicao-meio-contato" data-name="translado" data-id="{$meioContato->getId()}"><i class="fa fa-check"></i></button>
+            </div>
+        </div>
+EOF;
+        
+        $isPrincipal    = $meioContato->getPrincipal();
+        $iconfa         = ($isPrincipal)? 'star' : 'star-o';
+        $titleChecked   = "Este {$meioContato->getTipoMeioContato('descricao')} é o contato principal do(a) {$contato->getNomeContato()}";
+        $titleUnchecked = "Clique para tornar este {$meioContato->getTipoMeioContato('descricao')} como meio de contato principal";
+        $title          = ($isPrincipal)? $titleChecked : $titleUnchecked; 
+        $icon           = "<i title='{$title}' class='hand fa fa-{$iconfa} turn-principal' data-id='{$meioContato->getId()}' data-contato='{$contato->getId()}'></i>";
+
+        $table->renderLine([
+            "",
+            "{$icon} {$meioContato->getTipoMeioContato('descricao')}",
+            "<span 'text-edit'>{$meioContato->getMeioDeContato()} {$editPen}</span>{$editMeioDeContato}",
+            $meioContato,
+        ]);
+    }
+}
+$table->renderCloseTable();
+
+$fields = array(
+    "entity" => $dataRequest['entity'],
+    "id" => $dataRequest['id'],
+    "container" => (isset($dataRequest['container'])) ? $dataRequest['container'] : '#listaContatos',
+);
+?>
+<br />
+<script lang="javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+
+        /**
+         * Atualiza a lista de contatos
+         */
+        function refreshLista() {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "contatos", 'action' => 'index'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                type: "POST",
+                data: {
+                    id: fields.id,
+                    entity: fields.entity,
+                },
+                ret: fields.container
+            });
+        }
+
+        /**
+         * Call do modal de inclusão de meio de contato 
+         */
+        $('.incluir-meioContato').click(function () {
+            var $btn = $(this);
+            
+            $('#modal-meioContato').attr('data-id', $btn.data('id'));
+            $('#modal-meioContato').find('#nomeContato').text($btn.data('nome'));
+            $('#modal-meioContato').modal();
+            
+            $('#modal-meioContato').find('#addMeioContato').click(function() {
+                refreshLista();
+            });
+        });
+
+        /**
+         * 
+         */
+        $('.delete-contato').click(function () {
+            if(!confirm("Deseja realmente apagar este contato? As alterações feitas não poderão ser revertidas")){
+                return false;
+            }
+        
+            var id = $(this).attr('data-id');
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "contatos", 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + id,
+                callback: function () {
+                    refreshLista();
+                }
+            });
+        });
+        
+        $('.turn-principal').click(function () {
+            $.processa({
+                url : "<?php echo $this->url($route, array('controller' => "meioContatos", 'action' => 'setPrincipal'), [], FALSE, FALSE); ?>/" + $(this).data('id'),
+                ret: fields.container
+            });
+        });
+        
+        $('.turn-principal-contato').click(function () {
+            $.processa({
+                url : "<?php echo $this->url($route, array('controller' => "contatos", 'action' => 'setPrincipal'), [], FALSE, FALSE); ?>/" + $(this).data('id'),
+                ret: fields.container
+            });
+        });
+
+        /**
+         * 
+         */
+        $('.delete-meioContato').click(function () {
+            if(!confirm("Deseja realmente apagar este meio de contato? As alterações feitas não poderão ser revertidas")){
+                return false;
+            }
+            
+            var id = $(this).attr('data-id');
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "meioContatos", 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + id,
+                ret: fields.container
+            });
+        });
+        
+        /**
+         * ===================== Edição do contato ============================= 
+         */
+         
+        // Funções de manipulação do input de edição do contato
+        $('.editable').hide();
+        $('.edit-row').hide();
+        
+        $('.editable').click(function () {
+            var $td = $(this).closest('td');
+            $td.find('span').hide();
+            $td.find('.edit-row').show();
+        });
+        
+        $('.editable').closest('td').hover(
+            function () {
+                $(this).find('.editable').show();
+            },
+            function () {
+                $(this).find('.editable').hide();
+            }
+        );
+    
+        /**
+         * Cancela a edição do contato 
+         */
+        $('.cancela-edicao').click(function () {
+            var $td = $(this).closest('td');
+            $td.find('.edit-row').hide();
+            $td.find('span').show();
+            return false;
+        });
+        
+        /**
+         * Envia para o servidor o novo nome do contato caso este seja diferente
+         * do nome que já estava salvo.
+         */
+        $('.salvar-edicao').click(function () {
+            var novo = $(this).closest('.edit-row').find('input').val();
+            var old  = $(this).closest('.edit-row').find('input').data('old');
+            
+            if(novo == old){
+                $('.cancela-edicao').click();
+                return false;
+            }
+            
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'contatos', 'action' => 'editaNomeContato'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                type: "POST",
+                data: {
+                    id: $(this).data('id'),
+                    nomeContato:  novo
+                },
+                ret: fields.container,
+            });
+            return false;
+        });
+        
+        /**
+         * Envia para o servidor o novo nome do contato caso este seja diferente
+         * do nome que já estava salvo.
+         */
+        $('.salvar-edicao-meio-contato').click(function () {
+            var novo = $(this).closest('.edit-row').find('input').val();
+            var old  = $(this).closest('.edit-row').find('input').data('old');
+            
+            if(novo == old || "" == novo){
+                $('.cancela-edicao').click();
+                return false;
+            }
+            
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'meioContatos', 'action' => 'editaMeioContato'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                type: "POST",
+                data: {
+                    id: $(this).data('id'),
+                    meioDeContato:  novo
+                },
+                ret: fields.container,
+            });
+            return false;
+        });
+        /* ================================================================== */
+        
+        $('.mask-TELEFONE').mask('(99) 9999-9999');
+        $('.mask-FAX').mask('(99) 9999-9999');
+        $('.mask-CELULAR').mask('(99)9 9999-9999');
+
+    });
+</script>

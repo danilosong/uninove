@@ -1,0 +1,77 @@
+<?php 
+if($this->resultSet){
+    switch ($this->subOpcao){
+        default:
+            $array[] = [
+                'menu_idOcupacao' => "ID Ocupacao",
+                'menu_idCargo' => "ID Cargo",
+                'menu_cargo' => "Nome do Cargo",
+                'menu_cbo' => "CBO do Cargo",
+                'menu_nomeSetor' => "Nome do Setor",
+                'menu_idSetor' => "ID Setor",
+            ];
+            
+            foreach ($this->resultSet as $entity){
+                /* @var $entity \Tcmed\Entity\Ocupacao */
+                $array[] = [
+                    "idOcupacao"    => $entity->getId(),
+                    "idCargo"       => $entity->getCargo()->getId(),
+                    "cargo"         => (string) $entity->getCargo(TRUE),
+                    "cbo"           => $entity->getCargo()->getCbo(),
+                    "nomeSetor"     => $entity->getSetor('nomeSetor'),
+                    "idSetor"       => $entity->getSetor()->getId(),
+                ];
+            }
+            
+            break;
+        case "withFilters":
+            
+            $array[] = [
+                'menu_idOcupacao' => "ID Ocupacao",
+                "menu_idCargo" => "ID Cargo",
+                'menu_cargo' => "Nome do Cargo",
+                "menu_idSetor" => "ID Setor",
+                'menu_nomeSetor' => "Nome do Setor"
+            ];
+
+            foreach ($this->resultSet as $entity){
+                $array[] =[
+                    "idOcupacao" => $entity->getId(),
+                    "idCargo" => $entity->getCargo(TRUE)->getId(),
+                    "cargo" => $entity->getCargo(TRUE)->getApelido(),
+                    "idSetor" => $entity->getSetor()->getId(),
+                    "nomeSetor" => $entity->getSetor()->getNomeSetor(),
+                ];
+            }
+            
+            break;
+        case "getApelido":
+            
+            $array[] = [
+                'menu_idCargo' => "ID",
+                'menu_cargo' => "Cargo",
+                'menu_flag' => "Flag",
+            ];
+            
+            foreach ($this->resultSet["cargo"] as $entity) {
+                $array[] = [
+                    'idCargo' => $entity->getIdCargo(),
+                    'cargo' => $entity->getCargo(),
+                    'flag' => "Cargo"
+                ];
+            }
+            foreach ($this->resultSet["apelido"] as $entity) {
+                $array[] = [
+                    'idCargo' => $entity->getIdCargoApelido(),
+                    'cargo' => $entity->getApelido(),
+                    'flag' => "CargoApelido"
+                ];
+            }
+            
+            break;
+    }
+    
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

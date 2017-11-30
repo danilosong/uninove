@@ -1,0 +1,111 @@
+<?php
+/** ============================================================================
+ * Gera listagem de Guias
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 22-04-2016
+ * @see Tcmed\Controller\GuiasController::listaGuiasEmitidasAction()
+ *  ========================================================================== */
+?>
+<div class="row">
+    <div class="col-md-8">
+        <h3>Guias Emitidas</h3>
+    </div>
+</div>
+<br>
+<?php
+$table = $this->table();
+
+$lambda = function ($value, $data) {
+    echo "\t<td nowrap>";
+    if ("INATIVO" != $data[11]) {
+        echo '<span class="hand imprimir-guia" data-id="' . $value . '" title="Imprimir Guia"><i class="fa fa-print"></i> </span>&nbsp;', PHP_EOL;
+        echo '<span class="hand cancelar-guia" data-id="' . $value . '" title="Cancelar Guia"><i class="fa fa-times"></i> </span>';
+    } else {
+        echo '-';
+    }
+    echo '</td>', PHP_EOL;
+};
+$table->setLambda($lambda);
+
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Administradora', 'Empresa', 'Nome', 'Exame', 'Data', 'Clinica', 'Cad. por', 'Dt Cad', 'alter. por', 'Dt. Alter.', 'Status', 'Ação']);
+
+/* @var $entity \Tcmed\Entity\Guia */
+foreach ($this->data as $entity) {
+
+    $createdBy = $entity->getCreatedBy();
+    $createdBy = (is_object($createdBy)) ? $createdBy->getNomeUsuario() : "";
+
+    $updatedBy = $entity->getUpdatedBy();
+    $updatedBy = (is_object($updatedBy)) ? $updatedBy->getNomeUsuario() : "";
+
+    if($entity->getGuiaSemCadastro()){
+        $guiaSemCadastro = $entity->getGuiaSemCadastro();
+        $administradora = $guiaSemCadastro->getAdministradora()->getFantasiaAdm();
+        $empresa = $guiaSemCadastro->getNomeEmpresa();
+    }else{
+        $empresa = $entity->getEmpresa()->getFantasiaEmpresa();
+        $administradora = $entity->getEmpresa()->getAdministradora()->getFantasiaAdm();
+    }
+    
+    $table->renderLine([
+        $entity->getId(),
+        $administradora,
+        $empresa,
+        $entity->getNomeFuncionario(),
+        $entity->getTipo(),
+        $entity->getCreatedAt(),
+        $entity->getClinica()->getFantasiaClinica(),
+        $createdBy,
+        $entity->getCreatedAt(),
+        $updatedBy,
+        $entity->getUpdatedAt(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+<script type="text/javascript">
+    $(function () {
+        $("#nova-pesquisa").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => "guias", 'action' => 'listaGuiasEmitidas'), [], FALSE, FALSE); ?>",
+            });
+        });
+        /**
+         * 
+         */
+        $(".imprimir-guia").click(function () {
+            var id = $(this).attr('data-id');
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => "guias", 'action' => 'printGuiaFromLista'), [], FALSE, FALSE); ?>/" + id,
+            });
+        });
+        /**
+         * 
+         */
+        $(".cancelar-guia").click(function () {
+            var id = $(this).attr('data-id');
+            if (confirm("Deseja realmente cancelar esta Guia?")) {
+                $.processa({
+                    url: "<?php echo $this->url('tcmed/default', array('controller' => "guias", 'action' => 'cancelGuiaFromLista'), [], FALSE, FALSE); ?>/" + id,
+                    callback: function (data) {
+                        data = JSON.parse(data);
+                        var type = (data.deleted) ? "success" : "danger";
+                        $.notify({
+                            message: data.message,
+                            type: type
+                        });
+                        
+                        $("#atualizar").click();
+                    }
+                });
+            }
+        });
+    });
+</script>

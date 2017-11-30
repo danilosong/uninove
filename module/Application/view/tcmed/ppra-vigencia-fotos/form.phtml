@@ -1,0 +1,28 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$form       = $this->form;
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh         = $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action' => $action,
+    'id' => ($entity) ? $entity->getId() : 0,
+), [], FALSE, $this->dataView['ajax']));
+
+echo "<legend>{$title}</legend>";
+
+$fh->formInit();
+
+    $fh->getIdFor('id');
+
+    $fh->openCol(6)->select('ppraLocal')->closeCol();
+    $fh->openCol(6)->file('uploadFoto')->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(12)->textarea('legenda')->closeCol();
+
+$fh->formEnd();

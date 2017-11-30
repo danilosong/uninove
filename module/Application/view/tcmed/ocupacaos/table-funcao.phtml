@@ -1,0 +1,343 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+/* @var $ppraVigencia \Tcmed\Entity\PpraVigencia */
+$ppraVigencia = $this->ppraVigencia;
+$ppraOcupacaos= $this->ppraOcupacaos;
+/* @var $srvHistOcup \Tcmed\Service\HistOcupacional */
+$srvHistOcup  = $this->srvHistOcupacional;
+$holdNome     = $ppraVigencia->getEmpresa('administradora',['hold',['nomeHold']]);
+$empresaNome  = $ppraVigencia->getEmpresa('razaoSocial');
+$item = 0;
+/* @var $param \Application\View\Helper\Param */
+$param = $this->Param();
+/* @var $emp \Tcmed\Entity\Empresa */
+$emp          = $ppraVigencia->getEmpresa();
+/* @var $ppraOcupacao \Tcmed\Entity\PpraOcupacao */
+/* @var $ocupacao \Tcmed\Entity\Ocupacao */
+$setor = $cargo = false;
+$apelidos = [];
+
+foreach ($ppraOcupacaos as $ppraOcupacao):
+    $ocupacao = $ppraOcupacao->getOcupacao();
+    if(!$setor){
+        $setor = $ocupacao->getSetor('id');
+        $cargo = $ocupacao->getCargo('id');
+    }    
+    
+    if($cargo != $ocupacao->getCargo('id') OR $setor != $ocupacao->getSetor('id')){
+        echo str_replace('|APELIDOS|', '<ul><li>' . implode('</li><li>', $apelidos) . '</li><ul>', $fullTable);
+        $setor = $ocupacao->getSetor('id');
+        $cargo = $ocupacao->getCargo('id');
+        $apelidos = [];
+    }
+    $apelidos[] = (string)$ocupacao->getCargo(true);
+    if($ppraOcupacao->getApelido()){
+        continue;
+    }
+    ob_start();
+    if($item > 0){
+        echo '<p class="pagebreak"></p>' . PHP_EOL;
+    }
+    $item++;
+?>
+<table style="border-top: 1px solid #000;border-left: 1px solid #000;margin: 0; padding: 0; width: 100%">       
+<tbody>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 1mm ;">
+<p style="line-height: normal; margin: 0;"><strong><span style="font-size: 12pt; font-family: 'Arial','sans-serif';">
+                    <?
+                    if($emp) {
+                        $path = $param('path','empresa_dir') . $emp->getId() . DIRECTORY_SEPARATOR  .  $emp->getPathLogo();   
+                        $src  = $this->Image($path, true);
+                        echo PHP_EOL . '<img style="height:25mm; width:35mm;" src="' . $src . '" data-realpath="' . $path . '" />' . PHP_EOL;
+                    }
+                    ?></span></strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ;">
+<p style="line-height: normal; margin: 0;"><strong><span style="font-size: 12pt; font-family: 'Arial','sans-serif';">ANÁLISE QUALITATIVA DOS RISCOS<br> AMBIENTAIS POR FUNÇÃO</span></strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ;">
+<p style="line-height: normal; margin: 0;"><strong><span style="font-size: 12pt; font-family: 'Arial','sans-serif';">PLANILHA</span></strong></p>
+<p style="line-height: normal; margin: 0;"><strong><span style="font-size: 12pt; font-family: 'Arial','sans-serif';">Nº: <?= $item; ?></span></strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+
+<table style="border-left: 1px solid #000;margin: 0; padding: 0; width: 100%">       
+<tbody>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 2mm ;">
+<p style="font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Empresa:</strong><br><?= $empresaNome; ?></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 2mm ;">
+<p style="font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Setor:</strong><br><?= $ocupacao->getSetor('NomeSetor');?></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 2mm ;">
+<p style="font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0; padding: 0;"><strong>Função(ões):</strong><br>|APELIDOS|</p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 2mm ;">
+<p style="font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>QTD:</strong><br><?= $srvHistOcup->contFuncionarioOf($ppraVigencia,$ocupacao);?></p>
+</td>
+</tr>
+</tbody>
+</table>
+
+<? 
+//if($ppraOcupacao->getSituacao() != 'CLT'):
+?>
+
+<table style="border-left: 1px solid #000;margin: 0; padding: 0; width: 100%">       
+<tbody>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 0; text-align: justify;">
+    <p style="font-family: 'Arial','sans-serif'; margin: 0;"><strong  style="font-size: 10pt;">Local da atividade : <span style="color: red;"><?= $ppraOcupacao->getLocal();?></span></strong></p>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 0; text-align: justify;">
+    <p style="font-family: 'Arial','sans-serif'; margin: 0;"><strong  style="font-size: 10pt;">Tipo de Ocupação : <span style="color: red;"><?= $ppraOcupacao->getSituacao();?></span></strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+
+<? 
+//endif; 
+?>
+
+<table style="border-left: 1px solid #000;margin: 0; padding: 0; width: 100%">       
+<tbody>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 2mm; text-align: justify;">
+<p style="font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong  style="font-size: 10pt;">Descrição da atividade:</strong><?= $ocupacao->getDescricaoCargo('descricao');?></p>
+</td>
+</tr>
+</tbody>
+</table>
+
+<table style="border-left: 1px solid #000;margin: 0; padding: 0; width: 100%">       
+<tbody>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; text-align: center;" rowspan="2">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Agentes</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; text-align: center;" rowspan="2">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Tipo</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; text-align: center;" rowspan="2">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Fonte Geradora</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; text-align: center;" colspan="2">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Gradação</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; text-align: center;" colspan="2">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Medidas de<br>Prevenção e<br>Controle</strong></p>
+</td>
+</tr>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ; text-align: center;">
+    <p style="line-height: normal; font-size: 6pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Prioridade</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ; text-align: center;">
+    <p style="line-height: normal; font-size: 6pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Somatória</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ; text-align: center;">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>EPI</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ; text-align: center;">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>EPC</strong></p>
+</td>
+</tr>
+
+    <?
+    /* @var $riscoOcupacao \Tcmed\Entity\RiscoOcupacao */
+    foreach ($ocupacao->listaRiscoOcupacao() as $riscoOcupacao):
+        $epis = '<ul style="list-style-type: none; font-size: 6pt; font-family: Arial,sans-serif;margin:0;padding:0;">';
+        /* @var $epiRiscoOcupacao \Tcmed\Entity\EpiRiscoOcupacao */
+        foreach ($riscoOcupacao->listEpiRiscoOcupacao() as $epiRiscoOcupacao) {
+            $epis .= '<li>' . $epiRiscoOcupacao->getEpi('epi') . '</li>';
+        }
+        $epis .= '</ul>';
+        $epcs = '<ul style="list-style-type: none;  font-size: 6pt; font-family: Arial,sans-serif;margin:0;padding:0;">';
+        /* @var $epcRiscoOcupacao \Tcmed\Entity\EpcRiscoOcupacao */
+        foreach ($riscoOcupacao->listEpcRiscoOcupacao() as $epcRiscoOcupacao) {
+            $epcs .= '<li>' . $epcRiscoOcupacao->getEpc('epc') . '</li>';
+        }
+        $epcs .= '</ul>';
+        if($riscoOcupacao->getPrioridade() == 'MEDIA BAIXA'){
+            $prioridade = 'MEDIA<br>BAIXA';
+        }else{
+            $prioridade = $riscoOcupacao->getPrioridade();
+        }
+    ?>
+            
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: teal; padding: 1mm ; width: 20mm">
+    <p style="line-height: normal; font-size: 9pt; color: yellow; font-family: 'Arial','sans-serif';"><strong><?= $riscoOcupacao->getRisco('risco');?></strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 1mm ;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif';"><?= $riscoOcupacao->getTipo();?></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 1mm ;">
+    <p style="line-height: normal; font-size: 6pt; font-family: 'Arial','sans-serif';"><?= $riscoOcupacao->getAgente();?></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 1mm ;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif';"><?= $prioridade;?></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; padding: 1mm ;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif';"><?= $riscoOcupacao->getSomatoria();?></p>
+</td>                
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <?= $epis;?>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <?= $epcs;?>
+</td>
+</tr>
+        
+    <?
+    endforeach;
+    ?>
+</tbody>
+</table>
+<table style="border-left: 1px solid #000;margin: 0; padding: 0; width: 100%; font-size: 6pt;">       
+<tbody>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: teal; padding: 2mm ;">
+    <p style="line-height: normal; font-size: 10pt; color: yellow; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ;">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Agressividade</strong></p>
+</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background: teal; padding: 2mm ;">
+    <p style="line-height: normal; font-size: 10pt; color: yellow; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000; background: #E6E6E6; padding: 2mm ;">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>Exposição</strong></p>
+</td>
+</tr>
+<tr style="height: 3mm;">
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>0</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Efeitos muitos limitados</p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>0</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Contato limitado ou casual</p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>1</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Efeitos moderados e reversíveis</p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>1</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Contato limitado e pouco frequente</p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>2</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Efeitos médios à saúde, preocupante</p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>2</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Efeitos médios à saúde, preocupante</p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>3</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Efeitos irreversíveis à saúde</p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>3</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;">Efeitos irreversíveis à saúde</p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>SOMATÓRIA DA CLASSIFICAÇÃO</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 10pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>GRADUAÇÃO DE PRIORIDADE</strong></p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>0</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>BAIXA</strong></p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>1 a 3</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>MÉDIA BAIXA</strong></p>
+</td>
+</tr>
+<tr>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>4 a 5</strong></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"></p>
+</td>
+<td style="text-align: center; border-bottom: 1px solid #000;border-right: 1px solid #000;">
+    <p style="line-height: normal; font-size: 8pt; font-family: 'Arial','sans-serif'; margin: 0;"><strong>MÉDIA ALTA</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+<?php
+
+    $fullTable = ob_get_contents();
+    ob_end_clean();
+    
+endforeach;
+
+if($cargo OR $setor){
+    echo str_replace('|APELIDOS|', '<ul><li>' . implode('</li><li>', $apelidos) . '</li><ul>', $fullTable);
+}

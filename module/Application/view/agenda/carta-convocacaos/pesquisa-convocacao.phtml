@@ -1,0 +1,116 @@
+<?php
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$partial = $this->partialObj('application');
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$quant = array(0,0,0);
+
+$table->openTable(TRUE);
+$lambda = function($value, $data) {
+    if(!empty($value)){
+        echo "<td><input class='select-emp' value='{$value}' type='checkbox'></td>", PHP_EOL;
+    }else{
+        echo '<td></td>';
+    }
+    
+};
+$table->setLambda($lambda);
+$table->setEditLine(TRUE);
+$table->renderThead([
+    ['label' => 'Sel <input id="select-all" type="checkbox"></td>',],
+    ['label' => 'Adm',],
+    ['label' => 'Adm. Nome',],
+    ['label' => 'Cod. Emp.',],
+    ['label' => 'Mês Base',],
+    ['label' => 'Cond.',],
+    ['label' => 'Funcionário',],
+    ['label' => 'Ult. Exame',],
+    ['label' => 'Tipo',],
+    ['label' => 'Cad.',],
+    ['label' => 'Convocação',],
+]);
+foreach ($this->dataResul as $key => $tipoConvocacao) {
+    foreach ($tipoConvocacao as $data) {
+        /* @var $empresa \Tcmed\Entity\Empresa */
+        /* @var $funcionario \Tcmed\Entity\Funcionario */
+        list($empresa, $funcionarios) = array_values($data);
+        $quant[$key] += count($funcionarios);
+
+        $funcionario = $funcionarios[0];
+        unset($funcionarios[0]);
+
+
+        $tipoExib = ("AMBULATORIAL" == $empresa->getTipoPeriodico()) ? "A" : "D";
+        
+        $convocacao = (2 == $key)? "Ultima({$tipoExib})" : $key + 1 . $tipoExib;
+
+        $table->renderLine([
+            $empresa->getId(),
+            $empresa->getAdministradora('referenciaSubhold'),
+            $empresa->getAdministradora('razaoSocial'),
+            $empresa->getReferenciaEmp(),
+            $empresa->getDtPeriodico('m'),
+            $empresa->getRazaoSocial(),
+            $funcionario->getNomeFuncionario(),
+            $funcionario->getUltimoExame(),
+            '',
+            $funcionario->getCreatedAt(),
+            $convocacao,
+        ]);
+
+        foreach ($funcionarios as $funcionario) {
+            $table->renderLine([
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                $funcionario->getNomeFuncionario(),
+                $funcionario->getUltimoExame(),
+                '',
+                $funcionario->getCreatedAt(),
+                $convocacao,
+            ]);
+        }
+    }
+}
+
+$table->renderCloseTable();
+
+echo '<hr>';
+
+$table->openTable(TRUE);
+$table->setEditLine(FALSE);
+
+$table->renderLine(["1ª Convocação: {$quant[0]}"], "class='text-right info'");
+$table->renderLine(["2ª Convocação: {$quant[1]}"], "class='text-right info'");
+$table->renderLine(["3ª Convocação: {$quant[2]}"], "class='text-right info'");
+
+$table->renderCloseTable();
+// Var de transferencia PHP to JS
+$transp = array(
+);
+?>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $('#select-all').click(function() {
+            $('.select-emp').each(function () {
+                $(this).prop('checked', $('#select-all').is(':checked'));
+            });
+        });
+        
+
+    });
+
+</script>
+

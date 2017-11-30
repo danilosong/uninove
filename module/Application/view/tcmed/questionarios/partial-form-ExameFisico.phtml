@@ -1,0 +1,55 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$horizontal = $fh->getHorizontal();
+$fh->setHorizontal(FALSE);
+$fh->renderFieldsetIni('Exame Fisico ',['notOpenLine'=>TRUE, 'fAtrb' => 'id="fieldExameFisico"'])->setPreFix('questionario');
+
+
+$inputsAntecedentes = $fh->getForm()->getPrefixInterrogatio(6);
+$flag = TRUE;
+foreach ($inputsAntecedentes as $prefix) {
+    $fh->setPreFix($prefix);
+    
+    if($flag){
+        $fh->openLine() ;
+    }
+    $fh->openCol('6')->textArea('resposta')->closeCol();            
+    if($flag){
+        $flag = FALSE;
+    }else{
+        $fh->closeLine() ;
+        $flag = TRUE;
+    }
+    
+    $fh->removePreFix();
+}
+
+
+$fh->renderFieldsetFim()->removePreFix();   
+$fh->setHorizontal($horizontal);
+?>
+
+<script lang="javascript">
+    // validar preenchimento dos campos medicoes 
+    var isValidExameFisico = function(){
+        var flag = true;      
+        var $fieldExameFisico = $("#fieldExameFisico");
+        removeAlert($fieldExameFisico);      
+        // validar ExameFisico
+        $fieldExameFisico.find(".row").each(function(index, ele) {
+            var $divRow = $(ele);
+            $divRow.find("textarea").each(function(index, ele) {  
+                var $inp = $(ele);
+                if($inp.val() === ""){
+                    makeDivError($inp.parent('div').parent('div'), $divRow.find("label").eq(index).html());
+                    flag = false;
+                }  
+            });  
+        });
+
+        return flag;
+    };
+
+</script>

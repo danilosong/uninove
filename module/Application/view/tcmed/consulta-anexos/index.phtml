@@ -1,0 +1,233 @@
+<?php
+/*
+ * @author Paulo Watakabe <watakabe05@gmail.com>
+ */
+/* @var $table      \Application\View\Helper\Table */
+/* @var $fh         \Application\View\Helper\FormHelp */
+/* @var $partial    \Application\View\Helper\PartialObj */
+/* @var $param      \Application\View\Helper\Param */
+/* @var $form       \Application\Form\FormFilter */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$table      = $this->table();
+$param      = $this->param();
+$form       = $this->form;
+
+$ret       = $form->getValue('ret', '#inter');
+$form->setAttribute('name', 'indexConsultaAnexo');
+$formId    = $form->getAttribute('name');
+$form->setAttribute('id', $formId);
+$_POST['formId'] = $formId;
+$form->setAttribute('target', $ret);
+
+$fh         = $this->formHelp($this,$form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial     = $this->partialObj();
+
+/* +----------------------------------------------------------------------------
+ *  Estrutura do modal, para Confirmar com o usuario a ação desejada.
+ */
+echo $this->partial('partials/modal', array());
+// Lê as mensagens do servidor através do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+$fh->openCol(9);
+?>
+<p id="consultaAnexoIndexMenu">
+    <h4 class="">Relatorio Anexados para este funcionário
+    <? if($ret != '#add-inputsmodal-sistema'):    ?>
+        <button type="button" class="btn btn-primary" id="btn-filter-1">Desta Consulta</button>
+        <button type="button" class="btn btn-primary" id="btn-filter-2">Exbir Tudo</button>
+    <? else:                         ?>
+        <button type="button" class="btn btn-primary" id="btn-filter-3">Anexar</button>
+    <? endif;                        ?>
+    </h4>
+</p>
+<br />
+<?php
+$fh->closeCol();
+($ret == '#inter') &&$fh->openCol(3)->text('limitePag',['labelWidth' => 6,'clean' => FALSE,'extra' => ['icon' => 'search', 'js' => "atualizaPagConsultaAnexo()"]])->closeCol();
+$fh->lineDown();
+
+$fh->openCol(12);
+    $table->openTable(TRUE);
+    $table->setEditLine('first');
+    $table->setLambda(function($value, &$data){    
+        echo "\t", '<td nowrap style="font-size: 14pt;">',
+                '<span class="hand" onClick="showAnexoConsulta(\'', $value, '\')" title="Exibir"><i class="fa fa-file-pdf-o"></i>','</span>&nbsp;', PHP_EOL,
+             "</td>", PHP_EOL;  
+    });
+    $table->setOrderList($this->dataView['orderBy']);
+    $table->renderThead([
+        'Ação'
+        ,['label' => 'Tipo:'          , 'order' => 'tipo'            ]
+        ,['label' => 'Arquivo:'       , 'order' => 'arquivo'         ]
+        ,['label' => 'Anexado por:'   , 'order' => 'createdBy'       ]
+        ,['label' => 'Anexado em:'    , 'order' => 'createdAt'       ]
+    ]);
+    /* @var $entity \Tcmed\Entity\ConsultaAnexo */
+    foreach ($this->data as $entity) {
+        $table->renderLine([
+            $entity->getId(),
+            $param($entity->getTipo(), 'selectAnexoConsulta'),
+            $entity->getArquivo(),
+            $entity->getCreatedBy('nomeUsuario'),
+            $entity->getCreatedAt(),
+        ]);
+    }
+    $table->renderCloseTable();
+$fh->closeCol()->closeLine();
+$fh->formEnd();
+
+$fh->setPreFix('consultaAnexo');
+    $inpAgendaAmbul = $fh->getIdFor('agendaAmbul');
+    $inpConsulta    = $fh->getIdFor('consulta');
+    $inpFuncionario = $fh->getIdFor('funcionario');
+    $inpEmpresa    = $fh->getIdFor('empresa');
+$fh->removePreFix('consultaAnexo');
+    
+// === TRANSPORTE ==============================================================
+$fields = [
+    'id'                      => $form->getValue('id')
+    ,'ret'                    => $ret
+    ,'frm'                    => $formId
+    ,'inpAgendaAmbul'         => $inpAgendaAmbul    
+    ,'inpConsulta'            => $inpConsulta    
+    ,'inpFuncionario'         => $inpFuncionario    
+    ,'inpEmpresa'             => $inpEmpresa    
+    ,'retIframe'              => '#id-show-consulta-anexo'
+];
+// ===================================================================== FIM ===
+?>
+<br />
+<style>
+    .class-show-consulta-anexo {
+        position: absolute;
+        top: 70px;
+        display: none;
+        width: 90%;
+        background-color: white;
+        z-index: 3;
+    }
+    .class-show-consulta-anexo table{
+        width: 100%;
+    }
+</style>
+<div id="id-show-consulta-anexo" class="class-show-consulta-anexo">
+    <table border="0" class="table table-condensed">
+        <thead>
+            <tr>
+                <th></th>
+                <th style="width: 15px;" id="close-me-consulta-anexo"><i class="fa fa-close"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><iframe src="" id="ishow-consulta-anexo" width='100%' height='500' frameborder='0'></iframe></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<center>
+    <?php echo ($ret == '#inter') ? $this->paginationControl($this->data, 'Sliding', 'partials/paginator') : ''; ?>    
+</center>
+
+<script lang="javascript">
+    var fieldsConsultaAnexos = <?php echo json_encode($fields) ?>;
+        
+    var showAnexoConsulta = function(key) {
+        var url = "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showAnexo'), [], FALSE, FALSE); ?>" + "/" + key;
+        /**
+         * Alterar a altura para visualização do anexo
+         */
+        $('#ishow-consulta-anexo').height($(document).height() * 0.89);
+        $('#ishow-consulta-anexo').attr('src', url);
+        $(fieldsConsultaAnexos.retIframe).show();
+    };
+        
+    
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        // Esconder menu superior do index
+        if('#inter' !== fields.ret){
+            $('#consultaAnexosIndexMenu').hide();
+        }
+        
+        /*
+         * exibe somente os desta consulta
+         */
+        $('#btn-filter-1').click(function(){
+            var key = $$(fields.inpConsulta).val();
+            if(key == ''){
+                gModal.reset('alert',2).setMsg('Não existe um ID para uma consulta!!').showModal();
+                return;
+            }
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>" + "/" + key
+                , ret : fields.ret
+                , type  : 'POST'
+                , frm   : fields.frm
+                , savePage : false
+                , last : false
+                , data  : {
+                    ret : fields.ret
+                    ,consulta : key
+                }
+            });
+            
+        });
+        
+        /*
+         * exibe todos os anexos que o funcionario possuir
+         */
+        $('#btn-filter-2').click(function(){
+            var key = $$(fields.inpFuncionario).val();
+            if(key == ''){
+                gModal.reset('alert',2).setMsg('Não existe um ID do funcinario!!').showModal();
+                return;
+            }
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>" 
+                , ret : fields.ret
+                , type  : 'POST'
+                , frm   : fields.frm
+                , savePage : false
+                , last : false
+                , data  : {
+                    ret : fields.ret
+                    ,funcionario : key
+                }
+            });
+            
+        });
+        
+        /*
+         * abre o formulario para anexar uma imagem
+         */
+        $('#btn-filter-3').click(function(){
+            var key = $$(fields.inpAgendaAmbul).val();
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'newFromAgenda'), [], FALSE, FALSE); ?>" + "/" + key
+                , ret : fields.ret
+                , type  : 'POST'
+                , frm   : false
+                , data  : {
+                    ret : fields.ret
+                    ,id : key
+                    ,subOpcao : 'loadCad'
+                }
+            });
+        });
+        
+        /*
+        * Ocultar frames
+         */
+        $('#close-me-consulta-anexo').click(function(){
+            $(fields.retIframe).hide();
+        });        
+
+    });
+</script>

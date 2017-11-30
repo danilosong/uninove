@@ -1,0 +1,261 @@
+<?php
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+$form = $this->form;
+$partial = $this->partialObj('tcmed');
+$partialTcmed = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3><br>';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit()->openCol(12); // ===============================================
+$fh->openLine();
+
+
+$fh->openCol(12);
+$partialTcmed->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'rules' => $rules, 'hideCnpj' => TRUE]);
+$fh->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(3)->select('monthConv')->closeCol();
+$monthConv = $fh->getLastId();
+$fh->openCol(3)->select('yearConv')->closeCol();
+$yearConv = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->openCol(3)->checkbox('conv1', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('justBaixada', ['position' => 'right'])->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(3)->checkbox('conv2', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('showCartaEmp', ['position' => 'right'])->closeCol();
+$showCartaEmp = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->openCol(3)->checkbox('conv3', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('showCartaAdm', ['position' => 'right'])->closeCol();
+$showCartaAdm = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->setHorizontal(TRUE);
+$fh->openCol(12, ['class' => 'text-center alert alert-info'])->renderInputMultiCheckbox('firstLetter', ['noClean' => true])->closeCol();
+$firstLetter = $fh->getLastId();
+$fh->setHorizontal(FALSE);
+
+$fh->lineDown();
+
+$fh->openCol(2);
+$fh->buildButton(['id' => 'pesquisar', 'class' => 'btn-block'], '<i class="fa fa-search"></i> Pesquisar', "primary", TRUE);
+$fh->closeCol();
+
+$fh->openCol(2, 8);
+$fh->buildButton(['id' => 'limpar', 'class' => 'btn-block'], '<i class="fa fa-eraser"></i> Limpar', "primary", TRUE);
+$fh->closeCol();
+
+$fh->jumpLine(1);
+
+/*
+ * +===========================================================================+
+ * # Carrega a listagem de empresas convocadas
+ * +===========================================================================+
+ * |
+ */
+$fh->openCol(12, ['id' => 'lista-results'])->closeCol();
+/* |
+ * +===========================================================================+
+ */
+$fh->lineDown();
+
+$fh->openCol(2);
+$fh->buildButton(['class' => 'btn-block gerarSelecionados'], 'Gerar Selecionados', "success", TRUE);
+$fh->closeCol();
+
+$fh->openCol(2,8);
+$fh->buildButton(['class' => 'btn-block gerarTodos'], 'Gerar Todos', "success", TRUE);
+$fh->closeCol();
+
+
+$fh->closeLine();
+$fh->closeCol()->formEnd(); // =================================================
+// Var de transferencia PHP to JS
+$fields = array_merge(
+    $partialTcmed->fieldsEmpresa, 
+    compact('firstLetter', 'monthConv', 'yearConv', 'showCartaAdm', 'showCartaEmp')
+);
+?>
+<br>
+<br>
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+
+    $(function () {
+        
+        /* ============================== VARS ============================== */
+        
+        var fields = <?php echo json_encode($fields) ?>;
+
+        var $firstLetter = $('#pop' + fields.firstLetter);
+        var $checkAll = $firstLetter.find('input[value="all"]');
+        var $others = $firstLetter.find('input[value!="all"]');
+
+        /* ============================= FUNCOES ============================ */
+
+        function getQuantChecked() {
+            return $firstLetter.find('input[value!="all"]:checked').length;
+        }
+
+        /**
+         * Valida os dados preenchidos no formulário antes de proceder consulta
+         * no servidor;
+         * @returns {Boolean}
+         */
+        function isValid() {
+            if(0 == getQuantChecked() && "" == $$(fields.idAdministradora).val()){
+                $.notify({
+                    message: "Quando não há uma administradora escolhida, deve-se selecionar ao menos 1 letra",
+                    type:    "danger"
+                });
+                    return false;
+            }
+            
+            if("" == $$(fields.monthConv).val()) {
+                $.notify({
+                    message: "Escolha um mês para filtrar a convocação",
+                    type: 'danger'
+                });
+                return false;
+            }
+            
+            if("" == $$(fields.yearConv).val()) {
+                $.notify({
+                    message: "Escolha um ano para filtrar a convocação",
+                    type: 'danger'
+                });
+                return false;
+            }
+            
+            return true;
+        }
+
+        /**
+         * Procede consulta dos dados no servidor
+         */
+        function getPesquisa() {
+            $('#pesquisar').closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'pesquisaConvocacao'), [], FALSE, FALSE); ?>",
+                ret: "#lista-results",
+                savePage: false
+            });
+        }
+        
+        function getListaSelecionados() {
+            var lista = [];
+
+            $('.select-emp').each(function () {
+                if ($(this).is(':checked')) {
+                    lista.push($(this).val());
+                }
+            });
+            
+            return lista;
+        }
+        
+        /* ============================ AUTOEXEC ============================ */
+        
+        /**
+         * Sempre na primeira execução desta pagina na view, a tabela (contendo
+         * dados ou não) será buscada no servidor;
+         */
+        getPesquisa();
+
+        /* ============================= EVENTOS ============================ */
+
+        $checkAll.click(function () {
+            $(this).prop('checked', 0 >= getQuantChecked());
+        });
+
+        $others.click(function () {
+            var quantChecked = getQuantChecked();
+
+            if(1 < quantChecked && $(this).is(':checked')) {
+                $.notify({
+                    message: "Cuidado: Selecionar mais de 1 letra pode causar lentidão na pesquisa!!",
+                    type: "info"
+                });
+            }
+
+            $checkAll.prop('checked', 0 >= quantChecked);
+        });
+
+        $('#limpar').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $('#pesquisar').click(function () {
+            isValid() && getPesquisa();
+        });
+        
+
+        $('.gerarSelecionados').click(function () {
+            var selecionados = getListaSelecionados();
+            if(0 == selecionados.length) {
+                $.notify({
+                    message: "selecione ao menos 1 empresa",
+                    type: "danger"
+                });
+                return false;
+            }
+            
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getPdfConvocacao'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    selecionados: JSON.stringify(selecionados)
+                }
+            });
+            
+            return false;
+        });
+
+        $('.gerarTodos').click(function () {
+            $('.select-emp').each(function () {
+                $(this).prop('checked', true);
+            });
+
+            $('.gerarSelecionados').click();
+            return false;
+        });
+
+        $('#select-all').click(function () {
+            if ($(this).is(':checked')) {
+                $('.select-func').prop('checked', true);
+            } else {
+                $('.select-func').prop('checked', false);
+            }
+        });
+
+    });
+
+</script>

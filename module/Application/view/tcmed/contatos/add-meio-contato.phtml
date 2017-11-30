@@ -1,0 +1,104 @@
+<div class="modal fade" id="modal-meioContato" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" data-id="0">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header btn-primary">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Adicionar Meio Contato para <span id="nomeContato"> Nome do Contato</span></h4>
+            </div>
+            <div class="modal-body">
+                <?php
+                $fh = $d['fh'];
+                
+                $fh->openLine();
+                $fh->setPreFix('contato');       // ----------------------------| CONTATO
+                
+                $fh->lineDown();
+                
+                echo "<div class='col-md-12 text-center alert alert-warning'>ATENÇÃO ao inserir os dados deste meio de contato. Verifique se todos os campos foram preenchidos corretamente antes de salvar!<br>(OBS: Se o celular possuir apenas 8 digitos, insira 0 no lugar do 9)</div>";
+                
+                $fh->jumpLine(1);
+                
+                $fh->setPreFix('meioContato');   // ----------------------------| MEIOCONTATO
+                $fh->openCol(6)->select('tipoMeioContato')->closeCol();
+                $tipoMeioContato = $fh->getLastId();
+
+                $fh->lineDown();
+
+                $fh->openCol(8)->text('meioDeContato')->closeCol();
+                $meioDeContato = $fh->getLastId();
+                
+                $fh->lineDown();
+                
+                $fh->removePreFix('meioContato');// ----------------------------| MEIOCONTATO
+                
+                $fh->removePreFix('contato');    // ----------------------------| CONTATO
+                $fh->closeLine();
+                
+                $fields = compact('meioDeContato', 'tipoMeioContato');
+                ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                <button id="addMeioContato" type="button" class="btn btn-primary" data-dismiss="modal">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function() {
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        var mask = {
+            TELEFONE: '(99)9999-9999', 
+            CELULAR : '(99)99999-9999',
+        };
+        
+        var placeholder = {
+            TELEFONE: mask.TELEFONE,
+            FAX     : mask.TELEFONE,
+            CELULAR : mask.CELULAR,
+            EMAIL   : 'nomeContato@empresa.com',
+            WEBSITE : 'www.nomeempresa.com.br',
+        };
+        
+        $$(fields.tipoMeioContato).change(function() {
+            var option = $(this).find('option:selected').text();
+            
+            if(option in mask) {
+                $$(fields.meioDeContato).mask(mask[option]);
+            }else{
+                $$(fields.meioDeContato).unmask();
+            }
+            
+            $$(fields.meioDeContato).attr('placeholder', placeholder[option]);
+        });
+        
+        function isValid() {
+            return true;
+        }
+        
+        /**
+         * 
+         */
+        $('#addMeioContato').click(function () {
+            if(!isValid()){
+                return false;
+            }
+            
+            $.processa({
+                url: "<?php echo $d['this']->url($d['dataView']['route'], array('controller' => "meioContatos", 'action' => 'adicionarMeioContato'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    contato: $('#modal-meioContato').data('id'),
+                    meioDeContato: $$(fields.meioDeContato).val(),
+                    tipoMeioContato: $$(fields.tipoMeioContato).find('option:selected').val()
+                },
+                callback: function () {
+                    refreshLista();
+                }
+            });
+        });
+        
+    });
+</script>
+

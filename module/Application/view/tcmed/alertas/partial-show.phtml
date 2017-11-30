@@ -1,0 +1,115 @@
+<?php
+// $obj;
+// $d[];
+
+/* @var $alertaEmpresa \Tcmed\Entity\Alerta */
+/* @var $alertaFunc    \Tcmed\Entity\Alerta */
+if(isset($d['empresa'])){
+    $alertaEmpresa = $d['empresa']->getAlerta();
+}
+if(isset($d['funcionario'])){
+    $alertaFunc    = $d['funcionario']->getAlerta();
+}
+
+
+//
+// === TRANPORTE ==============================================================
+$fields = [
+    'empresa'                => (isset($alertaEmpresa)) ? $alertaEmpresa->getDescricao() : false 
+    ,'funcionario'           => (isset($alertaFunc))    ? $alertaFunc->getDescricao()    : false 
+];
+// ===================================================================== FIM ===
+// carregar modal somente quando for para o target inter
+echo $obj->partial('partials/modal',[]);
+?>
+<!--
+<div id="inputs-hided">
+    <div id="inputs-for-alerta-show">
+        <div class="row">
+            <input name="ret" id="ret" value="#inter" type="hidden">
+            <input name="id" id="id" value="" type="hidden">
+            <div class=" col-md-12 "><div class="form-group" id="popdescricao">
+                    <label for="descricao">Descrição Status:</label><div class="input-group">
+                        <input name="descricao" id="descricao" onkeydown="return changeEnterToTab(this,event)" class="form-control" value="" type="text"><span class="input-group-btn" name="descricao" id="clean_descricao"><button class=" clean btn btn-default" type="button"><i class="fa fa-remove"></i></button></span></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class=" col-md-12 "><div class="form-group" id="popaccess">
+                    <label for="access">Permissão:</label><div class="input-group">
+                        <label><input name="access" id="access" onkeydown="return changeEnterToTab(this,event)" value="0" checked="checked" type="radio">Publico</label><br><label><input name="access" onkeydown="return changeEnterToTab(this,event)" value="1" type="radio">Privado</label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+-->
+
+<script lang="javascript">
+
+
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        var funcionarioShowAlerta = function(){
+            if(!fields.funcionario){
+                return;
+            }  
+            gModal.reset('alert', 1)
+            .setTit('Este funcionario tem um Alerta Importante !!!!!')
+            .setMsg(fields.funcionario)
+            .showModal();            
+        };
+        
+        if(fields.empresa){   
+            gModal.reset('alert', 1)
+            .setTit('Esta empresa tem um Alerta Importante !!!!!')
+            .setMsg(fields.empresa)
+            .setClickOk(function(){
+                funcionarioShowAlerta();
+            })
+            .showModal();
+        }else{
+            funcionarioShowAlerta();
+        }
+        
+//        if(fields.empresa){            
+//            gModal.reset('prompt',2)
+//                .setInputs('<div id="inputs-alerta-show"></div>')
+////                .setMsg('Deseja incluir uma nova acao ?')
+//                .setLabelOk('Abrir')
+//                .setClickOk(function(){ 
+//                    if($('#descricao').val() == ''){
+//                        gModal.reset('alert',3).setMsg('O titulo é obrigatorio!!!.').showModal();      
+//                        return;
+//                    }
+//                    $.processa({
+//                        url: "<?php echo $obj->url('tcmed/default', array('controller' => 'alertas', 'action' => 'index'), [], FALSE, FALSE); ?>" 
+//                        , type: "POST"
+//                        , savePage: false
+//                        , frm : false
+//                        , data: {
+//                            id         : ''
+//                            ,descricao : $('#descricao').val()
+//                            ,access    : $('input[name=access]:checked').val()
+//                        }
+//                        ,callback: function (data, defaults) {
+//                            data = JSON.parse(data);
+//                            if(data["status"] == 'ok'){
+//                                $$(fields.inpAcaoTitulo).val(data.acaoTitulo)
+//                            }
+//                            $.flashMessenger(data.messenger);
+//                        }
+//                    }); 
+//                })
+//                .setClickNg(function(){
+//                    $('#inputs-hided').append($('#inputs-for-alerta-show'));
+//                })
+//                .setCloseModal(function(){
+//                    $('#inputs-hided').append($('#inputs-for-alerta-show'));
+//                })
+//                .showModal(); 
+//            }
+
+    });
+</script>

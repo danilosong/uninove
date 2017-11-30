@@ -1,0 +1,64 @@
+<?php 
+/**
+ * @author
+ */
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$controller = 'funcaoriscos';
+$route = 'tcmed/default';
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1>Funcao Riscos</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<?php
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Tipo', 'Classificação Agente', 'Classificação Exposicao', 'IntensConc', 'Prioridade', 'Somatoria', 'Tecnica Utilizada', 'Agente', 'Controle', 'Função', 'Risco', 'Ação']);
+/* @var $entity \Tcmed\Entity\FuncaoRisco */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getTipo(),
+        $entity->getClassifAgente(),
+        $entity->getClassifExposicao(),
+        $entity->getIntensConc(),
+        $entity->getPrioridade(),
+        $entity->getSomatoria(),
+        $entity->getTecnicaUtil(),
+        $entity->getAgente(),
+        $entity->getControle(),
+        $entity->getFuncao()->getIdFuncao(),
+        $entity->getRisco()->getIdRisco(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    $(function () {
+
+    });
+</script>

@@ -1,0 +1,478 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$controller = 'guiaSemCadastros';
+$route = 'tcmed/default';
+$id = '0';
+/* @var $fh \Application\View\Helper\PartialObject */
+$partialObject = $this->partialObj('tcmed');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp(
+        $this, 
+        $this->form, 
+        $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax'])
+        );
+$fh->setHorizontal(true);
+/**
+ * @var array Mensagens do servidor que serão lidas na view
+ * OBS: Após ler mensagens, fila é apagada
+ * @see javascript::createMessages
+ */
+$messages = $this->flashMessenger()->getCurrentAllMessages();
+$this->flashMessenger()->clearCurrentAllMessages();
+/* @var $entity \Tcmed\Entity\GuiaSemCadastro */
+$entity          = ($this->entity) ? $this->entity : FALSE;
+$isMudancaFuncao = ($entity AND "MDF" == $entity->getTipoPeriodico()) ? TRUE : FALSE;
+$avulso          = ($entity AND $entity->getAdministradora() AND $entity->getAdministradora()->getGuiaAvulsa()) ? TRUE : FALSE;
+//
+//
+// === BLOQUEAR ALTERAR CAMPOS DE UMA EMPRESA JA CADASTRADA ====================
+$empresaId = $fh->getForm()->get('empresa[idEmpresa]')->getValue();
+!empty($empresaId) && $this->form->disableInputsOfEmpresa(TRUE);
+// === CABEÇALHO DA PAGINA =====================================================
+$fh->formInit('Nova Guia para Condominios sem Cadastro');
+$fh->openCol(12);
+$idGuiaSemCadastro = $fh->getIdFor('idGuiaSemCadastro');
+// ===================================================================== FIM ===
+//
+//
+// === DADOS DO TIPO ====================================================
+?>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Voltar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<?php
+
+$fh->setHorizontal(false);
+
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'controller' => $controller]);
+
+
+$fh->openLine()->setPreFix('administradora');
+    $fh->openCol(4)->radio('guiaAvulsa',['align' => 'center'])->closeCol();
+    $guiaAvulsa = $fh->getLastId();
+    $fh->removePreFix('administradora');
+    $fh->openCol(4)->select('atividade')->closeCol();
+    $fh->openCol(4)->select('tipoPeriodico')->closeCol();
+$fh->closeLine();
+
+// ===============================================================================> ENDERECO
+$fh->renderFieldsetIni('Endereço', ['notOpenLine' => TRUE]);
+$partial = $this->partialObj('tcmed');
+$partial->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
+
+$fh->renderFieldsetFim();
+
+$partialObject->partial('contatos/partial-form-contato', $fh, [
+    'this' => &$this,
+    'entity' => $entity,
+    'noDeleteContatos' => FALSE,
+    'noContatoField' => TRUE,
+    'noList' => TRUE,
+]);
+
+//
+// === DADOS DO FUNCIONARIO ====================================================
+$fh->renderFieldsetIni('Dados do Funcionário');
+$fh->setPreFix('guia')->setHorizontal(TRUE);
+$fh->openCol(12)->text('nomeFuncionario')->closeCol();
+$nomeFuncionario = $fh->getLastId();
+$fh->lineDown();
+$fh->openCol(12)->radio("tipo",['spanLabel' => ''])->closeCol()->setHorizontal(FALSE);
+$fh->lineDown()->openCol(12);
+
+    // ===============================================================================>  DADOS DE OCUPACAO OLD
+    echo '<div id="show-old-funcao">';
+    
+    $fh->renderFieldsetIni('Ocupacao atual');
+
+    $fh->setPreFix('ocupacao');
+    $idOcupacao = $fh->getIdFor('idOcupacao');
+
+    $fh->setPreFix('setor');
+    $idSetor = $fh->getIdFor('idSetor');
+
+    $fh->openCol(4)->text('nomeSetor', ['dt-clear' => $idSetor], ["disabled" => $isMudancaFuncao])->closeCol();
+    $nomeSetor = $fh->getLastId();
+    $fh->removePreFix('setor');
+
+    $fh->setPreFix('cargo');
+    $fh->openCol(4)->text('cargo', [], ["disabled" => $isMudancaFuncao])->closeCol();
+    $cargo = $fh->getLastId();
+
+    $fh->openCol(4)->text('cbo', [], ["disabled" => $isMudancaFuncao])->closeCol();
+    $cbo = $fh->getLastId();
+    $fh->removePreFix('cargo');
+
+    $fh->removePreFix("ocupacao");
+    $fh->renderFieldsetFim();
+
+    echo "</div>";
+
+$fh->closeCol()->lineDown()->openCol(12);    
+    // === DADOS DE OCUPACAO ATUAL =================================================
+    $show = ($isMudancaFuncao) ? "" : "hideOn";
+    echo '<div id="show-new-funcao" class="' . $show . '">';
+
+    $fh->renderFieldsetIni('Nova Ocupaçao');
+    $fh->setPreFix("newOcupacao");
+    $newOcupacao = $fh->getIdFor('idOcupacao');
+
+    $fh->setPreFix('setor');
+    $newIdSetor = $fh->getIdFor('idSetor');
+
+    $fh->openCol(4)->text('nomeSetor', ['dt-clear' => $newIdSetor])->closeCol();
+    $newNomeSetor = $fh->getLastId();
+    $fh->removePreFix('setor');
+
+    $fh->setPreFix('cargo');
+    $fh->openCol(4)->text('cargo')->closeCol();
+    $newCargo = $fh->getLastId();
+
+    $fh->openCol(4)->text('cbo')->closeCol();
+    $newCbo = $fh->getLastId();
+    $fh->removePreFix('cargo');
+    $fh->removePreFix("ocupacao");
+    $fh->renderFieldsetFim();
+    
+    echo "</div>";
+    // ===================================================================== FIM ===
+$fh->closeCol();
+$fh->lineDown();
+
+    $fh->openCol('6')->cpf('cpf')->closeCol();
+    $cpf = $fh->getLastId();
+
+    $fh->openCol('6')->text('rg')->closeCol();
+    $rg = $fh->getLastId();
+
+$fh->lineDown();
+
+    $fh->openCol('6')->pis('pis')->closeCol();
+    $pis = $fh->getLastId();
+
+    $fh->openCol('6')->select('sexo')->closeCol();
+    $sexo = $fh->getLastId();
+    
+$fh->lineDown();
+
+    $fh->openCol('6')->calend('dtAdmissao')->closeCol();
+    $dtAdmissao = $fh->getLastId();
+
+    $fh->openCol('6')->calend('dtNascimento')->closeCol();
+    $dtNascimento = $fh->getLastId();
+
+$fh->lineDown();
+
+    $fh->openCol('6')->text('matricula')->closeCol();
+    $matricula = $fh->getLastId();
+    
+    $fh->openCol('6')->text('carteiraProfissional')->closeCol();
+    $carteiraProfissional = $fh->getLastId();
+
+$fh->lineDown();
+
+$fh->removePreFix("guia");
+
+$fh->renderFieldsetFim();
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+// 
+// 
+// === RODAPE ==================================================================
+$fh->openCol(2, 5)->renderInputButtonOnly('save', 0, ['id' => 'saveGuiaSemCad'])->closeCol();
+$fh->closeCol();
+$fh->formEnd();
+// ===================================================================== FIM ===
+//
+//
+?><br><br><?php
+/* +----------------------------------------------------------------------------
+ * | MODAL se parametriza usando a variavel global gModal
+ * +----------------------------------------------------------------------------
+ *  Estrutura do modal, para Confirmar com o usuario a ação desejada.
+ * 
+ */
+echo $this->partial('partials/modal', array());
+//
+//
+// === TRANSPORTE ==============================================================
+
+
+$fieldsGuia = array_merge(
+    [
+        "nomeFuncionario"      => $nomeFuncionario,
+        "rg"                   => $rg,
+        "cpfFun"               => $cpf,
+        "sexo"                 => $sexo,
+        "dtNascimento"         => $dtNascimento,
+        "dtAdmissao"           => $dtAdmissao,
+        "pis"                  => $pis,
+        "guiaAvulsa"           => $guiaAvulsa,
+        "carteiraProfissional" => $carteiraProfissional,
+        "matricula"            => $matricula,
+        "idOcupacao"           => $idOcupacao,
+        "newOcupacao"          => $newOcupacao,
+        "cargo"                => $cargo,
+        "newCargo"             => $newCargo,
+        "newIdSetor"           => $newIdSetor,
+        "newNomeSetor"         => $newNomeSetor,
+        "idSetor"              => $idSetor,
+        "nomeSetor"            => $nomeSetor,
+        "cbo"                  => $cbo,
+        "newCbo"               => $newCbo,
+        "isMudancaFuncao"      => $isMudancaFuncao,
+        "avulso"               => $avulso
+    ]
+    ,$partialObject->__get('fieldsEmpresa')       
+);
+?>
+<script type="text/javascript">
+    /*
+     * Validar form com jquery ou js
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.0  
+     * @since 16-03-2016 
+     * @returns {Boolean}
+     */
+    var isValid = function() {
+        var flag = true;
+        return flag;
+    };
+    
+    /*
+     * Mensagem de aviso para inclusão PCMSO
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.0  
+     * @since 16-03-2016 
+     * @returns {String}
+     */
+    var confirmInclusaoPCMSO = function(){
+        var dat = new Date() ;
+        var mes = dat.getMonth() ;
+        if(dat.getDate() >= 26 ){
+        mes += 3 ;
+        }else{
+        mes += 2 ;
+        }
+        dat.setMonth(mes) ;
+        dat.setDate(15) ;
+        var msg = "Ao clicar em 'ok' você será notificado por email da inclusão deste condominio no PCMSO.";
+        msg  +=   "\n Autorizando a contratação do Programa de Controle Médico de Saúde Ocupacional para o condomínio em assunto.";
+        msg  +=   "\n Cientes de que a contratação deste serviço terá início de vigência a partir desta data e a cobrança mensal iniciará em :";
+        msg  +=   "\n  " + dat.getDate() + "/" + dat.getMonth() + "/" + dat.getFullYear();
+        msg  +=   "\n\n Desejar Continuar?";
+        return msg;
+    };
+    
+    /*
+     * Mensagem para fazer o exame avulso e sua cobrança
+     * @author Paulo Watakabe <watakabe05@gmail.com>
+     * @version 1.0  
+     * @since 16-03-2016 
+     * @returns {String}
+     */
+    var confirmInclusaoAvulso = function(){
+        var msg = "Ao clicar em 'ok' você estará autorizando a realização do exame";
+        msg  +=   " avulso e receberá cobrança relativa a este exame no próximo mês";
+        msg  +=   "\n\n Desejar Continuar?";
+        return msg;
+    };
+
+    $(function () {
+        var fields = <?php echo json_encode($fieldsGuia) ?>;
+    
+        /*
+         * Somente se a administradora pode avulso e o foi selecionado o exame sem pcmso(avulso)
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0  
+         * @since 16-03-2016 
+         * @since 18-10-2016 Implementado o modal
+         * @returns {Boolean}
+         */
+        $('#saveGuiaSemCad').click(function(){
+            var avulso    =  <? echo $avulso ? 'true' : 'false'; ?> ;
+            var radioName = "<? echo $guiaAvulsa; ?>";
+            // Somente se a administradora pode avulso e o foi selecionado o exame sem pcmso(avulso)
+            if(avulso && ($('input:checked[name="' + radioName + '"]').val() == '0')){
+                var msg = confirmInclusaoAvulso();
+            }else{
+                var msg = confirmInclusaoPCMSO();
+            }
+            var $objBtn = $(this);
+            gModal.reset('confirm',3)
+            .setMsg(msg)
+            .setLabelOk('Continuar')
+            .setClickOk(function(){
+                console.log(fields);
+                $objBtn.sendForm(null,JSON.stringify({
+                    administradora : $$(fields.idAdministradora).val()
+                    ,cnpj          : $$(fields.cnpj).val()
+                    ,cpf           : $$(fields.cpf).val()
+                    ,nomeEmpresa   : $$(fields.razaoSocialEmp).val()
+                    ,referenciaEmp : $$(fields.referenciaEmp).val()
+                }));
+            })
+            .showModal(); 
+            return false;
+        });
+        
+        
+        /*
+         * Altera a funcao padrão do callback run do partial form de empresas
+         * @returns {nothing}         
+         */
+        window.funcaoCallBackPartialEmpresa.run = function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action'], 'id' => $id), [], FALSE, FALSE); ?>",
+                frm  : true,
+                savePage: false,
+                data : {
+                    'subOpcao' : 'loadCad'
+                }
+            });
+        };          
+        /*
+         * Altera a funcao padrão do callback cleanEmpresa do partial form de empresas
+         * @returns {nothing}         
+         */
+        window.funcaoCallBackPartialEmpresa.cleanEmpresa = function(){
+            var $cleanInputs = $('#enderecoFields').find('.clean');
+            if($cleanInputs.size() === 0){
+                $.processa({
+                    url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action'], 'id' => $id), [], FALSE, FALSE); ?>",
+                    frm  : true,
+                    data : {
+                        'subOpcao' : 'CleanEmp'
+                    }
+                });
+                return;
+            }
+            $cleanInputs.each(function(){
+                var $ele = $(this);
+                $ele.click();
+            });
+        }; 
+        /*
+         * 
+         * Esconder campo de seleção de exame avulso somente adm pre autorizadas
+         */
+        if(!fields.avulso){
+            $$(fields.guiaAvulsa).closest('.form-group').hide();
+        }
+
+        $$(fields.nomeSetor).auto({
+            primary: "nomeSetor",
+            width: 300,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                "idSetor": [fields.idSetor]
+            },
+        });
+
+        $$(fields.cargo).auto({
+            primary: "cargo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                nomeSetor: [fields.nomeSetor],
+                cbo: [fields.cbo],
+                idOcupacao: [fields.idOcupacao]
+            },
+            filters: function (query) {
+                query["idSetor"] = $$(fields.idSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+
+        $$(fields.cbo).auto({
+            primary: "cbo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                cargo: [fields.cargo],
+                nomeSetor: [fields.nomeSetor],
+                idOcupacao: [fields.idOcupacao]
+            },
+            filters: function (query) {
+                query["idSetor"] = $$(fields.idSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+        
+        $$(fields.newCargo).auto({
+            primary: "cargo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                nomeSetor: [fields.newNomeSetor],
+                cbo: [fields.newCbo],
+                idOcupacao: [fields.newOcupacao]
+            },
+            filters: function (query) {
+                query["idSetor"] = $$(fields.newIdSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+
+        $$(fields.newNomeSetor).auto({
+            primary: "nomeSetor",
+            width: 300,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                "idSetor": [fields.newIdSetor]
+            },
+        });
+
+        $$(fields.newCbo).auto({
+            primary: "cbo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                cargo: [fields.newCargo],
+                nomeSetor: [fields.newNomeSetor],
+                idOcupacao: [fields.newOcupacao]
+            },
+            filters: function (query) {
+                query["idSetor"] = $$(fields.newIdSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+        
+        $('input[name="guia[tipo]"]').click(function () {
+            if ($('input[value="MDF"]').prop("checked")) {
+                $("#show-new-funcao").show();
+            } else {
+                $("#show-new-funcao").hide();
+            }
+        });
+        
+        //== MENSAGENS DO SISTEMA ==============================================
+        /**
+         * @see (PHP) flashMessenger
+         * @property {object} messagesGroup Necessário para exibir mensagens 
+         * na tela
+         */
+        var messagesGroup = <?php echo json_encode($messages) ?>;
+        /**
+         * @event Exibe as mensagens do servidor na view
+         */
+        $.each(messagesGroup, function (type, messages) {
+            $.each(messages, function (_, message) {
+                $.notify({
+                    "message": message,
+                    "type": type
+                });
+            });
+        });
+        // ========================================================== FIM ======
+    });
+
+</script>

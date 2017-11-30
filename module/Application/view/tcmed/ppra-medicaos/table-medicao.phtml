@@ -1,0 +1,103 @@
+<?php
+/* @var $entity     \Tcmed\Entity\PpraVigencia */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$post       = $this->post;
+$entity     = $this->entity;
+/* @var $param \Application\View\Helper\Param */
+$param        = $this->Param();
+
+
+
+if($entity):
+    $aparelhos = $entity->listPpraVigenciaAparelho();
+    $medicaos  = $entity->listPpraMedicao();
+    $coluns = $aparelhos->count() * 2 + 2;
+    $localBase = '';
+?>
+<table style="border-top: 1px solid #000;border-left: 1px solid #000;margin: 0; padding: 0; width: 100%; font-size: 9pt" class="break-line">
+<thead>
+<tr>
+<td style="line-height: 4; border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; background-color: #E6E6E6;" colspan="<?= $coluns;?>"><b>DADOS COLETADOS</b><br></td>
+</tr>
+<tr>
+<td rowspan="2" style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Local</td>
+<td rowspan="2" style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Nº funcionários</td>
+            <? /* @var $aparelho \Tcmed\Entity\PpraVigenciaAparelho */
+               foreach ($aparelhos as $aparelho) :
+            ?>
+<td colspan="2" style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center;"><?= $param($aparelho->getPpraAparelho('agente'), 'ppra_agentes'); ?></td>
+            <? endforeach;?>        
+</tr>
+<tr>
+            <? for($i=0; $i < $aparelhos->count(); $i++): ?>
+<td style="line-height: 2; border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; background-color: #E6E6E6;">Encontrado</td>
+<td style="line-height: 2; border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; background-color: #E6E6E6;">Especificado</td>
+            <? endfor;    ?>            
+</tr>
+</thead>
+<tbody>
+        <? /* @var $medicao \Tcmed\Entity\PpraMedicao */
+           $coluns--;
+           foreach ($medicaos as $medicao) :
+        ?>
+            
+            <? if($localBase != $medicao->getPpraLocal('nome')): 
+            // Exibir o Local principal 
+                $localBase = $medicao->getPpraLocal('nome');
+            ?>
+<tr>
+    <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;"><b><?= $localBase;?></b></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="<?= $coluns;?>">&nbsp;</td>
+</tr>
+            <? endif;?>        
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center;"><?= $medicao->getPpraLocalDet('nome'); ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; background-color: #E6E6E6;"><?= $medicao->getQtdFunc(); ?></td>
+            <?  // exibi os resultados na ordem em que os aparelhos foram inseridos 
+                foreach ($aparelhos as $aparelho) : ?>
+                <?php 
+                $medicaoResuls = $medicao->listPpraMedicaoResul(['status' => 'ATIVO'], FALSE);
+                /* @var $medicaoResul \Tcmed\Entity\PpraMedicaoResul */
+                $finded = false;
+                foreach ($medicaoResuls as $medicaoResul):
+                    if($medicaoResul->getPpraAparelho('id') == $aparelho->getPpraAparelho('id')):
+                        $vlrColor = '';           
+                        if(strpos($medicaoResul->getValor(),"/") === false){
+                            $min = $max = $medicaoResul->getValor();
+                        }else{
+                            list($min, $max) = explode('/', $medicaoResul->getValor());
+                        }
+                        if($medicaoResul->getPpraAparelho('orientacao') == 'MAIOR' AND $min < $medicaoResul->getDefault()){
+                            $vlrColor = ' background-color: #FF0000;';
+                        }
+                        if($medicaoResul->getPpraAparelho('orientacao') == 'MENOR' AND $max > $medicaoResul->getDefault()){
+                            $vlrColor = ' background-color: #FF0000;';
+                        }                        
+                ?>              
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center;<?= $vlrColor; ?>"><?= $medicaoResul->getValor(); ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; background-color: #E6E6E6;"><?= $medicaoResul->getDefault(); ?></td>
+                <?              
+                        $finded = true;
+                        break;
+                    endif;
+                endforeach;
+                if(!$finded):
+                ?>              
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center;">-</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; background-color: #E6E6E6;">-</td>
+                <?              
+                endif;
+                ?>              
+            <? endforeach;?>   
+</tr>           
+        <? endforeach;?>        
+</tbody>
+</table>
+<?php
+else :
+    echo 'não encontrado';
+    echo '<pre>', var_dump($post), '</pre>';
+endif;

@@ -1,0 +1,31 @@
+<?php
+$result = $this->resultSet;
+$array  = [];
+
+if ($result) {
+
+    $array[] = [
+        'menu_id'         => "Id",
+        'menu_nome'       => "Titulo",
+        'menu_ordem'      => "Ordem",
+        'menu_titulo'     => "Id titulo",
+        'menu_tituloNome' => "Nome Titulo",
+        'menu_tituloOrdem'=> "Ordem Titulo",
+        'menu_tipo'       => "Tipo",
+    ];
+
+    foreach ($result as $entity) {
+
+        $array[] = [
+            'id'          => $entity->getId(),
+            'nome'        => $entity->getNome(),
+            'ordem'       => $entity->getOrdem(),
+            'titulo'      => $entity->getTitulo('id'),
+            'tituloNome'  => $entity->getTitulo('nome'),
+            'tituloOrdem' => $entity->getTitulo('ordem'),
+            'tipo'        => ($entity->getTitulo())? 'Subtitulo' : 'Titulo'
+        ];
+    }
+}
+
+echo json_encode($array);

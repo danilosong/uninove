@@ -1,0 +1,46 @@
+<?php
+$fh = &$obj;
+        
+$fh->closeLine()->renderFieldsetIni('Dados do Bairro')->setPreFix('bairro');
+
+    $idBairro = $fh->getIdFor('idBairro');
+
+    $fh->openCol('12')->text('nomeBairro')->closeCol();
+    $nomeBairro = $fh->getLastId();
+    
+    $fh->openCol('12')->select('status')->closeCol();
+    
+    $this->partialObj('tcmed')->partial('cidades/partial-form', $fh, ['this'=>&$d["this"]]);
+    
+$fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
+ ?>
+
+<script lang="javascript">
+
+    $(function () {
+       
+        var eleNome = "<?php echo $nomeBairro; ?>";
+        var eleId = "<?php echo $idBairro; ?>";
+        var url = "<?php echo $d['this']->url('tcmed/default', array('controller' => 'bairros', 'action' => 'autoComp'), [], FALSE, FALSE); ?>";
+        
+        function executeAutoComp(element, campos, by) {
+            action.autoComp(element, {
+                serviceUrl: url,
+                params: {
+                    searchBy: by,
+                    idBairro: eleId, //
+                    nomeBairro: eleNome //
+                },
+                responseTo: campos
+            });
+        }
+        
+        var campos = {};
+        campos[eleNome] = [eleNome]; //
+        campos[eleId] = [eleId]; //
+        executeAutoComp(eleNome, campos, "nomeBairro");
+    });
+
+</script>
+            
+            

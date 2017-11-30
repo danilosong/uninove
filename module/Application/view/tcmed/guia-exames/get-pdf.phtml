@@ -1,0 +1,129 @@
+<?php
+/* @var $guiaExame \Tcmed\Entity\GuiaExame */
+/* @var $exameCompl \Tcmed\Entity\ExameCompl */
+$guiaExame       = $entity;
+$empresa         = $guiaExame->getEmpresa();
+$funcionario     = $guiaExame->getFuncionario();
+$listaExameCompl = $guiaExame->getExameCompl();
+$abreFolha       = "<div class='folha'>";
+$fechaFolha      = "</div>";
+$quebraPagina    = "<div style='page-break-before: always;'></div>";
+$closeTable      = "</tbody></table>";
+
+$this->__set('controller', '')     ;
+$this->__set('subMod', 'partials') ;
+include $this->partial('style-pdf');
+
+
+$path      = $guiaExame->getEmpresa('administradora', ['hold', ['pathLogo']]);
+$holdImage = $param('path', 'hold_dir') . $path;
+$imageHold = "<img style='width: 150px' id='imagemLogoHold' src='{$holdImage}'>";
+
+?>
+<style type="text/css">
+    /*
+     *  CSS BOOTSTRAP ==========================================================
+     */
+    .table{
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: #333;
+        font-size: 12px;
+    }
+    
+    .no-border tr,
+    .no-border tr td{
+        border: none;
+    }
+    
+    .destaque {
+        font-size: 14px;
+        font-weight: bold;
+    }
+</style>
+
+
+<?= $abreFolha ?>
+<table class="table">
+    <thead>
+        <tr>
+            <th colspan="4"><h2>Guia de Exames - Núm: <?= $guiaExame->getId() ?></h2></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><?= $imageHold ?></td>
+            <td>Assessoria e Serviços Técnicos em Medicina S/C Ltda.</td>
+            <td class="text-center">Data<br><span class="destaque"><?= $guiaExame->getDataExame() ?></span></td>
+            <td class="text-center">Hora<br><span class="destaque"><?= $guiaExame->getHoraExame() ?></span></td>
+        </tr>
+        <tr>
+            <td>Credenciado</td>
+            <td colspan="3"><?= $guiaExame->getClinica('fantasiaClinica') ?></td>
+        </tr>
+        <tr>
+            <td>Endereço</td>
+            <td colspan="3"><b><?= $guiaExame->getClinica('endereco') ?></b></td>
+        </tr>
+        <tr>
+            <td>Telefone</td>
+            <td colspan="3"><?= $guiaExame->getClinica('contatoPrincipal', ['meioDeContatoPrincipal', ['telefone']]) ?></td>
+        </tr>
+        <tr>
+            <td>Funcionario</td>
+            <td><?= $guiaExame->getFuncionario('nomeFuncionario') ?></td>
+            <td class="text-right">Código</td>
+            <td><?= $guiaExame->getFuncionario('referenciaFun') ?></td>
+        </tr>
+        <tr>
+            <td>Cargo</td>
+            <td colspan="3"><?= $guiaExame->getCargo('cargo') ?></td>
+        </tr>
+        <tr>
+            <td>Empresa</td>
+            <td><?= $guiaExame->getEmpresa('razaoSocial') ?></td>
+            <td class="text-right">Código</td>
+            <td><?= $guiaExame->getEmpresa('referenciaEmp') ?></td>
+        </tr>
+        <tr>
+            <td colspan="4" style="padding: 0px">
+                <table class="table" style="margin: 0px">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Exames</th>
+                            <th>Código Amb</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($listaExameCompl as $key => $exameCompl): ?>
+                            <tr>
+                                <td><?= $key ?></td>
+                                <td><?= $exameCompl->getExame() ?></td>
+                                <td><?= $exameCompl->getCodAmbul() ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="padding: 0px">
+                <table class="table no-border" style="margin: 0px;">
+                    <tr>
+                        <td class="text-center" style="vertical-align: bottom; height: 70px">___________________________________________________________</td>
+                        <td class="text-center" style="vertical-align: bottom; height: 70px">___________________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">TECNOMED ASS. E SERV. TÉC. EM MEDICINA LTDA.<br>EMISSÃO DE GUIAS TECNOMED<br> <?php echo $guiaExame->getCreatedBy('nomeUsuario') . ' em ' . $guiaExame->getCreatedAt(); ?></td>
+                        <td class="text-center" style="vertical-align: top;">ASSINATURA DO FUNCIONÁRIO</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<?= $fechaFolha ?>

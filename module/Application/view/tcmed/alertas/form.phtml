@@ -1,0 +1,112 @@
+<?php 
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Listagem</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<br />
+<?php
+if(is_array($this->resul)){
+    foreach ($this->resul[1] as $key => $vlr){
+        if ($this->resul[0] === FALSE){
+            echo '<h4 class="alert alert-danger">', $vlr , '</h4>';
+        }else{
+            echo '<h4 class="alert alert-success">', $vlr , '</h4>';
+        }
+    }
+}
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj('tcmed');
+$fh->setHorizontal(false);
+$fh->formInit();
+    $fh->openCol('12');
+        $partial->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'cpfAllow' => false]);
+    $fh->closeCol();
+$fh->lineDown();
+
+
+$fh->setPreFix("funcionario");    // ----------------------| OPEN PREFIX |--
+    $idFuncionario = $fh->getIdFor('idFuncionario');
+    $fh->openCol(3)->renderInputNumber('referenciaFun')->closeCol();
+    $referenciaFun = $fh->getLastId();
+    $fh->openCol(9)->text('nomeFuncionario', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+    $nomeFuncionario = $fh->getLastId();
+$fh->removePreFix("funcionario"); // ---------------------| CLOSE PREFIX |--
+
+
+$fh->lineDown();
+    $fh->openCol('4')->renderInputCalend('valido')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputTextArea('descricao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+//
+// === TRANSPORTE ==============================================================
+$fields = array_merge(
+        $partial->fieldsEmpresa, 
+        [
+            "idFuncionario"   => $idFuncionario,
+            "nomeFuncionario" => $nomeFuncionario,
+            "referenciaFun"   => $referenciaFun,
+//            "fantasiaClinica" => $fantasiaClinica,
+//            "idClinica" => $idClinica,
+        ]
+    );
+// ===================================================================== FIM ===
+?>
+
+<script lang="javascritp">   
+    
+    var isValid = function(){
+        return true;
+    };
+    
+    $(function(){
+        // =====================================================================
+        /**
+         * @property {Object} fields Campos de transferencia do PHP, que serão
+         * utilizados no javascript
+         */
+        var fields = <?php echo json_encode($fields) ?>;
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            width: 800,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            params: {
+                subOpcao : 'new'
+            },
+            filters: function (data) {
+                data.rules = {
+                    referenciaHold    : $$(fields.fantasiaHold).val(),
+                    referenciaSubhold : $$(fields.referenciaSubhold).val(),
+                    empresa           : $$(fields.idEmpresa).val()
+                };
+                return data;
+            },
+            responseTo: {
+                fantasiaHold     : [fields.fantasiaHold],
+                idAdministradora : [fields.idAdministradora],
+                referenciaSubhold: [fields.referenciaSubhold],
+                razaoSocialAdm   : [fields.razaoSocialAdm],
+                idEmpresa        : [fields.idEmpresa],
+                referenciaEmp    : [fields.referenciaEmp],
+                razaoSocialEmp   : [fields.razaoSocialEmp],
+                idFuncionario    : [fields.idFuncionario],
+                referenciaFun    : [fields.referenciaFun],                
+                cnpj             : [fields.cnpj]
+            },
+            showCols: ["nomeFuncionario", "razaoSocialAdm", "razaoSocialEmp", "cpf"]
+        });
+    });
+</script>

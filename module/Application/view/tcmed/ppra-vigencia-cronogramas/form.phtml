@@ -1,0 +1,98 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$form       = $this->form;
+
+$form->setAttribute('id', 'formPpraVigCron');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh         = $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action' => $action,
+    'id' => ($entity) ? $entity->getId() : 0,
+), [], FALSE, $this->dataView['ajax']));
+
+echo "<legend>{$title}</legend>";
+
+$fh->formInit();
+
+    $fh->getIdFor('id');
+
+    $fh->openCol(3)->text('item')->closeCol();
+
+    $fh->setPreFix('ppraVigenciaGrupo');
+        $idGrupo   = $fh->getIdFor('id');
+        $nomeGrupo = $fh->getIdFor('nome');
+
+        $fh->openCol(4)->text('nome',[
+            'dt-clear' => $idGrupo,
+            "extra"    => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ])->closeCol();
+    $fh->removePreFix('ppraVigenciaGrupo');
+
+    $fh->openCol(4)->text('responsavel')->closeCol();
+
+    $fh->lineDown();
+
+    $fh->openCol(3)->text('itemOrder')->closeCol();
+    $fh->openCol(3)->text('prioridade')->closeCol();
+    $fh->openCol(4)->select('ppraLocal')->closeCol();
+
+    $fh->lineDown();
+    $fh->setHorizontal(TRUE);
+    $fh->openCol(12)->multiCheckbox('meses')->closeCol();
+    $meses = $fh->getLastId();
+    $fh->setHorizontal(FALSE);
+
+    $fh->lineDown();
+    $fh->openCol(12)->textarea('acao')->closeCol();
+
+    $fh->lineDown();
+    $fh->openCol(12)->textarea('meta')->closeCol();
+
+    $fh->lineDown();
+    $fh->openCol(12)->textarea('metodologia')->closeCol();
+
+$fh->formEnd();
+
+$transp = compact('meses', 'nomeGrupo', 'idGrupo');
+?>
+<script type="text/javascript">
+    $(function() {
+        var transp = <?php echo json_encode($transp) ?>;
+        console.log(transp);
+
+        // Opcao de marcar todos os checkbox
+        $$(transp.meses).click(function() {
+            var opt = $(this).is(':checked');
+            $(this).closest('.input-group').find('input').each(function(index) {
+                if(0 != index){
+                    $(this).prop('checked', opt);
+                }
+            });
+        });
+
+        $$(transp.nomeGrupo).auto({
+            primary: "nome",
+            serviceUrl: "<?= $this->url($route, array('controller' => 'ppraVigenciaGrupos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                "id": [transp.idGrupo],
+            },
+            showCols: ["nome"]
+        });
+
+        /**
+         * Sempre que apagar o campo nomeGrupo (excluindo os caracteres), apagar
+         * tambem o ID do grupo 
+         */
+        $$(transp.nomeGrupo).keyup(function() {
+            console.log($(this).val().length);
+            if(0 == $(this).val().length) {
+                $$(transp.idGrupo).val('');
+            }
+        });
+    });
+</script>

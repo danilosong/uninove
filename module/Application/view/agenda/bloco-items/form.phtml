@@ -1,0 +1,77 @@
+<?php
+/** ===========================================================================|
+ * FORM - SET_ENTITY
+ * @author SET_AUTHOR
+ * @since SET_SINCE
+ * 
+ * IncludeView - v1
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+$form = $this->form;
+$partial = $this->partialObj('SET_MODULESHORT');
+
+echo '<h3>', $title, '</h3>';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit()->openCol(12); // ===============================================
+$fh->openLine();
+
+//$fh->getIdFor('idTableConfig');
+//$fh->openCol(12)->text('')->closeCol();
+//$fh->openCol(12)->text('', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+//$fh->openCol(12)->numb('')->closeCol();
+//$fh->openCol(12)->cpf('')->closeCol();
+//$fh->openCol(12)->cnpj('')->closeCol();
+//$fh->openCol(12)->select('')->closeCol();
+//$fh->openCol(12)->calend('dtDemissao')->closeCol();
+//$fh->openCol(12)->checkbox('hasPpra')->closeCol();
+//$fh->openCol(12)->Submit('submit')->closeCol();
+
+$fh->closeLine();
+$fh->closeCol()->formEnd(); // =================================================
+
+// Var de transferencia PHP to JS
+$transp = array(
+    
+);
+?>
+<br>
+<br>
+<script lang="javascript">   
+    
+    function isValid(){
+        return true;
+    }
+    
+    
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+//        $$(transp.cbo).auto({
+//            primary: "cbo",
+//            width: 500,
+//            serviceUrl: "<?php// echo $this->url($route, array('controller' => $controller, 'action' => 'nameAction'), [], FALSE, FALSE); ?>",
+//            noCache: true,
+//            responseTo: {
+//                cargo: [transp.cargo],
+//            },
+//            filters: function (query) {
+//                query["idEmpresa"] = $$(transp.idEmpresa).val()
+//            },
+//            showCols: ["nomeSetor"]
+//        });
+    });
+    
+</script>

@@ -1,0 +1,45 @@
+<h3><?php
+    echo $this->dataView['titulo'];
+    $controller = 'risco-historico-funcaos';
+    $route = 'tcmed/default';
+    ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp
+ * @author Allan Davini */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$fh->formInit('Cadastro Risco Historico Funcao:');
+
+$fh->openCol('6')->text('tipo')->closeCol()->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('classifAgente')->closeCol()->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('classifExposicao')->closeCol()->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('intensConc')->closeCol()->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('prioridade')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('somatoria')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('tecnicaUtil')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('agente')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->text('controle')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->select('historicofuncao')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->select('risco')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+</script>

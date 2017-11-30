@@ -1,0 +1,34 @@
+<?php 
+/* @var $entity \Tcmed\Entity\Bairro */
+if($this->resultSet){
+    $array = [];
+
+    if($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idBairro' => 'ID' ,
+            'menu_nomeBairro' => 'Bairro' ,
+            'menu_idCidade' => 'ID' ,
+            'menu_nomeCidade' => 'Cidade' ,
+            'menu_idEstado' => 'ID' ,
+            'menu_uf' => 'Estado' ,
+            'menu_idPais' => 'ID' ,
+            'menu_nomePais' => 'Pais' ,
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idBairro' => $entity->getId(),
+                'nomeBairro' => $entity->getNomeBairro(),
+                'idCidade' => $entity->getCidade()->getId(),
+                'nomeCidade' => $entity->getCidade()->getNomeCidade(),
+                'idEstado' => $entity->getCidade()->getEstado()->getId(),
+                'uf' => $entity->getCidade()->getEstado()->getUf(),
+                'nomePais' => $entity->getCidade()->getEstado()->getPais()->getNomePais(),
+                'idPais' => $entity->getCidade()->getEstado()->getPais()->getId(),
+            ];
+        }
+    }
+
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

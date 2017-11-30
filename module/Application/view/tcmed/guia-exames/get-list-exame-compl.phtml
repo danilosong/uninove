@@ -1,0 +1,40 @@
+<?php
+$exameCompls = [];
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$controller = 'exameCompls';
+$route = 'tcmed/default';
+
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Cod Ambul.', 'Exame', 'Ação']);
+$table->setLambda(function($value, $data) {
+    echo '<td><span class="removeExameCompl" data-index="' . $value . '" class="hand"><i class="fa fa-trash"></i> Remover</span></td>';
+});
+
+/* @var $exameCompl \Tcmed\Entity\ExameCompl */
+foreach ($this->listaExameCompls as $exameCompl) {
+    $table->renderLine([
+        $exameCompl->getId(),
+        $exameCompl->getCodAmbul(),
+        $exameCompl->getExame(),
+        $exameCompl->getId(),
+    ]);
+}
+
+$table->renderCloseTable();
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        $(".removeExameCompl").click(function () {
+            var index = $(this).attr('data-index');
+            /**
+             * @see \tcmed\exameCompls\form.phtml 
+             * Módulo gerExameCompls foi criado nesta referencia
+             */
+            gerExames.removeExame(index);
+        });
+    });
+</script>

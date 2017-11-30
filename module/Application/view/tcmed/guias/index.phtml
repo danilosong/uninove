@@ -1,0 +1,206 @@
+
+<?php
+/* @var $table \Application\View\Helper\Table
+ * @author Allan Davini */
+//$table = $this->table();
+//$param = $this->Param();
+//$controller = 'guias';
+//$route = 'tcmed/default';
+
+ /* @author Danilo Song */
+$param      = $this->Param();
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+
+$partial    = $this->partialObj('tcmed');
+/* @var $form Tcmed\Form\Guia */
+$form       = $this->form;
+$user       = $this->UserIdentity();
+$table      = $this->table();
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+?>
+<h1><?= $title ?></h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Atualizar</button>
+</p>
+<?php
+
+$fh->formInit();
+$fh->setPreFix('guia');
+
+$inpEmpresa = $fh->getIdFor('empresa[idEmpresa]');
+$fh->openCol(3)->renderInputText('empresa[fantasiaEmpresa]', [
+    "extra" => ["icon" => "search", "class" => "btn-success list-all-autocomp", "title" => "buscar todos"]
+    ,"dt-clear" => $inpEmpresa,
+])->closeCol();
+$inpEmpresaNome = $fh->getLastId();
+//-----------------------------------------------------------------------------
+$inpFuncionario= $fh->getIdFor('funcionario');
+$fh->openCol(3)->renderInputText('nomeFuncionario', [
+    "extra" => ["icon" => "search", "class" => "btn-success list-all-autocomp", "title" => "buscar todos"]
+    ,"dt-clear" => $inpFuncionario,
+])->closeCol();
+$inpFuncionarioNome = $fh->getLastId();
+
+$fh->removePreFix('guia');
+$fh->openCol(2)->renderInputCalend('filtro1',[],['label' => 'De:'])->closeCol();
+$fh->openCol(2)->renderInputCalend('filtro2',[],['label' => 'Até:'])->closeCol();
+echo '<br>';
+$fh->openCol(1)->renderInputButton(['type' => 'button', 'id' => 'btn-pesquisa'],'pesquisa','btn btn-info')->closeCol();
+$fh->formEnd();
+
+
+
+//----------------------------------------------------------------------------------
+$table->openTable(TRUE);
+$table->setLambda(function($value, &$data){
+    echo "\t<td nowrap>",
+            '<span class="hand" onClick="print(\'', $value, '\')" title="Imprimir Aso"><i class="fa fa-print"></i> ','</span>&nbsp;', PHP_EOL,
+            '<span class="hand" onClick="del(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> </span>',
+         "</td>", PHP_EOL;  
+});
+$table->setEditLine('first');
+$table->renderThead([
+    ['label' => 'Ação'            ], 
+    ['label' => 'Nome Funcionario'], 
+    ['label' => 'Cpf'             ], 
+    ['label' => 'Tipo de Exame'   ], 
+    ['label' => 'Sexo'            ], 
+    ['label' => 'Empresa'         ], 
+    ['label' => 'Cargo'           ], 
+    ['label' => 'Status'          ],
+    ['label' => 'Data'             , 'order' => 'createdAt'],
+    ['label' => 'Clinica'         ]
+]);
+/* @var $entity \Tcmed\Entity\Guia */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getNomeFuncionario(),
+        $entity->getCpf(),
+        $param($entity->getTipo()  ,'FC_tipo_exame'),
+        $param($entity->getSexo()  ,'opcao_sexo'),
+        $entity->getEmpresa('fantasiaEmpresa'),
+        $entity->getOcupacao('cargo', ['cargo']),
+        $param($entity->getStatus()  ,'status_tabela'),
+        $entity->getCreatedAt(),
+        $entity->getClinica('razaoSocial')
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+<?php 
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'inpEmpresa'
+    ,'inpEmpresaNome'
+    ,'inpFuncionario'
+    ,'inpFuncionarioNome'
+); 
+?>
+<script lang="javascript">
+    //Função do auto-complete
+    function isValid(){
+        return true;
+    }
+    
+    var edit = function(key){
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    };
+    
+    var del = function(key){
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    };
+    
+    var print = function(key){
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showGuia'), [], FALSE, FALSE); ?>" + "/" + key
+        });        
+    };
+    
+    $(function () {
+    var transp = <?php echo json_encode($transp) ?>;
+    
+        $$(transp.inpEmpresaNome).auto({
+            primary: "fantasiaEmpresa",
+            width : 500,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'empresas', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                idEmpresa: [transp.inpEmpresa]
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+                });
+            },        
+            showCols: ["idEmpresa", "razaoSocialEmp"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpEmpresaNome).change(function(){
+            $$(transp.inpEmpresa).val("");
+        });
+        
+        $$(transp.inpFuncionarioNome).auto({
+            primary: "nomeFuncionario",
+            width : 500,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                id: [transp.inpFuncionario]
+            },
+            callback : function(data, defaults){
+                $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'
+                });
+            },        
+            showCols: ["idFuncionario", "nomeFuncionario"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpFuncionarioNome).change(function(){
+            $$(transp.inpFuncionario).val("");
+        });
+        
+        //Botão para ativar as funcionalidades dos filtros
+        $('#btn-pesquisa').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                frm  : true,
+                type : 'POST'                
+            });
+        });
+    });
+</script>

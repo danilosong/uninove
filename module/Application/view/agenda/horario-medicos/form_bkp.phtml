@@ -1,0 +1,443 @@
+<style>
+    .active-row{
+        background-color: #ddd;
+    }
+</style>
+<?php
+/**
+ * HORÁRIO MEDICOS
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 03-06-2016
+ */
+$controller = $this->dataView['controller'];
+$route = $this->dataView['route'];
+$action = $this->dataView['action'];
+$titulo = $this->dataView['titulo'];
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+echo "<h1>{$titulo}</h1>";
+$fh->formInit('Definir horário para o(a) Doutor(a)', ["noPreFormInit" => TRUE]);
+
+$fh->setPreFix('medico');
+$idMedico = $fh->getIdFor('idMedico');
+
+$fh->openCol(6)->text('nomeMedico', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+$nomeMedico = $fh->getLastId();
+$fh->removePreFix('medico');
+
+$fh->openCol(3, 3)->select('mesTo')->closeCol();
+$mesTo = $fh->getLastId();
+
+$fh->jumpLine(2);
+
+
+$fh->lineDown();
+
+
+$fh->openCol(12, ['id' => 'lista-trab']); // ===================================
+$fh->openLine(['class'=> 'row-1']);
+$fh->setHorizontal(TRUE);
+$fh->openCol(12)->renderInputMultiCheckbox('diasSemana', ['position' => FALSE, 'noClean' => true])->closeCol();
+$checkSemana = $fh->getLastId();
+$fh->setHorizontal(FALSE);
+$fh->openCol(3)->text('ini[]')->closeCol();
+$fh->openCol(3)->text('fim[]')->closeCol();
+$fh->openCol(6);
+?>
+<label>Dias</label>
+<div class="form-group">
+    <div class="input-group date dias">
+        <input name="dias[]" type="text" class="form-control">
+        <span class="input-group-addon">
+            <i class="fa fa-calendar"></i>
+        </span>
+    </div>
+</div>
+<?php
+$fh->closeCol();
+$fh->closeLine();
+$fh->closeCol(); // ============================================================
+//$fh->openCol(12, ['id' => 'trabalho']);
+//$size = 1;
+//for ($i = 0; $i < $form->getTotalInputs(); $i++) {
+//    $aux = [];
+//    if ($i >= $size) {
+//        $aux = ["class" => "hideOn"];
+//    }
+//
+//    $fh->openLine($aux);
+//    $fh->openCol(1);
+//    $fh->buildButton(['class' => 'add', 'data-id' => $i, 'style' => 'margin-top: 25px'], $fh->buildIcon('plus'), "success", TRUE);
+//    $fh->closeCol();
+//    $fh->openCol(2)->text('ini[]')->closeCol();
+//    $fh->openCol(2)->text('fim[]')->closeCol();
+//
+//    $fh->openCol(6);
+//    
+?>
+<!--    <label>Dias</label>
+    <div class="form-group">
+        <div class="input-group date dias">
+            <input name="dias[]" type="text" class="form-control">
+            <span class="input-group-addon">
+                <i class="fa fa-calendar"></i>
+            </span>
+        </div>
+    </div>-->
+<?php
+//    $fh->closeCol();
+//
+//    $fh->openCol(1);
+//    $fh->buildButton(['class' => 'up', 'data-id' => $i, 'style' => 'margin-top: 25px'], $fh->buildIcon('level-up'), "default", TRUE);
+//    $fh->buildButton(['class' => 'rmv', 'data-id' => $i, 'style' => 'margin-top: 25px'], $fh->buildIcon('times'), "danger", TRUE);
+//    $fh->closeCol();
+//    $fh->closeLine();
+//}
+//$fh->closeCol();
+
+$fh->openCol(3)->select('mesFrom')->closeCol();
+$fh->openCol(2);
+$fh->buildButton(['class' => 'btn-block', 'style' => 'margin-top: 25px'], 'Buscar', "primary", TRUE);
+$fh->closeCol();
+
+$fh->openCol(2, 5);
+$fh->buildButton(['id' => 'salvar', 'class' => 'btn-block', 'style' => 'margin-top: 25px'], 'Enviar', "primary", TRUE);
+$fh->closeCol();
+
+$fh->closeLine();
+$fh->formEnd();
+
+$fields = array(
+    "nomeMedico" => $nomeMedico,
+    "idMedico" => $idMedico,
+    "checkSemana" => $checkSemana,
+    "mesTo" => $mesTo
+);
+?>
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        var lastFocus = null;
+
+        $('#salvar').click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        /**
+         * Ordena (SORT) numeros em uma string
+         * @param {string} val
+         * @returns {string}
+         */
+        function organize(val) {
+            val = val.split(',');
+            val.sort(function (a, b) {
+                return a - b
+            });
+
+            return val.join();
+        }
+
+        /**
+         * Transformação dos campos para um objeto jQuery
+         * @type jQueryObject
+         */
+        var $calend = $('.dias');
+
+        /**
+         * Redefine um calendário especial para multipla escolha apenas neste 
+         * formulário
+         * @todo Pode ser reimplementado no FormHelp futuramente
+         * @calend 
+         */
+        $calend.datepicker({
+            format: "dd",
+            maxViewMode: 2,
+            language: "pt-BR",
+            multidate: true,
+            daysOfWeekHighlighted: "1,2,3,4,5",
+        });
+
+        
+
+        /**
+         * Ao trocar o mês de seleção das datas, alterar também o mês de visualização
+         * do calendário 
+         */
+        $("#mesTo").change(function () {
+            // Redefine a nova data
+            var aux = $(this).find("option:selected").val();
+            aux = aux.split(':');
+            $calend.datepicker('setDate', new Date(aux[1], (aux[0] - 1), '01'));
+            // Limpa o campo após a redefinição (para tratar erro de autopreenchimento)
+            $calend.find('input').val("");
+            // Atualiza todas as modificações
+            $calend.datepicker("update");
+        });
+
+        /**
+         * Autocomplete Medico
+         */
+        $$(fields.nomeMedico).auto({
+            primary: "nomeMedico",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Medicos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            showCols: ["nomeMedico"],
+            responseTo: {
+                idMedico: [fields.idMedico]
+            }
+        });
+
+        /**
+         * Oculta todos os botões de .add e 
+         * deixa visível apenas o ultimo
+         */
+        function redefineBotaoAdd() {
+            $('.add').hide();
+            $('#trabalho').children('.row:visible').last().find('.add').show();
+        }
+
+        redefineBotaoAdd();
+
+        /**
+         * Ação referente aos botões de remover as linhas de cadastro dos dias
+         * de trabalho
+         */
+        $('.rmv').click(function () {
+            var quant = $("#trabalho").find('.row:visible').length;
+            if (11 == quant) {
+                $.notify({
+                    message: "Deve existir pelo menos 1 horário!",
+                    type: "danger"
+                });
+                return false;
+            }
+
+            if (confirm("deseja mesmo remover este item?")) {
+                var $linhaToRmv = $(this).closest('.row');
+                $linhaToRmv.removeClass('active-row');
+                $linhaToRmv.hide();
+                redefineBotaoAdd();
+            }
+        });
+
+        /**
+         * Ação referente aos botões de subir regra nas linhas de cadastro dos dias
+         * de trabalho
+         */
+        $('.up').click(function () {
+            var $el1 = $(this).closest('.row');
+            var $el2 = $(this).closest('.row').prev();
+
+            $el1.after($el2);
+            redefineBotaoAdd();
+        });
+
+        /**
+         * Ação referente aos botões de add linhas de cadastro dos dias
+         * de trabalho
+         */
+        $('.add').click(function () {
+            var $el = $('#trabalho').find('.row:hidden');
+            if (0 == $el.length) {
+                $.notify({
+                    message: "Limite de campos atingido!",
+                    type: "danger"
+                });
+                return false;
+            }
+
+            var $aux1 = $('#trabalho').children('.row:visible').last();
+            var $aux2 = $el.eq(0);
+
+            $aux2.before($aux1); // Adiciona o elemento após o ultimo
+            $aux2.find('input').val(''); // Limpa todos os campos
+            $aux2.show(); // Deixa a linha contendo os campos visível
+            redefineBotaoAdd();
+        });
+
+        /**
+         * Quando um input de alguma linha é clicado, o interpretador vai encontrar
+         * a linha cujo qual este input pertence e vai colocá-la em evidencia
+         * tanto para o usuário quanto para algumas regras definidas abaixo
+         */
+        $('#trabalho').find('input').click(function () {
+            $('.active-row').removeClass('active-row');
+            $(this).closest('.row').addClass('active-row');
+        });
+
+//        /**
+//         * 
+//         * @param {type} _
+//         * @param {type} day
+//         * @returns {undefined}
+//         */
+//        function getInputDias($el) {
+//            var aux = $el.val();
+//            return (0 === aux.length) ? [] : aux.split(',');
+//        }
+//
+//        /**
+//         * 
+//         * @param {type} $el
+//         * @param {type} lista
+//         * @returns {undefined}
+//         */
+//        function setInputDias($el, lista) {
+//            if (typeof lista == "string") {
+//                lista = lista.split(','); // Remove a primeira virgula
+//            }
+//            lista.sort(function (a, b) {
+//                return a - b
+//            });
+//
+//            $el.val(lista.join());
+//        }
+//
+//        /**
+//         * 
+//         * @param {type} dia
+//         * @returns {undefined}
+//         */
+//        function removerDia(dia) {
+//            var $el = $('.active-row').find('input[name="dias[]"]');
+//            var aux = $el.val();
+//            var lista = getInputDias($el);
+//
+//            var pos = $.inArray(dia + "", lista);
+//            if (pos !== -1) {
+//                lista.splice(pos, 1);
+//            }
+//
+//            setInputDias($el, lista);
+//        }
+//
+//        /**
+//         * 
+//         * @param {type} dia
+//         * @returns {undefined}
+//         */
+//        function adicionarDia(dia) {
+//            var $el = $('.active-row').find('input[name="dias[]"]');
+//            var aux = $el.val();
+//            var lista = getInputDias($el);
+//
+//            if ($.inArray(dia + "", lista) !== -1) {
+//                return false;
+//            }
+//
+//            aux += (0 === lista.length) ? dia : "," + dia;
+//            setInputDias($el, aux);
+//        }
+//
+        /**
+         * 
+         * @param {type} month
+         * @param {type} year
+         * @param {type} daySelected
+         * @returns {Array}
+         */
+        function getDaysBy(month, year, daySelected) {
+            var d = new Date(year, month, "01");
+            var days = [];
+
+            var start = d.getDay();
+            var end = parseInt(daySelected) - 1;
+
+            while (start !== end) {
+                d.setDate(d.getDate() + 1);
+                start++;
+                if (start > 6) {
+                    start = 0;
+                }
+            }
+
+            while (d.getMonth() === month) {
+                days.push(d.getDate());
+                d.setDate(d.getDate() + 7);
+            }
+
+            return days;
+        }
+        
+        /**
+         * Adiciona dias no input
+         * @param {type} days
+         * @returns {undefined}
+         */
+        function adicionar(days, $el){
+            var aux = $el.val();
+            var lista = aux.split(',');
+            lista.pop();
+            $.each(days, function(i, day){
+                var pos = lista.indexOf(day + "");
+                if(pos == -1){
+                    lista.push(day);
+                }
+            });
+            var resul = lista.join(",");
+            $el.val(resul);
+            $calend.datepicker('update');
+        }
+        
+        /**
+         * Remove dias do input
+         * @param {type} days
+         * @returns {undefined}
+         */
+        function remover(days, $el){
+            var aux = $el.val();
+            var lista = aux.split(',');
+            $.each(days, function(i, day){
+                var pos = lista.indexOf(day + "");
+                if(pos > -1){
+                    lista.splice(pos, 1);
+                }
+            });
+            $el.val(lista.join());
+            $calend.datepicker('update');
+        }
+
+        /**
+         * 
+         */
+        $('input[name="diasSemana[]"]').click(function () {
+            var mesSelecionado = $$(fields.mesTo).find('option:selected').val();
+            var aux = mesSelecionado.split(':');
+            var month = aux[0] - 1;
+            var year = aux[1];
+            
+            var $el = $(this).closest('.row').find('input[name="dias[]"]');
+
+            var days = getDaysBy(month, year, $(this).val());
+            if ($(this).is(":checked")) {
+                adicionar(days, $el);
+            } else {
+                remover(days, $el);
+            }
+
+//                $.each(days, function (_, day) {
+//                });
+//            } else {
+//                $.each(days, function (_, day) {
+//                });
+//            }
+        });
+
+        // =====================================================================
+
+
+        /**
+         * Ao Selecionar uma data, o input será reorganizado
+         */
+        $('#trabalho').find('input[name="dias[]"]').change(function () {
+            $(this).val(organize($(this).val()));
+        });
+
+
+
+    });
+</script>

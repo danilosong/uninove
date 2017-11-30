@@ -1,0 +1,115 @@
+<?php
+/** ===========================================================================|
+ * FORM - SET_ENTITY
+ * @author SET_AUTHOR
+ * @since SET_SINCE
+ *
+ * IncludeView - v1
+ */
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+$entity       = $this->entity;
+$form         = $this->form;
+$partial      = $this->partialObj('application');
+$tcmedPartial = $this->partialObj('tcmed');
+echo '<h3>', $title, '</h3><br />';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit()->openCol(12); // ===============================================
+$fh->openLine();
+
+$fh->openCol(12);
+$tcmedPartial->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'rules' => $rules, 'hideCnpj' => TRUE]);
+$fh->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(3)->calend('ini')->closeCol();
+$fh->openCol(3)->calend('fim')->closeCol();
+$fh->openCol(3)->checkbox('pendente', ['style' => 'margin-top: 28px'])->closeCol();
+$fh->openCol(3)->checkbox('showInativo', ['style' => 'margin-top: 28px'])->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(2, 2)->buildButton(['id' => 'pesquisar', 'class' => 'btn-block'], '<i class="fa fa-search"></i> Pesquisar', 'primary', TRUE)->closeCol();
+$fh->openCol(2, 2)->buildButton(['id' => 'limpaForm', 'class' => 'btn-block'], '<i class="fa fa-refresh"></i> Limpar'  , 'warning', TRUE)->closeCol();
+$fh->openCol(2, 2)->buildButton(['id' => 'gravar'   , 'class' => 'btn-block'], '<i class="fa fa-floppy-o"></i> Gravar' , 'primary', TRUE)->closeCol();
+
+$fh->lineDown();
+
+$fh->closeLine();
+$fh->closeCol()->formEnd(); // =================================================
+
+$fh->openCol(12, ['id' => 'resultados'])->closeCol();
+
+// Var de transferencia PHP to JS
+$transp = array(
+
+);
+?>
+<br>
+<br>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+
+
+        $('#pesquisar').click(function() {
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                ret: "#resultados",
+                data: {
+                    ret: "#resultados"
+                }
+            });
+        });
+
+        $('#gravar').click(function() {
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $('#limpaForm').click(function() {
+            $.processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    "cleanAll": true
+                }
+            });
+        });
+
+
+//        $$(transp.cbo).auto({
+//            primary: "cbo",
+//            width: 500,
+//            noCache: true,
+//            responseTo: {
+//                cargo: [transp.cargo],
+//            },
+//            filters: function (query) {
+//                query["idEmpresa"] = $$(transp.idEmpresa).val()
+//            },
+//            showCols: ["nomeSetor"]
+//        });
+    });
+
+</script>

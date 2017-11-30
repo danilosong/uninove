@@ -1,0 +1,238 @@
+<style type="text/css">
+    /* =========================================================================
+     * CSS Bootstrap table simulation
+     * @TODO tabelabootstrap
+     */
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .table{
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: #333;
+        font-size: 10px;
+    }
+
+    .table tr, 
+    .table td, 
+    .table th {
+        border: 1px solid #ccc;
+    }
+
+    .table thead tr {
+        border-bottom: 2px solid #ddd;
+    }
+
+    .table thead th {
+        background-color: #eee;
+        font-size: 14px;
+    }
+
+    .table td{
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .table-striped tr:nth-child(even) {
+        background: #f9f9f9
+    }
+
+    .text-right {
+        text-align: right;
+    }
+    /* ====================================================================== */
+
+    .table tr,
+    .table td {
+        font-size: 11px;
+    }
+
+    #pdf-view{
+        width: 270mm;
+        padding: 10px;
+    }
+
+    #listagem td {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    #info {
+        font-size: 17px;
+    }
+
+    #assinatura {
+        font-size: 14px;
+    }
+
+</style>
+
+<div id="pdf-view">
+    <?php
+    /* @var $entity Agenda\Entity\RelatorioDetEmp */
+
+
+    $titulo = $dataView['titulo'];
+
+    list($data, $hora) = explode(';', (new \DateTime('now'))->format('d/m/Y;H:i'));
+
+    echo <<<TOPO
+    <table class="table table-striped">
+        <tr>
+            <td><img id="logo-vilavelha" width="243px" src="/var/www/tcmed/data/imagesTecnomed/logo_tecnomed.png"></td>
+            <td colspan="3"><h1>{$titulo}</h1></td>
+        </tr>
+        <tr>
+            <td class="text-right" width="243">Holding</td>
+            <td>{$entity->getAdministradora('hold', ['referenciaHold'])}</td>
+            <td>{$entity->getAdministradora('hold', ['nomeHold'])}</td>
+            <td><b>Hora:</b> {$hora} <b>Data:</b> {$data} </td>
+        </tr>
+        <tr>
+            <td class="text-right">Sub-Holding</td>
+            <td>{$entity->getAdministradora('referenciaSubhold')}</td>
+            <td colspan="2">{$entity->getAdministradora('razaoSocial')}</td>
+        </tr>
+        <tr>
+            <td class="text-right">Empresa</td>
+            <td>{$entity->getEmpresa('referenciaEmp')}</td>
+            <td>{$entity->getEmpresa('razaoSocial')}</td>
+            <td><strong>{$quantListaDetFunc}</strong> Funcionários</td>
+        </tr>
+        <tr>
+            <td class="text-right">Endereco</td>
+            <td colspan="2">{$entity->getEmpresa('endereco')}</td>
+            <td>Ref. Guia: {$entity->getEmpresa('codigoRua')}</td>
+        </tr>
+    </table>
+    <br>
+TOPO;
+    
+    $quebraPagina = "<div style='page-break-before: always;'></div>";
+    $openTable = "<table id='listagem' class='table table-striped'>";
+    $closeTable = "</table>";
+
+    /* =========================================================== THEAD =====*/
+    $thead = <<<THEAD
+        <thead>
+            <tr>
+                <th>Ausentes</th>
+                <th>Cod.</th>
+                <th>Nome do Funcionario</th>
+                <th>Sexo</th>
+                <th>RG</th>
+                <th>CPF</th>
+                <th>Data Nasc.</th>
+                <th>Admissão</th>
+                <th>S.T.</th>
+                <th>Função</th>
+                <th>Setor</th>
+            </tr>  
+        </thead>
+THEAD;
+    /* =========================================================== THEAD =====*/
+    
+    
+
+    /* =========================================================== TBODY ===== */
+    $cont = 0;
+    $tbody = '<tbody>';
+
+    foreach ($entity->listRelatorioDetFunc() as $detFunc) {
+        $histoOcupacional = $detFunc->getFuncionario()->getHistOcupacional('atual');
+        if ($histoOcupacional->count() == 1) {
+            $ocupacaoAtual = $histoOcupacional->get(0)->getOcupacao();
+        }
+        
+        if(18 == $cont){
+            $tbody .= "<t/body>{$closeTable}{$quebraPagina}{$openTable}{$thead}<tbody>";
+            $cont = 0;
+        }
+
+        $status = substr($detFunc->getFuncionario('status'), 0, 1);
+        $tbody .= <<<TBODY
+                <tr>
+                    <td><input class='select-func' value='0' type='checkbox'></td>
+                    <td>{$detFunc->getFuncionario('referenciaFun')}</td>
+                    <td>{$detFunc->getFuncionario('nomeFuncionario')}</td>
+                    <td>{$detFunc->getFuncionario('sexo')}</td>
+                    <td>{$detFunc->getFuncionario('rg')}</td>
+                    <td>{$detFunc->getFuncionario('cpf')}</td>
+                    <td>{$detFunc->getFuncionario('dtNascimento')}</td>
+                    <td>{$detFunc->getFuncionario('dtAdmissao')}</td>
+                    <td>{$status}</td>
+                    <td>{$ocupacaoAtual->getCargo(TRUE)}</td>
+                    <td>{$ocupacaoAtual->getSetor()}</td>
+                </tr>
+TBODY;
+        $cont++;
+    }
+
+    $tbody .= '</tbody>';
+    /* =========================================================== TBODY ===== */
+    
+    echo $openTable, $thead, $tbody, $closeTable;
+
+    /* @var $bloco Agenda\Entity\Bloco */
+    
+    $blocoItem = $entity->getBlocoItem();
+    $bloco = $blocoItem->getBloco();
+    $listaHMD = $bloco->listaDiasAgendadoEm();
+    $dataHora = "<td></td><td>Data: {$bloco->getAgendadoEm()} Hora: {$blocoItem->getHoraIni()}</td>";
+    
+    if($bloco->getManyDays()){
+        $dataHora = "";
+        
+        /* @var $horaMedDia Agenda\Entity\HorarioMedicoDia */
+        foreach ($listaHMD as $horaMedDia) {
+            $dataHora .= "<td></td><td>Data: {$horaMedDia->getDateHoramed()} Hora: {$horaMedDia->getIni()}</td>";
+        }
+    }
+    
+    $linhaDias = <<<LINHADIAS
+            
+LINHADIAS;
+
+    echo <<<RODAPE
+    <br>
+    <table class='table table-striped'>
+        <tbody>
+            <tr>
+                <td width='75%'>OBS:</td>
+                <td>Dr.: {$entity->getMedico('nomeMedico')}</td>
+            </tr>
+            <tr>
+                {$dataHora}
+            </tr>
+            <tr>
+                <td></td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <strong id='info'>
+                        Os funcionários assinalados, não presentes nesta
+                        visita médica periódica, em dia e hora agendada acima,
+                        deverão comparecer a sede da Tecnomed, a fim de 
+                        regularizarem seus exames periódicos.
+                    </strong>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p id='assinatura'>
+                        Recebemos a Convocação acima. <br>
+                        Data:____/____/_________ Nome do Funcionário: _______________________________________________________________<br>
+                        Assinatura: _______________________________________________________________<br>
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+RODAPE;
+    ?>
+</div>

@@ -1,0 +1,39 @@
+<?php
+$fh = &$obj;
+
+$fh->openLine()->setPreFix('risco');
+$idRisco = $fh->getIdFor('idRisco');
+
+$fh->openCol('12')->text('risco')->closeCol();
+$risco = $fh->getLastId();
+
+$fh->closeLine()->removePreFix();
+$fieldsRisco = [
+    "idRisco" => $idRisco,
+    "risco" => $risco,
+];
+?>
+<script lang="javascript">
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        var fields = <?php echo json_encode($fieldsRisco) ?>;
+
+        /**
+         * AutoComplete de risco
+         */
+        $$(fields.risco).auto({
+            primary: "risco",
+            serviceUrl: "<?php echo $d["this"]->url('tcmed/default', array('controller' => 'Riscos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (query) {
+                query["rules"] = {"status": "ativo"};
+            },
+            responseTo: {
+                "idRisco": [fields.idRisco]
+            },
+            showCols: ["risco"]
+        });
+    });
+</script>

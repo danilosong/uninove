@@ -22,10 +22,6 @@ if [$IP_ATUAL = '']; then
     IP_ATUAL=`ifconfig $ETH | grep "inet addr" | awk -F: '{ print $2 }' | awk '{ print $1 }'`
 fi
 
-if [$IP_ATUAL = '']; then
-    IP_ATUAL="192.168.1.190"
-fi
-
 if [ $3 ]; then
     D=$3
 else

@@ -1,0 +1,143 @@
+<?php 
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+?>
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Listagem</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Limpar</button>
+</p>
+<br />
+<?php
+if(is_array($this->resul)){
+    foreach ($this->resul[1] as $key => $vlr){
+        if ($this->resul[0] === FALSE){
+            echo '<h4 class="alert alert-danger">', $vlr , '</h4>';
+        }else{
+            echo '<h4 class="alert alert-success">', $vlr , '</h4>';
+        }
+    }
+}
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$fh->setHorizontal(false);
+$fh->formInit();
+    $fh->openCol('12')->renderInputText(
+        'clinicaNome', 
+        [
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+            ,'dt-clear' => 'clinica'
+        ]
+    )->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputText(
+        'administradoraNome', 
+        [
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+            ,'dt-clear' => 'administradora'
+        ]
+    )->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputText(
+        'empresaNome', 
+        [
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+            ,'dt-clear' => 'empresa'
+        ]
+    )->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputTextArea('descricao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputSelect('status')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+//
+// === TRANSPORTE ==============================================================
+$fields = [
+    'clinica'             => 'clinica'
+    ,'clinicaNome'        => 'clinicaNome'
+    ,'empresa'            => 'empresa'
+    ,'empresaNome'        => 'empresaNome'
+    ,'administradora'     => 'administradora'
+    ,'administradoraNome' => 'administradoraNome'
+];
+// ===================================================================== FIM ===
+?>
+
+<script lang="javascritp">   
+    
+    var isValid = function(){
+        return true;
+    };
+    
+    $(function(){
+        // =====================================================================
+        /**
+         * @property {Object} fields Campos de transferencia do PHP, que serão
+         * utilizados no javascript
+         */
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        
+        /**
+         * autocomp para clinica
+         * @author Paulo Cordeiro Watakabe <watakabe05@gmail.com>
+         * @since 22-09-2016
+         */
+        $$(fields.clinicaNome).auto({
+            primary: "razaoSocial",
+            width: 1000,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'clinicas', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            callback: function (data) {
+                $$(fields.clinica).val(data.idClinica);
+                $$(fields.clinicaNome).val(data.fantasiaClinica);
+            },
+            showCols: ["idClinica", "fantasiaClinica", "cnpj"]
+        });
+        
+        /**
+         * autocomp para administradora
+         * @author Paulo Cordeiro Watakabe <watakabe05@gmail.com>
+         * @since 22-09-2016
+         */
+        $$(fields.administradoraNome).auto({
+            primary: "razaoSocial",
+            width: 1000,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'administradoras', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            callback: function (data) {
+                $$(fields.administradora).val(data.idAdministradora);
+                $$(fields.administradoraNome).val(data.razaoSocialAdm);
+            },
+            showCols: ["idAdministradora", "razaoSocialAdm", "cnpj"]
+        });
+        
+        /**
+         * autocomp para empresa
+         * @author Paulo Cordeiro Watakabe <watakabe05@gmail.com>
+         * @since 22-09-2016
+         */
+        $$(fields.empresaNome).auto({
+            primary: "razaoSocial",
+            width: 1000,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'empresas', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            callback: function (data) {
+                $$(fields.administradora).val(data.idAdministradora);
+                $$(fields.administradoraNome).val(data.razaoSocialAdm);
+                $$(fields.empresa).val(data.idEmpresa);
+                $$(fields.empresaNome).val(data.razaoSocialEmp);
+            },
+            filters: function (query) {
+                query["idAdministradora"] = $$(fields.administradora).val();
+            },
+            showCols: ["idEmpresa","fantasiaAdm" ,"razaoSocialEmp", "cnpj"]
+        });
+        
+    });
+</script>

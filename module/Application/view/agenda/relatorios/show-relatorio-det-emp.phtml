@@ -1,0 +1,401 @@
+<?php
+   /**
+    * 
+    * @author Paulo Watakabe <watakabe05@gmail.com>
+    * @version 1.0  
+    * @since 16-08-2016
+    */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+/* @var $entity     \Agenda\Entity\RelatorioDetEmp      */
+/* @var $table      \Application\View\Helper\Table      */
+/* @var $form       \Agenda\Form\Relatorio              */
+/* @var $fh         \Application\View\Helper\FormHelp   */
+$entity     = $this->entity;
+$table      = $this->table();
+$form       = $this->form;
+$fh         = $this->formHelp($this,$form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+
+$fh->formInit();
+$fh->openCol(12);
+?>
+<table class="table table-striped table-bordered table-hover table-condensed">
+    <tr>
+        <td></td>
+        <td colspan="3">Lista de Funcionários:</td>
+    </tr>
+    <tr>
+        <td>Holding:</td>
+        <td><?= $entity->getEmpresa('refenciaHold');?></td>
+        <td><?= $entity->getEmpresa('administradora', ['hold',['nomeHold']]);?></td>
+        <td>Realizado em: <?= $entity->getAgendadoEm('full');?> hs.</td>
+    </tr>
+    <tr>
+        <td>Sub-Holding:</td>
+        <td><?= $entity->getEmpresa('referenciaSubHold');?></td>
+        <td colspan="2"><?= $entity->getEmpresa('administradora', ['razaoSocial']);?></td>
+    </tr>
+    <tr>
+        <td>Empresa:</td>
+        <td><?= $entity->getEmpresa('referenciaEmp');?></td>
+        <td><?= $entity->getEmpresa('razaoSocial');?></td>
+        <td><?= $entity->getQtdFunc();?> Funcionários.(Realizou <?= $entity->getQtdRealizado();?>)</td>
+    </tr>
+    <tr>
+        <td>Endereço:</td>
+        <td colspan="3"><?= $entity->getEmpresa()->getEndereco();?></td>
+    </tr>
+</table>
+<?
+    // ===================================================================== FIM ===
+    
+    $table->openTable(['noScrool' => FALSE, 'default' => TRUE]);
+    $table->setEditLine('first');
+    $table->setLambda(function ($value, &$data) {   
+        echo "\t<td nowrap>",
+                '<input type="checkbox" class="optCheck" name="realizados[]" value="', $value, '" ' , (($data[2] == 'SIM') ? 'checked' : '') ,' />', PHP_EOL,
+                '<span class="hand" onClick="removeFunc(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> Del','</span>&nbsp;', PHP_EOL,
+             "</td>", PHP_EOL;   
+    });
+    $table->setOrderList($this->dataView['orderBy']);
+    $checkOpt = '<input type="checkbox" id="checkTarget" name="realizados[]" value="ok" title="Marcar Todos" />';
+    $table->renderThead([
+        'Ação' . $checkOpt
+        ,['label' => 'Cod:'         ]
+        ,['label' => 'Fez'          ] 
+        ,['label' => 'RG'           ] 
+        ,['label' => 'CPF'          ]
+        ,['label' => 'Dt Nasc.'     ]
+        ,['label' => 'Admissão'     ]
+        ,['label' => 'St'           ]
+        ,['label' => 'Função'       ]
+        ,['label' => 'Setor'        ]
+    ]);
+    /* @var $entityDetFun Agenda\Entity\RelatorioDetFunc */
+    foreach ($this->data as $entityDetFun) {
+        $table->renderLine([
+            $entityDetFun->getId(),
+            $entityDetFun->getNome(),
+            $entityDetFun->getRealizou() == '1' ? 'SIM' : 'NÃO',
+            $entityDetFun->getFuncionario('rg'),
+            $entityDetFun->getFuncionario('cpf'),
+            $entityDetFun->getFuncionario('dtNascimento'),
+            $entityDetFun->getFuncionario('dtAdmissao'),
+            $entityDetFun->getFuncionario('status'),
+            $entityDetFun->getHistOcupacional('ocupacao',['cargo',[TRUE, 'cargo']]),
+            $entityDetFun->getHistOcupacional('ocupacao',['setor',['nomeSetor']]),
+        ]);
+    }
+    $table->renderCloseTable();
+    
+$fh->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputText('nome',
+                [
+                    'extra' => [
+                        ['icon' => 'user-plus', 'id' => "addFunc", 'title' => "Incluir este funcionario na Lista."],
+                        ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+                    ]
+                ]
+            )->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->renderInputTextArea('obs')->closeCol();
+$fh->lineDown();
+    $fh->openCol(4  )->renderInputCheckbox('canceladoPcmso', ['position' => 'right'])->closeCol();
+    $fh->openCol(4  )->renderInputCheckbox('frustrado'     , ['position' => 'right'])->closeCol();
+    $fh->openCol(4  )->renderInputCheckbox('cancelado'     , ['position' => 'right'])->closeCol();
+    $fh->openCol(4,8)->renderInputCheckbox('reagendar'     , ['position' => 'right'])->closeCol();
+    $fh->openCol(4,8)->renderInputCheckbox('visitado'      , ['position' => 'right'])->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->file('fileAnexo')->closeCol();
+$fh->lineDown();
+    $fh->openCol(6,6);
+        echo '<button type="button" class="btn btn-primary" id="btn-salvar">Salvar</button>';
+    $fh->closeCol();
+$fh->closeLine()->formEnd();
+
+$path = $entity->getAnexo();
+    if($path != ''){
+        $imgPath = '<img src="' . $this->Image($path) . '" style="width: 100%" />
+            <span class="input-group-btn" name="pathLogo" id="clean_pathLogo">
+                <button class="btn btn-default" type="button" id="btnPathLogo">
+                    <i class="fa fa-remove"></i>
+                </button>
+            </span>';
+    }else{
+        $imgPath = 'Inserir anexo aqui';
+    }
+    echo <<<EOF
+        <div style="height: 135px; margin:0px" class="alert alert-info input-group" role="alert" id="divPathLogo">
+            {$imgPath}
+            </span>
+        </div>
+EOF;
+// === TRANSPORTE ==============================================================
+$fields = [
+    'nome'         => 'nome'
+    ,'funcionario' => 'funcionario'
+    ,'empresa'     => 'empresa'
+];
+// ===================================================================== FIM ===
+?>
+<br />
+<br />
+<br />
+<br />
+<br />
+
+<?php
+/* +----------------------------------------------------------------------------
+ * | MODAL se parametriza usando a variavel global gModal
+ * +----------------------------------------------------------------------------
+ *  Estrutura do modal, para Confirmar com o usuario a ação desejada.
+ * 
+ */
+echo $this->partial('partials/modal', array());
+
+?>
+
+<script lang="javascript">
+    
+    var removeFunc = function(key){
+        gModal.reset('confirm',1)
+        .setMsg('Deseja mesmo remove este funcionario do relatorio ?')
+        .setLabelNg('Não')
+        .setClickOk(function(){
+            $('#relatorioDetFunc').val(key);
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>" 
+                , frm: true
+                , savePage : false
+                , cache : false
+                , data : {
+                    subOpcao : "removeFunc"
+                }
+            });
+        })
+        .showModal();
+    };
+    
+    var isValid = function(){
+        gModal.reset('alert',3);
+        if(($('#frustrado').is(':checked') || $('#cancelado').is(':checked')) && !$('#visitado').is(':checked') && !$('#reagendar').is(':checked')){
+            if($('#frustrado').is(':checked')){
+                var msg = 'Medico vistou mas não fez de ninguém';
+            }else{
+                var msg = 'Cancelamento do Agendamento';
+            }
+            gModal.setMsg('Ao selectionar ' + msg + ' deve ser escolhido se será ou não reagendado!!!').showModal();
+            return false;
+        }
+        
+        return true;
+    };
+    
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+    
+        $('#checkTarget').click(function(){
+            $('.optCheck').attr('checked', $('#checkTarget').is(':checked'));
+            $('.optCheck').prop('checked', $('#checkTarget').is(':checked'));
+        });
+        
+        $('#addFunc').click(function(){
+            var nome = $('#nome').val();
+            if(nome == ''){
+                return;
+            }
+            gModal.reset('confirm',1)
+            .setMsg('O funcionario('+nome+') será acidionado a este Relatorio ?')
+            .setLabelNg('Não')
+            .setClickOk(function(){
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>" 
+                    , frm: true
+                    , savePage : false
+                    , cache : false
+                    , data : {
+                        subOpcao : "addFunc"
+                    }
+                });
+            })
+            .showModal();
+        });
+        
+        $('#btn-salvar').click(function(){
+            if(!isValid()){
+                return false;
+            }
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>" 
+                , frm: true
+                , savePage : false
+                , cache : false
+                , data : {
+                    subOpcao : "saveRelEmp"
+                }
+            });        
+        });
+        
+        $('#btnPathLogo').click(function(){
+            gModal.reset('confirm',3)
+            .setMsg('Deseja realmente remover a imagem ?')
+            .setLabelNg('Não')
+            .setClickOk(function(){
+                $.processa({
+                    url      : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'rmImage'), [], FALSE, FALSE); ?>"
+                    ,savePage: false
+                    ,frm     : true
+                    ,callback: function (data) {
+                        if(data == 'ok'){
+                            $('#divPathLogo').html('Inserir a imagem aqui');
+                        }else{
+                            alert(data);
+                        }
+                    }
+                });
+            })
+            .showModal();
+        });
+
+        /**
+         * Autocomp Funcionario
+         */
+        $$(fields.nome).auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (data) {
+                data.rules = {
+                    "empresa": $$(fields.empresa).val()
+                };
+                return data;
+            },
+            params: {
+                subOpcao: ""
+            },
+            callback: function (data) {
+                $('#' + fields.funcionario).val(data.idFuncionario);
+                $('#' + fields.nome).val(data.nomeFuncionario);
+            },
+            showCols: ["referenciaFun", "nomeFuncionario", "rg"]
+        });
+        
+        /**
+         * Object Global criar ou limpar se já existir 
+         * Objetivo simular um radio personalizado com checkboxs
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0  
+         * @since 19-08-2016 
+         * @type {object} 
+         */
+        globalFiledsOfSimulateRadio = {};
+        
+        /**
+         * Faz a montagem da Simulação um comportamento radio em campos checkbox
+         * Objetivo simular um radio personalizado com checkboxs
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0  
+         * @since 19-08-2016 
+         * @param {string}   grupo    Um nome para identificar o agrupamento PS não pode repetir
+         * @param {array}    fields   Um array com os id dos checkboxs envolvidos
+         * @param {function} clicked  Função a ser executada ao click do checkbox ver modelo 
+         * @param {function} callBack Função a ser executado depois do clicked  ver modelo
+         * @returns {nothing}         
+         */
+        var simulateRadio = function(grupo, fields, clicked, callBack) {   
+            // cria o novo grupo
+            globalFiledsOfSimulateRadio[grupo] = {};
+            // funcao padrao para call back
+            if(callBack == null){
+                callBack = function(){return;};
+            }
+            // guarda a funcao de callback do grupo
+            globalFiledsOfSimulateRadio[grupo]['callBack'] = callBack;
+            globalFiledsOfSimulateRadio.grupoAux           = grupo;
+            // guarda todos os itens da lista dentro do grupo e attach a funcao clicked 
+            $.each(fields, function (key, campo) {
+                var grupo = globalFiledsOfSimulateRadio.grupoAux;
+                globalFiledsOfSimulateRadio[grupo][campo] = $('#'+campo);
+                globalFiledsOfSimulateRadio[grupo][campo].click({grupo : grupo},clicked);
+            });            
+        };
+        
+        
+        /**
+         * Função a ser executada a cada click em um dos checkbox da lista do grupo definida
+         * Objetivo simular um radio personalizado com checkboxs
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0  
+         * @since 19-08-2016 
+         * @param {object} event Padrão do jquery para pegar os parametros do click
+         * @returns {nothing}
+         */
+        var clicked = function(event){
+            var $this = $(this);
+            var grupo = event.data.grupo;
+            if($this.is(':checked')){
+                // se este item foi checked(clicado) percorrera lista para fazer unchecked nos itens da lista
+                var fields = globalFiledsOfSimulateRadio[grupo];
+                // guarda o item clicado para nao fazer unchecked nele
+                globalFiledsOfSimulateRadio.atual = $this;
+                $.each(fields, function (key, $eleCheck) {
+                    if(key != 'callBack' && globalFiledsOfSimulateRadio.atual.attr('name') != $eleCheck.attr('name')){
+                        $eleCheck.attr('checked', false);
+                        $eleCheck.prop('checked', false);
+                    }
+                });
+            }
+            //executa funcao de call back se houver
+            globalFiledsOfSimulateRadio[grupo]['callBack']($this);
+        }; 
+          
+        /**
+         * Mostra os itens suplementares para  cancelado caso for selectionado ao contrario será ocultado
+         * Objetivo simular um radio personalizado com checkboxs
+         * 
+         * @author Paulo Watakabe <watakabe05@gmail.com>
+         * @version 1.0  
+         * @since 19-08-2016 
+         * @returns {nothing}
+         */
+        var callBackForGrupo01 = function(obj){
+            var fields = ['reagendar','visitado'];
+            if($('#cancelado').is(':checked')){
+                //Posiciona os elementos abaixo do checked reagendar e exibe
+                $.each(fields, function (key, ele) {
+                    var $ele = $('#' + ele);
+                    $ele.parent().parent().parent().removeClass('col-md-offset-4');
+                    $ele.parent().parent().parent().addClass('col-md-offset-8');
+                    $ele.closest('.form-group').show();
+                });              
+                return;
+            }
+            if($('#frustrado').is(':checked')){
+                //Posiciona os elementos abaixo do checked frustrado e exibe
+                $.each(fields, function (key, ele) {
+                    var $ele = $('#' + ele);
+                    $ele.parent().parent().parent().removeClass('col-md-offset-8');
+                    $ele.parent().parent().parent().addClass('col-md-offset-4');
+                    $ele.closest('.form-group').show();
+                });             
+                return;
+            }
+            // Faz unchecked no itens e oculta os campos da tela
+            $.each(fields, function (key, ele) {
+                var $ele = $('#' + ele);
+                $ele.attr('checked', false);
+                $ele.prop('checked', false);
+                $ele.closest('.form-group').hide();
+            });                
+        };
+
+        simulateRadio('grupo01',['canceladoPcmso','frustrado','cancelado'], clicked, callBackForGrupo01);
+        simulateRadio('grupo02',['reagendar','visitado'], clicked);
+        callBackForGrupo01();
+    });    
+</script>

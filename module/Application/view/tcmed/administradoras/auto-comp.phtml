@@ -1,0 +1,43 @@
+<?php
+
+/* @var $entity \Tcmed\Entity\Administradora */
+if ($this->resultSet) {
+    $array = [];
+
+    if ($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idAdministradora' => "ID",
+            'menu_referenciaAdm' => "Ref Adm",
+            'menu_referenciaSubhold' => "Ref Adm",
+            'menu_razaoSocialAdm' => 'Razão Social',
+            'menu_fantasiaAdm' => 'Nome da Administradora',
+            'menu_idHold' => "Hold",
+            'menu_referenciaHold' => "Ref Hold",
+            'menu_fantasiaHold' => "Hold",
+            'menu_guiaAvulsa' => "Guia Avulsa",
+        ];
+        foreach ($this->resultSet as $entity) {
+            $hold = $entity->getHold();
+            
+            //Se houver fantasia, então exibir fantasia. Do contrario, exibir nome
+            $fantasiaHold = ($hold->getFantasiaHold()) ?
+                    $hold->getFantasiaHold() : $hold->getNomeHold();
+
+            $array[] = [
+                'idAdministradora' => $entity->getId(),
+                'referenciaAdm' => $entity->getReferenciaAdm(),
+                'referenciaSubhold' => $entity->getReferenciaSubhold(),
+                'razaoSocialAdm' => $entity->getRazaoSocial(),
+                'fantasiaAdm' => $entity->getFantasiaAdm(),
+                'idHold' => $hold->getId(),
+                'referenciaHold' => $hold->getReferenciaHold(),
+                'fantasiaHold' => $fantasiaHold,
+                'guiaAvulsa' => $entity->getGuiaAvulsa(),
+            ];
+        }
+    }
+
+    echo json_encode($array);
+} else {
+    echo '{}';
+}

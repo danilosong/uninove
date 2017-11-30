@@ -1,0 +1,76 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+/* @var $param \Application\View\Helper\Param */
+$param = $this->Param();
+/* @var $entity \Tcmed\Entity\PpraVigencia */
+$entity       = $this->entity;
+/* @var $resp \Tcmed\Entity\PpraVigenciaResp */
+$resps          = $entity->listPpraVigenciaResps();
+
+?>
+
+<div style="font-size: 12pt; padding-left: 10mm;">
+    São Paulo,  
+    <?= date('d');?>
+    de 
+    <?= $param(date('m'),'selectMes') . ' de ' . date('Y');?>.
+</div>
+
+<table style="margin: 0; padding: 0; width: 100%">
+    <tr>
+        <td width="50%" style="padding-right: 10mm; ">           
+<?
+    $trInd = 0;
+
+    foreach ($resps as $resp):
+        if(empty($resp->getPpraResponsavel('regConCla'))){
+            $crea = " ";
+        }else{
+            $crea = "CREA Nº ";
+        }
+        
+        if(!$resp->getPpraResponsavel('assina')){
+            continue;
+        }
+?>
+            <table style="margin: 0; padding: 0; width: 100%">
+                <tr>
+                    <td style="border-bottom: 1px solid #000; padding: 15mm;"></td>
+                </tr>
+                <tr>
+                    <td align="center" valign="top" style="height: 20mm;">
+                        <?=$resp->getPpraResponsavel('nome');?> <br>
+                        <?=$resp->getPpraResponsavel('respPor');?> <br>
+                        <?=$crea, $resp->getPpraResponsavel('regConCla');?> 
+                    </td>
+                </tr>
+            </table>
+        </td>
+<?
+        $trInd++;
+        if($trInd == 2):
+?>
+    </tr>
+    <tr>
+<?
+            $trInd = 0;
+        endif;
+?>
+        <td style="padding-right: 8mm; ">
+<?
+                
+    endforeach;
+    // criar um td vazio se necessario antes de fechar a tabela
+    if($trInd == 1):
+?>
+        </td>
+        <td>
+<?
+    endif;
+?>
+        </td>
+    </tr>    
+</table>

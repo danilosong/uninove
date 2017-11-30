@@ -1,0 +1,109 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$ajax         = $this->dataView['ajax'];
+$title        = $this->dataView['titulo'];
+/* @var $entity \Tcmed\Entity\Ppra */
+$entity       = $this->entity;
+$id           = ($entity) ? $entity->getId() : 0;
+$form         = $this->form;
+$ret          = $form->getValue('ret', '#inter');
+$frm          = 'formPpra';
+$form->setAttribute('id', $frm);
+$form->setAttribute('target', $ret );
+/* @var $partial \Application\View\Helper\PartialObj */
+$partial      = $this->partialObj('application');
+/* @var $tcmedPartial \Application\View\Helper\PartialObj */
+$tcmedPartial = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3><br />';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, compact("controller","action","id"), [], FALSE, $ajax));
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+    $fh->openCol(12)->renderInputTextArea('atividade')->closeCol();
+$fh->lineDown();
+    $fh->openCol(12)->renderInputTextArea('historia')->closeCol();
+$fh->lineDown();
+    $fh->openCol(12)->renderInputTextArea('trabalho')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(6)->renderInputButtonOnly('add-local')->closeCol();
+
+    $fh->openCol(6)->Submit('submit')->closeCol();
+$fh->formEnd();
+
+$locais = [];
+if($entity){
+    $locais = $entity->getLocais();
+    !is_array($locais) && $locais = [];
+}
+
+foreach ($locais as $seq => $local) {
+    // Chama o partial de local do ppra para fazer renderização
+    $tcmedPartial->partial('ppras/partial-show-local', $fh, [
+        'this'   => &$this,
+        'local'  => $local,
+        'seq'    => $seq,
+        'ret'    => $ret,
+        'entity' => $entity,
+    ]);
+}
+
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'id'
+    ,'action'
+    ,'controller'
+    ,'frm'
+    ,'ret'
+);
+?>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp   = <?php echo json_encode($transp) ?>;
+        
+        $('#add-local').click(function(){
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'ppras', 'action' => 'local'), [], FALSE, FALSE); ?>",
+                type: "GET",
+                savePage: false,
+                callback : function(data, defaults){
+                    gModal.reset('prompt',2).setInputs(data).setSizeModal('lg').showModal().setClickOk(function(){
+                        $.processa({
+                            url       : "<?php echo $this->url($route, ['controller' => 'ppras', 'action' => 'local'], [], FALSE, FALSE); ?>"
+                            ,type     : 'POST'
+                            ,savePage : false
+                            ,ret      : transp.ret
+                            ,frm      : 'formPpraLocal'
+                            ,data     : {
+                                ret       : transp.ret
+                                ,frm      : transp.frm
+                                ,ppra     : transp.id
+                                ,subOpcao : 'add'
+                            }
+                        });
+//                        var gModal2 = new modalController();
+//                        gModal2.showHtml('modal-auxiliar');
+//                        gModal2.init($("#modal-auxiliar"));
+//                        gModal2.confirm('Deseja mesmo incluir este local no sistema:',function(){
+//                        }, 2);
+                    });
+                }
+            });
+        });
+
+    });
+</script>

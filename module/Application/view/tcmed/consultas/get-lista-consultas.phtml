@@ -1,0 +1,49 @@
+<?php
+$table = $this->table();
+
+/**
+ * 
+ */
+$param = $this->Param();
+
+$table->openTable(TRUE);
+$checkAll = '<input class="checkAll" type="checkbox" value="checkAll">';
+$table->renderThead([$checkAll . ' Marcar Todos', 'Data', 'Tipo', 'Medico', 'Resultado']);
+
+$lambda = function ($value, $data) {
+    echo '<td nowrap><input type="checkbox" value=' . $value . '> <i class="fa fa-retweet"></i></td>', PHP_EOL;
+};
+$table->setLambda($lambda);
+
+$table->setEditLine("first");
+
+/* @var $entity \Tcmed\Entity\Consulta */
+foreach ($this->resul as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getDtConsulta(),
+        $param($entity->getTipo(), "FC_tipo_exame"),
+        $entity->getMedico()->getNomeMedico(),
+        $param($entity->getResultado(), "FC_Resultado"),
+    ]);
+}
+
+$table->renderCloseTable();
+echo '<br><br>';
+?>
+<script type="text/javascript">
+    $(function () {
+        /**
+         * Marca (ou desmarca) todos os inputs (checkbox) da tabela
+         */
+        $(".checkAll").click(function () {
+            if ($(this).is(":checked")) {
+                $(this).closest('table').find('input:checkbox').prop("checked", true);
+            } else {
+                $(this).closest('table').find('input:checkbox').prop("checked", false);
+            }
+        });
+    });
+</script>
+
+

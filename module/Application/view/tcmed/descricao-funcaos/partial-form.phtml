@@ -1,0 +1,19 @@
+<?php
+$fh = &$obj;
+
+
+$fh->openLine()->setPreFix('descricaoFuncao');
+$idDescricaoFuncao= $fh->getIdFor('IdDescricaoFuncao');
+
+$fh->openCol('12')->textarea('descricao')->closeCol();
+$descricao = $fh->getLastId();
+
+$fh->closeLine()->removePreFix();
+$this->fieldsDescricaoFuncao = [
+    "descricao" => $descricao,
+    "idDescricaoFuncao" => $idDescricaoFuncao,
+]
+?>
+
+<script lang="javascript">
+</script>

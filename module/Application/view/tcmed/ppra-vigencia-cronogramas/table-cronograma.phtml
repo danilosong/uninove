@@ -1,0 +1,117 @@
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+/* @var $param \Application\View\Helper\Param */
+$param        = $this->Param();
+/* @var $entity \Tcmed\Entity\PpraVigencia */
+$entity       = $this->entity;
+$emp          = $entity->getEmpresa();
+//echo '<h4>', $title, '</h4>';
+
+
+if($entity):
+    $cronogramas = $entity->listPpraVigenciaCronograma(['status' => 'ATIVO']);
+    $mes = $entity->getIni('m');
+    $ano = $entity->getIni('Y');
+?>
+<table style="border-top: 1px solid #000;border-left: 1px solid #000;margin: 0; padding: 0; width: 100%">
+<tbody>
+<tr>
+<td style="border-bottom: 1px solid #000; background-color: #E6E6E6; width: 33%;"><?php
+                    if($emp) {
+                        $path = $param('path','empresa_dir') . $emp->getId() . DIRECTORY_SEPARATOR  .  $emp->getPathLogo();   
+                        $src  = $this->Image($path, true);
+                        echo PHP_EOL . '<img width="160" height="90" src="' . $src . '" data-realpath="' . $path . '" />' . PHP_EOL;
+                    }
+                    ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 34%; text-align: center;">CRONOGRAMA</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 33%;">
+                    Elaborado Por:______________<br>Aprovado Por:______________ </td>
+</tr>
+</tbody>
+</table>
+<table style="border-top: 1px solid #000;border-left: 1px solid #000;margin: 0; padding: 0; width: 100%" class="break-line">
+<thead>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center; font-size: 8pt;">Item</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Ação/Meta/Estratégia e Metodologia</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center; font-size: 6pt;">Priori<br>dade</td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center; font-size: 8pt;">Responsável</td>
+                <? 
+                for($i=1;$i<=12;$i++):
+                    $m = str_pad($mes, 2, '0', STR_PAD_LEFT);
+                ?>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center; font-size: 6pt;"><?= $m . '<br>' . $ano; ?></td>
+                <?
+                    $mes++;
+                    if($mes > 12){
+                        $mes = 1;
+                        $ano++;
+                    }
+                endfor; 
+                ?>
+</tr>
+</thead>
+<tbody>
+            <? /* @var $cronograma \Tcmed\Entity\PpraVigenciaCronograma */
+                $grupo = '';
+               foreach ($cronogramas as $cronograma) :
+                   if($grupo != $cronograma->getPpraVigenciaGrupo('nome')):
+                       $grupo = $cronograma->getPpraVigenciaGrupo('nome');
+            ?>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; font-size: 8pt;"><?= $cronograma->getItem() ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center; font-size: 8pt;" colspan="15"><?= $grupo; ?></td>
+</tr>
+            <? 
+                        continue;
+                   endif;
+                   $row = 3;
+                   empty($cronograma->getMeta()) && $row--;
+                   empty($cronograma->getMetodologia()) && $row--;
+            ?>
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; font-size: 8pt;" rowspan="<?= $row;?>"><?= $cronograma->getItem() ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; font-size: 6pt;">Ação => <?= $cronograma->getAcao() ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center;" rowspan="<?= $row;?>"><?= $cronograma->getPrioridade() ?></td>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; font-size: 8pt; width: 20mm;" rowspan="<?= $row;?>"><?= $cronograma->getResponsavel() ?></td>
+                <?
+                $mesesChecados = $cronograma->getMeses();
+                $mes = $entity->getIni('m');
+                $ano = $entity->getIni('Y');
+                for($i=1;$i<=12;$i++):                
+                    $checked = in_array($mes, $mesesChecados) ? 'X' : '';
+                ?>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; text-align: center; font-size: 6pt;" rowspan="<?= $row;?>"><?= $checked ?></td>
+                <?
+                    $mes++;
+                    if($mes > 12){
+                        $mes = 1;
+                        $ano++;
+                    }
+                endfor; 
+                ?>
+</tr>
+            <?
+                if (!empty($cronograma->getMeta())):
+            ?>                    
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; font-size: 6pt;">Meta => <?= $cronograma->getMeta() ?></td>
+</tr>
+            <?
+                endif;
+                if (!empty($cronograma->getMetodologia())):
+            ?>                    
+<tr>
+<td style="border-bottom: 1px solid #000;border-right: 1px solid #000; font-size: 6pt;">Estratégia => <?= $cronograma->getMetodologia() ?></td>
+</tr>
+            <?
+                endif;
+            ?>
+            <? endforeach;?>            
+</tbody>
+</table>
+<?php
+endif;

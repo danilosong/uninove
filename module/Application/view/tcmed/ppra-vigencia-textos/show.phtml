@@ -1,0 +1,104 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$post       = $this->post;
+$ret        = $post['ret'] ?? '#inter';
+$frm        = '';
+$partial    = $this->partialObj('application');
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+echo '<h3>', $title, '</h3>';
+
+?>
+
+<h4>
+    <button class="btn btn-primary" type="button" id="btn-gerar-laudo"><i class="fa fa-cogs fa-2x"></i> Gerar </button>
+    novo Laudo do Ppra baseado no texto atual.
+</h4>
+
+<?php
+
+$lambda = function($value, $data) {
+    echo "\t", '<td nowrap style="font-size: 14pt;">',
+            '<span class="hand btn-laudo-down" data-id="', $value, '" title="Fazer Download"><i class="fa fa-cloud-download"></i>','</span>&nbsp;', PHP_EOL,
+            '&nbsp;',
+            '<span class="hand" onClick="del(\'', $value, '\',this)" title="Excluir"><i class="fa fa-trash"></i></span>',
+         "</td>", PHP_EOL;
+};
+
+
+$table->openTable(TRUE);
+$table->setLambda($lambda);
+$table->renderThead([
+    ['label' => 'id'        ],
+    ['label' => 'Data'      ],
+    ['label' => 'Descrição' ],
+    ['label' => 'Path' ],
+    ['label' => 'Ação'      ],
+]);
+/* @var $entity \Tcmed\Entity\PpraVigenciaLaudo */
+foreach ($this->entitys as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getCreatedAt(),
+        $entity->getDescricao(),
+        $entity->getPath(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'route'
+    ,'controller'
+    ,'action'
+    ,'post'
+    ,'ret'
+    ,'frm'
+);
+
+/* +----------------------------------------------------------------------------
+ * | MODAL se parametriza usando a variavel global gModal
+ * +----------------------------------------------------------------------------
+ *  Estrutura do modal, para Confirmar com o usuario a ação desejada.
+ * 
+ */
+echo $this->partial('partials/modal', array());
+?>
+
+<iframe id="iframe-download" hidden="true" width='100%' frameborder='0'></iframe>
+
+<script lang="javascript">
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $('#btn-gerar-laudo').click(function(){
+            gModal.reset('confirm',2).setMsg('Deseja mesmo gerar um novo laudo com o texto Atual?').setClickOk(function(){
+                $.processa({
+                    url   : "<?= $this->url($route, array('controller' => $controller, 'action' => 'geraLaudo'), [], FALSE, FALSE); ?>"
+                    ,type : 'POST'
+                    ,ret  : transp.ret
+                    ,data : transp.post
+                });
+            })
+            .showModal();
+        });
+        
+        $('.btn-laudo-down').click(function(){
+            var $btn = $(this);
+            gModal.reset('confirm',2).setMsg('Deseja fazer o download do laudo?').setClickOk(function(){
+                var src = "<?php echo $this->url($route, array('controller' => 'ppraVigenciaLaudos', 'action' => 'downLaudo'), [], FALSE, FALSE)?>/" + $btn.data('id');
+                $('#iframe-download').attr('src', src);                
+            }).showModal();
+        });
+        
+    });
+
+</script>

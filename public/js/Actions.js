@@ -115,6 +115,29 @@ var action = (function ($, options, event) {
             console.warn("ROARRR, eu estou funcionando (ou acho que estou)!!");
             console.log(action);
         },
+        
+        /**
+         * função isset equivalente a do php
+         * evita erros em variáveis primitivas, bem como matrizes e objetos
+         * 
+         * @param {Object} obj
+         * @autor Paulo Watakabe
+         * @since 23-11-2017
+         * @version 1.0
+         */
+        isset : function(obj) {
+            var i, max_i;
+            if(obj === undefined){ 
+                return false;
+            }
+            for (i = 1, max_i = arguments.length; i < max_i; i++) {
+                if (obj[arguments[i]] === undefined) {
+                    return false;
+                }
+                obj = obj[arguments[i]];
+            }
+            return true;
+        },
         /**
          * Salvar em escopo global valores do sistema
          * @param {Object} obj
@@ -125,21 +148,20 @@ var action = (function ($, options, event) {
         setPublic: function (obj, prefix) {
             if (!options.publics) {
                 options.publics = {};
-                if (prefix) {
-                    options["publics"][prefix] = {};
-                }
             }
             if (prefix) {
-                options["publics"][prefix] = obj;
+                options.publics[prefix] = obj;
             } else {
-                options["publics"] = obj;
+                if(this.isset(obj)){
+                    options.publics = obj;
+                }
             }
         },
         /**
          *
          * @param {type} key
          * @param {type} prefix
-         * @returns {Array|String}
+         * @returns {Mixed|String}
          */
         getPublic: function (key, prefix) {
             if (!options.publics) {
@@ -147,15 +169,19 @@ var action = (function ($, options, event) {
             }
             if (prefix) {
                 if (key === "all") {
-                    return options.publics[prefix];
+                    if(this.isset(options.publics, prefix)){                        
+                        return options.publics[prefix];
+                    }
                 } else {
-                    return options.publics[prefix][key];
+                    if(this.isset(options.publics, prefix) && this.isset(options.publics, prefix, key)){                        
+                        return options.publics[prefix][key];
+                    }
                 }
             }
-            if (options.publics[key]) {
+            if (this.isset(options.publics, key)) {
                 return options.publics[key];
             }
-            return [];
+            return '';
         },
         /**
          * Validador de campos vazios e não preenchidos
@@ -1017,7 +1043,7 @@ var action = (function ($, options, event) {
                 var defaults = {
                     type: "info",
                     message: "Hey There!! I'm working",
-                    timelife: 7000,
+                    timelife: 5000,
                     title: false
                 };
 

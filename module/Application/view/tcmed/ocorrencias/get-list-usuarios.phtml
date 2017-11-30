@@ -1,0 +1,37 @@
+<?php
+$ocorrencias = [];
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$controller = 'ocorrencias';
+$route = 'tcmed/default';
+
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Usuario', 'email', 'Ação']);
+$table->setLambda(function($value, $data) {
+    echo '<td><span class="removeUsuario" data-index="' . $value . '" class="hand"><i class="fa fa-trash"></i> Remover</span></td>';
+});
+
+foreach ($this->listaUsuarios as $usuario) {
+    $table->renderLine([
+        $usuario->getId(),
+        $usuario->getNomeUsuario(),
+        $usuario->getEmailUsuario(),
+        $usuario->getId(),
+    ]);
+}
+
+$table->renderCloseTable();
+?>
+<script type="text/javascript">
+    $(function () {
+        $(".removeUsuario").click(function () {
+            var index = $(this).attr('data-index');
+            /**
+             * @see \tcmed\ocorrencias\form.phtml 
+             * Módulo gerUsuarios foi criado nesta referencia
+             */
+            gerUsuarios.removeUsuario(index);
+        });
+    });
+</script>

@@ -1,0 +1,113 @@
+<?php
+/**
+  + =============================================================================
+  | Partial-show do local do ppra
+  |
+ *  INSTRUÇÕES:
+ * 
+ * @author Paulo Watakabe <watakabe05@gmail.com>
+ * @version 1.0  
+ * @since 14-06-2017  
+ */
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$controller = $d['this']->dataView['controller'];
+$route      = $d['this']->dataView['route'];
+$action     = $d['this']->dataView['action'];
+$ret        = $d['ret'];
+$local      = $d['local'];
+$seq        = $d['seq'];
+/* @var $entity \Tcmed\Entity\Ppra */
+$entity     = $d['this']->entity;
+
+
+
+$transp = array(
+    "id" => (is_object($entity)) ? $entity->getId() : 0,
+    'ret' => $ret
+);
+
+/**
+    $this->setInputText('locais[local]'         , 'Local da atividade:');
+    $this->setInputText('locais[acompanhante]'  , 'Acompanhante:');
+    $this->setInputText('locais[data]'          , 'Data da visita:');
+    $this->setInputText('locais[horario]'       , 'Hora da visita:');
+    $this->setInputTextArea('locais[construcao]', 'Tipo de Construção:', ['rows' => '8']);
+    $this->setInputTextArea('locais[pisoForro]' , 'Tipo de Piso e Forro:', ['rows' => '8']);
+    $this->setInputTextArea('locais[iluminacao]', 'Tipo de Iluminação:', ['rows' => '8']);
+    $this->setInputTextArea('locais[ventilacao]', 'Ventilação do local:', ['rows' => '8']);
+ */
+?>
+<table style="border-top: 1px solid #000;border-left: 1px solid #000;margin: 0; padding: 0; width: 100%; background-color: #fff;">
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 40mm; text-align: center;">Local da Atividade:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="2"><?= $local['local'];?></td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; width: 25mm;" align="right">
+            <button class="clean btn btn-danger rm-local" type="button" data-id="<?= $seq;?>"><i class="fa fa-remove"></i></button>
+        </td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Acompanhante:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $local['acompanhante'];?></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Responsável:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $local['responsavel'];?></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Data da visita:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;"><?= $local['data'];?></td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 25mm; text-align: center;">Horário:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; width: 25mm;"><?= $local['horario'];?></td>
+    </tr>
+</table>
+<table style="border-left: 1px solid #000;margin: 0; padding: 0; width: 100%; background-color: #fff;">
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; width: 40mm; text-align: center;">Construção:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $local['construcao'];?></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Piso e Forro:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $local['pisoForro'];?></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Iluminação:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $local['iluminacao'];?></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000; background-color: #E6E6E6; text-align: center;">Ventilação:</td>
+        <td style="border-bottom: 1px solid #000;border-right: 1px solid #000;" colspan="3"><?= $local['ventilacao'];?></td>
+    </tr>
+</table>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+
+        /**
+         * Adiciona contatos na lista de contato 
+         */
+        $('.rm-local').click(function () {
+            var $button = $(this);
+            gModal.confirm('Deseja mesmo excluir este Registro', function(){
+                $.processa({
+                    url: "<?php echo $d['this']->url($route, array('controller' => $controller, 'action' => 'local'), [], FALSE, FALSE); ?>",
+                    type: "POST",
+                    savePage: false,
+                    data: {
+                        id         : transp.id
+                        ,ppra      : transp.id
+                        ,seq       : $button.data('id')
+                        ,ret       : transp.ret
+                        ,subOpcao  : 'rm'
+                    },
+                    ret: transp.ret
+                });
+            }, 1);
+        });
+        
+    });
+</script>

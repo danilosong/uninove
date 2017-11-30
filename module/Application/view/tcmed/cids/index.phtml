@@ -1,0 +1,90 @@
+<?php
+/* @var $table \Application\View\Helper\Table
+ * @author Allan Davini */
+$table = $this->table();
+$controller = 'cids';
+$route = 'tcmed/default';
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1>Cids</h1>
+<br>
+<div class="row">
+    <div class="col-md-6">
+        <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+    </div>
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-addon" id="basic-addon2">Pesquisar CID</span>
+            <input id="pesquisar-cid" type="text" class="form-control" placeholder="Digite a descrição ou o número do CID" aria-describedby="basic-addon2">
+            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+        </div>
+    </div>
+</div>
+<br>
+
+<?php
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Descricao', 'Número CID', 'Ação']);
+/* @var $entity \Tcmed\Entity\Cid */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getDescricaoCid(),
+        $entity->getNumeroCid(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+
+    $(function () {
+
+        /**
+         * Gera um autocomplete robusto cujo qual pesquisa em muitas colunas
+         * da entidade
+         * 
+         * @author Danilo Dorotheu
+         */
+        $("#pesquisar-cid").auto({
+            primary: "descricaoCid",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            type: "POST",
+            params: {
+                subOpcao: "multiplosCampos",
+            },
+            callback: function (data) {
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                    type: "POST",
+                    data: {
+                        idCid: data.idCid,
+                    }
+                });
+            },
+            showCols:["numeroCid", "descricaoCid"]
+        });
+    });
+
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+</script>

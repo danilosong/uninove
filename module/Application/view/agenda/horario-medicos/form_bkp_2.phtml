@@ -1,0 +1,437 @@
+<?php
+/**
+ * HORÁRIO MEDICOS
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 03-06-2016
+ */
+$controller = $this->dataView['controller'];
+$route = $this->dataView['route'];
+$action = $this->dataView['action'];
+$titulo = $this->dataView['titulo'];
+$entity = $this->entity;
+/* @var $form Agenda\Form\HorarioMedico */
+$form = $this->form;
+
+//Printa as mensagens do servidor diretamente no form
+if (is_array($this->resul) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+/**
+ * Lê as mensagens do servidor através do flashMessenger
+ */
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+echo "<h1>{$titulo}</h1>";
+$fh->formInit('Definir horário para o(a) Doutor(a)', ["noPreFormInit" => TRUE]);
+
+$fh->setPreFix('medico');
+$idMedico = $fh->getIdFor('idMedico');
+
+$fh->openCol(6)->text('nomeMedico', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+$nomeMedico = $fh->getLastId();
+
+$fh->openCol(2);
+$fh->buildButton(['id' => 'clear-form', 'class' => 'btn-block', 'style' => 'margin-top: 25px'], $fh->buildIcon('eraser') . " Limpar", "primary", TRUE);
+$fh->closeCol();
+$fh->removePreFix('medico');
+
+$fh->openCol(3, 1)->select('mesTo')->closeCol();
+$mesTo = $fh->getLastId();
+
+$fh->jumpLine(2);
+
+
+$fh->lineDown();
+
+/*
+ * +===========================================================================+
+ * # Carrega a listagem de horários
+ * +===========================================================================+
+ * | Aqui serão listados os horários definidos para este horarioMedico
+ * |
+ */
+$fh->openCol(12, ['id' => 'lista-horarios'])->closeCol();
+/* |
+ * +===========================================================================+
+ */
+
+$fh->openCol(12, ['id' => 'lista-trab']); // ===================================
+
+$sizeInputs = ($entity) ? count($entity->getDiasTrab()) : 1;
+for ($i = 0; $i < $form->getTotalInputs(); $i++) {
+    $valueInput = $form->get('diasTrab[' . $i . ']')->getValue();
+    $viewRow = ($sizeInputs > $i or ! empty($valueInput)) ? "" : "hideOn";
+    $fh->openLine(["class" => $viewRow]);
+
+    // CHECKBOX DE NOMES DOS DIAS DA SEMANA
+    $fh->setHorizontal(TRUE);
+    $fh->openCol(12)->renderInputMultiCheckbox('diasSemana[' . $i . ']', ['position' => FALSE, 'noClean' => true])->closeCol();
+    $checkSemana = $fh->getLastId();
+    $fh->setHorizontal(FALSE);
+    $fh->openCol(1);
+    $fh->buildButton(['class' => 'add btn-block', 'style' => 'margin-top: 25px'], $fh->buildIcon('plus'), "success", TRUE);
+    $fh->closeCol();
+    $fh->openCol(1);
+    $fh->buildButton(['class' => 'rmv btn-block', 'style' => 'margin-top: 25px'], $fh->buildIcon('times'), "danger", TRUE);
+    $fh->closeCol();
+    //    
+    // HORARIO DE INICIO E FIM DO EXPEDIENTE
+    $fh->openCol(2)->text('horIni[' . $i . ']', ['mask' => '99:99'])->closeCol();
+    $fh->openCol(2)->text('horFim[' . $i . ']', ['mask' => '99:99'])->closeCol();
+    $fh->openCol(6, ["class" => "calend-date"])->text('diasTrab[' . $i . ']', [
+        "clean" => FALSE,
+        "extra" => ["icon" => "calendar"]
+    ])->closeCol();
+
+    $fh->closeLine();
+}
+$fh->closeCol(); // ============================================================
+
+
+/** ============================================================================
+ * COPIAR MES ATUAL IGUAL AO MÊS ANTERIOR: Lógica postergada por falta de tempo
+ * e por grau de importancia baixo (dado os requisitos atuais);
+ * 
+ * O QUE FALTOU PARA CONCLUIR? Este recurso possibilita a cópia de todos os dados
+ * do mês anterior para o mês selecionado, porém os dias selecionados no campo
+ * 'diasTrab' do mês anterior estão em dias da semana diferentes em relação do 
+ * mês cujo qual se pretende receber estes dados. Por exemplo, o dia 1 do mês 5
+ * pode cair na segunda, mas o dia 1 do mês 6 pode cair em uma quarta. Pode ser 
+ * interessante, construir um serviço cujo qual lê os dias da semana definidos 
+ * no mês anterior e trazer os seus respectivos números atualizados. 
+ * PS: Boa sorte!
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 16-06-2016
+ * @todo Necessita conclusão de código
+ */
+//$fh->jumpLine(2);
+//$fh->openCol(3)->select('mesFrom')->closeCol();
+//$mesFrom = $fh->getLastId();
+//$fh->openCol(2);
+//$fh->buildButton(['id' => 'buscar-old', 'class' => 'btn-block', 'style' => 'margin-top: 25px'], 'Buscar', "primary", TRUE);
+//$fh->closeCol();
+// =============================================================================
+
+$fh->openCol(2, 5);
+$fh->buildButton(['id' => 'salvar', 'class' => 'btn-block', 'style' => 'margin-top: 25px'], 'Enviar', "primary", TRUE);
+$fh->closeCol();
+
+$fh->closeLine();
+$fh->formEnd();
+
+$fh->openLine();
+$fh->openCol(12, ['id' => 'tabela-medicos'])->closeCol();
+$fh->closeLine();
+
+$fields = array(
+    "nomeMedico" => $nomeMedico,
+    "idMedico" => $idMedico,
+    "checkSemana" => $checkSemana,
+    "mesTo" => $mesTo,
+    "idHorarioMedico" => ($entity) ? $entity->getId(): 0,
+//    "mesFrom" => $mesFrom,
+);
+?>
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        var $calend = $('.dias');
+
+        /**
+         * @description A listagem será carregada automaticamente, quando abrir 
+         * o form.pthml de horarioMedicos
+         */
+        $.processa({
+            url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'showListaHorarios'), [], FALSE, FALSE); ?>/" + fields.idHorarioMedico,
+            ret: "#lista-horarios"
+        });
+        /* |
+         * +====================================================================
+         */
+
+        /**
+         * Limpa o formulário
+         */
+        $('#clear-form').click(function () {
+            if (confirm("Deseja realmente apagar os campos?")) {
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                });
+            }
+        });
+
+        /**
+         * 
+         * @param {type} mesReferencia Mes de referencia para pegar dados do srv
+         * @param {type} subOpcao [previous | next | current]
+         * @returns {void}
+         */
+        function getListaMedicos(mesReferencia, subOpcao) {
+            mesReferencia = mesReferencia || $$(fields.mesTo).val();
+            subOpcao = subOpcao || "current";
+
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage: false,
+                data: {
+                    dateRef: mesReferencia,
+                    subOpcao: subOpcao,
+                    fakePost: 1
+                },
+                ret: "#tabela-medicos"
+            });
+        }
+
+        // AUTOCALL evento de gerar listagem de médicos
+        getListaMedicos();
+
+
+        var $calendate = $('.calend-date').find('.input-group');
+        $calendate.addClass('date');
+        $calendate.datepicker({
+            format: "dd",
+            maxViewMode: 2,
+            language: "pt-BR",
+            multidate: true,
+            daysOfWeekHighlighted: "1,2,3,4,5",
+        });
+
+        /**
+         * Ao trocar o mês de seleção das datas, alterar também o mês de visualização
+         * do calendário 
+         */
+        $$(fields.mesTo).change(function () {
+            // Redefine a nova data
+            var date = $(this).find("option:selected").val();
+            var aux = date.split('/');
+            $calendate.datepicker('setDate', new Date(aux[1], (aux[0] - 1), '01'));
+            // Limpa o campo após a redefinição (para tratar erro de autopreenchimento)
+            $calendate.find('input').val("");
+            // Atualiza todas as modificações
+            $calendate.datepicker("update");
+
+            getListaMedicos(date)
+        });
+
+//      DESCOMENTAR PARA EXIBIR OS CAMPOS DE FORMA RESUMIDA
+//        $('#lista-trab').find('.row').hide();
+//        $('#lista-trab').find('.row').first().show();
+
+        /**
+         * Limpa todos os campos do elemento parametrizado
+         * 
+         * @param {jQueryElement} $el
+         * @returns {jQueryElement}
+         */
+        function clearFields($el) {
+            $el.find('input[type="text"]').val("");
+            $el.find('input[type="checkbox"]').prop('checked', false);
+
+            return $el;
+        }
+
+        /**
+         * Sempre que o botão cujo a classe seja .add, será adicionada uma 
+         * nova linha contendo campos de preenchimento, sendo estes sempre
+         * vazios. Os botões da linha cujo qual o .add se encontra serão 
+         * desabilitados
+         * 
+         * @event
+         * @returns {undefined}
+         */
+        $('.add').click(function () {
+            var quant = $('#lista-trab').find('.row:visible').length;
+            if (6 == quant) {
+                $.notify({
+                    message: "Não é possível adicionar mais campos!!",
+                    type: "danger"
+                });
+                return false;
+            }
+            var $el = $(this).closest('.row');
+            var $nextEl = $el.next();
+
+            // Desabilita os botões da linha cujo qual se encontra este .add
+            $el.find('button').attr('disabled', 'disabled');
+
+            // Limpa os campos da proxima linha e a exibe
+            clearFields($nextEl).show();
+        });
+
+        /**
+         * Sempre que o botão cujo a classe seja .rmv, será removida a linha cujo
+         * qual este botão se encontra e então, os botões do campo anterior serão
+         * reabilitados
+         * 
+         * @event
+         * @returns {void}
+         */
+        $('.rmv').click(function () {
+            var quant = $('#lista-trab').find('.row:visible').length;
+            if (1 == quant) {
+                $.notify({
+                    message: "Não é possível remover o primeiro campo",
+                    type: "danger"
+                });
+                return false;
+            }
+
+            var $el = $(this).closest('.row');
+            var $prevEl = $el.prev();
+
+            // Habilita os botões da linha (.row) anterior
+            $prevEl.find('button').attr('disabled', false);
+
+            $el.hide();
+        });
+
+
+
+        /**
+         * Autocomplete Medico
+         */
+        $$(fields.nomeMedico).auto({
+            primary: "nomeMedico",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Medicos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            showCols: ["nomeMedico"],
+            callback: function (data) {
+                $$(fields.idMedico).val(data.idMedico)
+                /**
+                 * Renderiza a view de HorarioMedico com as seguintes regras:
+                 * Se o médico não possuir horarios para o mês escolhido, então
+                 * apenas o campo de médico será preenchido e view continua sendo
+                 * do tipo 'new'. Do contrário, é carregada a edição (edit);
+                 */
+                $$(fields.nomeMedico).closest('form').processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'renderByMedico'), [], FALSE, FALSE); ?>",
+                    type: "POST",
+                    data: {
+                        mesRef: $$(fields.mesTo).find('option:selected').val()
+                    }
+                });
+            },
+        });
+
+        $('#salvar').click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        /**
+         * Baseado no numero referente ao dia da semana (sendo domingo, 0 e 
+         * sábado, 6) contido no parametro daySelected, além dos parametros 
+         * month e year, são retornados todos os dias cujo quais pertencem ao dia
+         * da semana. Por exemplo, se for selecionado uma segunda feira (1) do 
+         * mes 9 de 2016, os dias 5,12,19 e 26 serão retornados
+         * 
+         * @param {type} month
+         * @param {type} year
+         * @param {type} daySelected
+         * @returns {Array}
+         */
+        function getDaysBy(month, year, daySelected) {
+            var d = new Date(year, month, "01");
+            var days = [];
+
+            var start = d.getDay();
+            var end = parseInt(daySelected);
+
+            while (start !== end) {
+                d.setDate(d.getDate() + 1);
+                start++;
+                if (start > 6) {
+                    start = 0;
+                }
+            }
+
+            while (d.getMonth() === month) {
+                days.push(d.getDate());
+                d.setDate(d.getDate() + 7);
+            }
+
+            return days;
+        }
+
+        /**
+         * Adiciona dias no input datepicker
+         * 
+         * @param {array} days
+         * @param {jQueryElement} $el
+         * @returns {void}  
+         */
+        function addDays(days, $el) {
+            var list = $el.val().split(',');
+            if (list[0] === "") {
+                list.splice(0, 1);
+            }
+
+            $.each(days, function (o, day) {
+                // Transforma em int e aplica 0 na frente do numero quando < 10 
+                day = ('0' + day).slice(-2);
+
+                var pos = list.indexOf(day);
+                if (pos === -1) {
+                    list.push(day);
+                }
+            });
+
+            $el.val(list.join());
+            $el.parent().datepicker('update');
+        }
+
+        /**
+         * Adiciona dias no input datepicker
+         * 
+         * @param {array} days
+         * @param {jQueryElement} $el
+         * @returns {void}  
+         */
+        function rmvDays(days, $el) {
+            var list = $el.val().split(',');
+            if (list[0] === "") {
+                list.splice(0, 1);
+            }
+
+            $.each(days, function (o, day) {
+                // Transforma em int e aplica 0 na frente do numero quando < 10 
+                day = ('0' + day).slice(-2);
+
+                var pos = list.indexOf(day);
+                if (pos > -1) {
+                    list.splice(pos, 1);
+                }
+
+            });
+
+            $el.val(list.join());
+            $el.parent().datepicker('update');
+        }
+        /**
+         * 
+         */
+        $('#lista-trab').find('input[type="checkbox"]').click(function () {
+            var mesSelecionado = $$(fields.mesTo).find('option:selected').val();
+            var $el = $(this).closest('.row').find('.date').find('input');
+            var aux = mesSelecionado.split('/');
+            var month = aux[0] - 1;
+            var year = aux[1];
+
+            var days = getDaysBy(month, year, $(this).val());
+            if ($(this).is(":checked")) {
+                addDays(days, $el);
+            } else {
+                rmvDays(days, $el);
+            }
+        });
+    });
+</script>

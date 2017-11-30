@@ -1,0 +1,345 @@
+<br />
+<?php 
+$controller = 'liberacaoExames';
+$route = 'tcmed/default';
+/* @var $fh \Application\View\Helper\Acl */
+$acl = $this->Acl();
+/* @var $fh \Application\View\Helper\PartialObject */
+$partialObject = $this->partialObj('tcmed');
+/* @var $fh \Application\View\Helper\FormHelp */
+$id = ($this->entity ? $this->entity->getId() : 0 );
+$fh = $this->formHelp(
+        $this,
+        $this->form,
+        $this->url(
+            $route,
+            array(
+                'controller' => $controller,
+                'action'     => $this->dataView['action'],
+                'id'         => $id,
+            ),
+            [],
+            FALSE,
+            $this->dataView['ajax']
+        )
+);
+$liberacaoStatus = $fh->getForm()->get('statusLiberacao'   )->getValue();
+$funcionarioId   = $fh->getForm()->get('funcionario'       )->getValue();
+$empresaId       = $fh->getForm()->get('empresa[idEmpresa]')->getValue();
+$liberado        = ("LI" === $liberacaoStatus) || ("LA" === $liberacaoStatus);
+$liberador       = $acl('tcmed:liberacaoExames:libera','allow');
+$exportado       = ($this->entity ? $this->entity->getExportado() : 0 );
+if($exportado > 0 OR $liberado AND !$liberador){
+    $this->form->disableAllInputs();
+}else{
+    !empty($empresaId)     && $this->form->disableInputsOfEmpresa();
+    !empty($funcionarioId) && $this->form->disableInputsOfFuncionario();
+}
+
+?>
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index')); ?>">Voltar</button>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<?php
+
+$fh->setHorizontal(true);
+$fh->formInit('Dados da Liberação de Exame', ['notOpenLine' => TRUE]);
+
+$fh->openCol(12)->renderInputRadio('statusLiberacao')->closeCol();
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'controller' => $controller, 'cpfAllow' => $acl('tcmed:empresas:cpf','allow')]);
+// ==============================================================================
+/**
+ * @category Endereço
+ */
+// =================================================================== ======
+$fh->renderFieldsetIni("Empresa Dados",['fAtrb' => 'id="enderecoFields"']);
+    $fh->openCol('4')->select('tipoPeriodico')->closeCol();
+    $fh->openCol('4')->select('empStatus',['labelWidth' => '5'])->closeCol();
+    $fh->openCol('4')->select('atividade',['labelWidth' => '5'])->closeCol();
+$fh->closeLine();
+$this->partialObj('tcmed')->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
+$fh->renderFieldsetFim();
+// ========= BOTAO PARA INCLUIR EMPRESA SOMENTE SE FOI LIBERADO E NAO EXPORTADO
+if($exportado == 0 AND empty($empresaId) AND $liberado){
+    $fh->openLine()->openCol(6,3)->buttonOnly('btnAdd',['id' => "addEmpresa",'class' => "btn btn-block btn-lg btn-primary",'label' => 'INCLUIR EMPRESA NA BASE'])->closeCol()->closeLine();
+}
+// ==============================================================================
+$fh->renderFieldsetIni('Dados da função do funcionario',['fAtrb' => 'id="funcaoFields"']);
+    $fh->setPreFix('ocupacao');
+    $idOcupacao = $fh->getIdFor('idOcupacao');
+
+    $fh->setPreFix('setor');
+    $idSetor = $fh->getIdFor('idSetor');
+
+    $fh->openCol(4)->text('nomeSetor', ['dt-clear' => $idSetor])->closeCol();
+    $nomeSetor = $fh->getLastId();
+    $fh->removePreFix();
+
+    $fh->setPreFix('cargo');
+    $fh->openCol(4)->text('cargo')->closeCol();
+    $cargo = $fh->getLastId();
+
+    $fh->openCol(4)->text('cbo')->closeCol();   
+    $cbo = $fh->getLastId();
+    $fh->removePreFix();
+
+    $fh->removePreFix();
+$fh->closeLine()->renderFieldsetFim();
+
+$fh->renderFieldsetIni('Dados do Funcionario',['fAtrb' => 'id="funcionarioFields"']);
+    if($exportado > 0 OR $liberado AND !$liberador){
+        $jsFun = "";
+    }else{
+        $jsFun = "$('#nomeFuncionario').focus().val(' ').keydown().keyup().change()";
+    }
+    $fh->openCol('12')->text('nomeFuncionario',['extra' => ['icon' => 'search', 'js' => $jsFun]])->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->cpf('cpfFun')->closeCol();
+    $fh->openCol('6')->text('rg')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->calend('dtAdmissao')->closeCol();
+    $fh->openCol('6')->calend('dtNascimento')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->pis('pis')->closeCol();
+    $fh->openCol('6')->select('sexo')->closeCol();
+$fh->lineDown();
+$fh->closeLine()->renderFieldsetFim();
+
+$fh->renderFieldsetFim();
+// ====================  BOTAO PARA INCLUIR FUNCIONARIO SOMENTE SE FOI LIBERADO =
+if($exportado == 0 AND empty($funcionarioId) AND !empty($empresaId) AND $liberado){
+    $fh->openLine()->openCol(6,3)->buttonOnly('btnAdd',['id' => "addfFuncionario",'class' => "btn btn-block btn-lg btn-primary",'label' => 'INCLUIR FUNCIONARIO NA BASE'])->closeCol()->closeLine();
+}
+// ==============================================================================
+$fh->renderFieldsetIni('Dados complementares');
+    $fh->openCol('6')->select('exameTipo')->closeCol();
+    $fh->openCol('6')->text('email')->closeCol();
+$fh->lineDown();
+    $fh->openCol('6')->text('telefone')->closeCol();
+    $fh->openCol('6')->text('celular')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->textArea('comentario')->closeCol();
+    if($liberador){
+        $fh->lineDown();
+            $fh->openCol('12')->radio('statusLiberacao')->closeCol();
+    }    
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+    
+$fh->closeLine()->renderFieldsetFim()->formEnd();
+
+// === TRANSPORTE ==============================================================
+$fieldsGuia = [
+    "idOcupacao" => $idOcupacao,
+    "cargo"      => $cargo,
+    "idSetor"    => $idSetor,
+    "nomeSetor"  => $nomeSetor,
+    "cbo"        => $cbo,
+    "liberado"   => $liberado,
+    "liberador"  => $liberador,
+    "exportado"  => $exportado,
+];
+?>
+
+<script lang="javascritp">   
+    
+    function isValid(){
+        checkHiddenInputsForNewEmpresa();
+        return true;
+    }
+    
+    /*
+     *  altera campos ocultos com dados da empresa
+     */
+    var checkHiddenInputsForNewEmpresa = function(){
+        var fields = window.funcaoCallBackPartialEmpresa.fields;
+        $('#nomeEmpresa'  ).val($$(fields.fantasiaEmpresa).val());
+        $('#referenciaEmp').val($$(fields.referenciaEmp  ).val());
+        $('#cnpj'         ).val($$(fields.cnpj           ).val());
+        $('#cpfEmp'       ).val($$(fields.cpf            ).val());
+    };
+    
+    $(function(){  
+        var fun_fields = window.funcaoCallBackPartialEmpresa.fields;
+        // Alterando a variavel fields para ter os valores de ocupação para trabalhar no auto comp abaixo de setor , cargo e cbo
+        var fields = <?php echo json_encode($fieldsGuia) ?>;
+        /*
+         * Altera a funcao padrão do callback run do partial form de empresas
+         * @returns {nothing}         
+         */
+        window.funcaoCallBackPartialEmpresa.run = function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action'], 'id' => $id), [], FALSE, FALSE); ?>",
+                frm  : true,
+                savePage: false,
+                data : {
+                    'subOpcao' : 'loadCad'
+                }
+            });
+        };          
+        /*
+         * Altera a funcao padrão do callback cleanEmpresa do partial form de empresas
+         * @returns {nothing}         
+         */
+        window.funcaoCallBackPartialEmpresa.cleanEmpresa = function(){
+            if(fields.exportado > 0 || fields.liberado && !fields.liberador){
+                return;
+            }
+            var $cleanInputs = $('#enderecoFields').find('.clean');
+            if($cleanInputs.size() === 0){
+                $.processa({
+                    url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action'], 'id' => $id), [], FALSE, FALSE); ?>",
+                    frm  : true,
+                    data : {
+                        'subOpcao' : 'CleanEmp'
+                    }
+                });
+                return;
+            }
+            $cleanInputs.each(function(){
+                var $ele = $(this);
+                $ele.click();
+            });
+        };          
+        /*
+         * Altera a funcao padrão do callback cleanRefEmpresa do partial form de empresas
+         * @returns {nothing}         
+         */
+        window.funcaoCallBackPartialEmpresa.cleanRefEmpresa = function(obj){
+            console.log('nao faça nada');
+        };
+        /*
+         * funcao para limpar campos do funcionario caso for um que já existe cadastro no BD.  
+         * @returns {nothing}         
+         */
+        $('#clean_nomeFuncionario').find('button').eq(0).click(function(){
+            if(fields.exportado > 0 || fields.liberado && !fields.liberador){
+                return;
+            }
+            if($('#funcionario').val() == ''){
+                return;
+            }
+            var $cleanInputs            = $('#funcaoFields'     ).find('.clean');
+            if($cleanInputs.size() === 0){
+                $.processa({
+                    url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action'], 'id' => $id), [], FALSE, FALSE); ?>",
+                    frm  : true,
+                    data : {
+                        'subOpcao' : 'CleanFun'
+                    }
+                });
+                return;
+            }
+            $cleanInputs.each(function(){
+                var $ele = $(this);
+                $ele.click();
+            });
+            var $cleanInputsFuncionario = $('#funcionarioFields').find('.clean');
+            $cleanInputsFuncionario.each(function(){
+                var $ele = $(this);
+                $ele.click();
+            });
+        });
+        
+        
+        /* AUTOCOMPLETE: Empresa */
+        $('#nomeFuncionario').auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            width: 900,
+            responseTo: {
+                "idAdministradora" : [fun_fields.idAdministradora]
+                ,"referenciaAdm"   : [fun_fields.referenciaAdm]
+                ,"fantasiaAdm"     : [fun_fields.fantasiaAdm]
+                ,"idEmpresa"       : [fun_fields.idEmpresa]
+                ,"referenciaEmp"   : [fun_fields.referenciaEmp]
+                ,"fantasiaEmpresa" : [fun_fields.fantasiaEmpresa]
+                ,"cnpj"            : [fun_fields.cnpj]
+                ,"idHold"          : [fun_fields.fantasiaHold]
+                ,"funcionario"     : ['#funcionario']
+                ,"nomeFuncionario" : ['#nomeFuncionario']
+            },
+            filters: function (query) {
+                query["idHold"]           = $$(fun_fields.fantasiaHold).val();
+                query["idAdministradora"] = $$(fun_fields.idAdministradora).val();
+                query["idEmpresa"]        = $$(fun_fields.idEmpresa).val();
+                query["subOpcao"]         = "type1";
+            },
+            callback : funcaoCallBackPartialEmpresa,        
+            showCols: ["funcionario", "nomeFuncionario", "fantasiaAdm", "fantasiaEmpresa", "cpf", "rg"]
+        });
+        
+        fields.idEmpresa = window.funcaoCallBackPartialEmpresa.fields.idEmpresa;
+
+        $$(fields.nomeSetor).auto({
+            primary: "nomeSetor",
+            width: 300,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                "idSetor": [fields.idSetor]
+            },
+            filters: function (query) {
+                query["idEmpresa"] = $$(fields.idEmpresa).val()
+            },
+        });
+
+        $$(fields.cargo).auto({
+            primary: "cargo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                nomeSetor: [fields.nomeSetor],
+                cbo: [fields.cbo],
+                idOcupacao: [fields.idOcupacao]
+            },
+            filters: function (query) {
+                query["idEmpresa"] = $$(fields.idEmpresa).val()
+                query["idSetor"] = $$(fields.idSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+
+        $$(fields.cbo).auto({
+            primary: "cbo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                cargo: [fields.cargo],
+                nomeSetor: [fields.nomeSetor],
+                idOcupacao: [fields.idOcupacao]
+            },
+            filters: function (query) {
+                query["idEmpresa"] = $$(fields.idEmpresa).val()
+                query["idSetor"] = $$(fields.idSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+        
+        /*
+         * Executa a inclusão do funcionario no BD e faz a ligação com Liberação
+         * 04-03-2016
+         */
+        $('#addfFuncionario').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'addFuncionario', 'id' => $id), [], FALSE, FALSE); ?>",
+                frm  : true
+            });
+        });
+        
+        /*
+         * Executa a inclusão da Empresa no BD e faz a ligação com Liberação
+         * 04-03-2016
+         */
+        $('#addEmpresa').click(function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'addEmpresa', 'id' => $id), [], FALSE, FALSE); ?>",
+                frm  : true
+            });
+        });
+        
+    });
+    
+</script>

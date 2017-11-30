@@ -1,0 +1,71 @@
+<?php
+$fh = &$obj;
+
+$fh->setHorizontal(FALSE);
+$fh->closeLine()->renderFieldsetIni('')->setPreFix('administradora');
+    $idAdministradora = $fh->getIdFor('idAdministradora');
+
+    $fh->setPreFix('hold');
+        $idHold = $fh->getIdFor('idHold');
+        $referenciaHold = $fh->getLastId();
+        $fh->openCol('6')->text('fantasiaHold', ['dt-clear' => $idHold .",". $referenciaHold])->closeCol();
+        $fh->lineDown();
+        $fantasiaHold = $fh->getLastId();
+    $fh->removePreFix();
+
+    $fh->openCol('2')->text('referenciaAdm')->closeCol();
+    $referenciaAdm = $fh->getLastId();
+    $fh->openCol('4')->text('fantasiaAdm', ['dt-clear' => $idAdministradora .",". $referenciaAdm])->closeCol();
+    $fh->lineDown();
+    $fantasiaAdm = $fh->getLastId();
+$fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
+?>
+
+<script lang="javascript">
+
+    $(function () {
+        var fields = {
+            idHold: "<?php echo $idHold ?>",
+            fantasiaHold: "<?php echo $fantasiaHold ?>",
+            referenciaHold: "<?php echo $referenciaHold ?>",
+            referenciaAdm: "<?php echo $referenciaAdm ?>",
+            idAdministradora: "<?php echo $idAdministradora ?>",
+            fantasiaAdm: "<?php echo $fantasiaAdm ?>",
+        };
+
+        /* AUTOCOMPLETE: Hold */
+        action.getEl(fields.fantasiaHold).keypress(function () {
+            action.auto($(this), {
+                primary: "fantasiaHold",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'Holds', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+                responseTo: {
+                    "idHold": [fields.idHold],
+                    "referenciaHold": [fields.referenciaHold],
+                    
+                },
+            });
+        });
+
+        /* AUTOCOMPLETE: Administradora */
+        action.getEl(fields.fantasiaAdm).keypress(function () {
+            action.auto($(this), {
+                primary: "fantasiaAdm",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'administradoras', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+                responseTo: {
+                    "idHold": [fields.idHold],
+                    "fantasiaHold": [fields.fantasiaHold],
+                    "idAdministradora": [fields.idAdministradora],
+                    "referenciaAdm": [fields.referenciaAdm],
+                    "referenciaHold": [fields.referenciaHold],
+                },
+                params: {
+                    rules: {
+                        hold: action.getVal(fields.idHold),
+                    }
+                }
+            });
+        });
+    });
+</script>

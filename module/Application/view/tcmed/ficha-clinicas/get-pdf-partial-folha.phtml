@@ -1,0 +1,52 @@
+<div class='folha'>
+
+<?      /* @var $consulta \Tcmed\Entity\Consulta */
+ 
+        $via = 'da Empresa';
+        $contador ++;
+        $hold = $consulta->getEmpresa('administradora',['hold',['referenciaHold']]);
+        switch ($hold) {
+            case '1':
+            case '5':
+            case '6':
+            case '7':
+                $holdPartial = 'get-pdf-partial-aso-vv';
+                break;
+            case '2':
+            case '4':
+                $holdPartial = 'get-pdf-partial-aso-tc';
+                break;
+
+            default:
+                $holdPartial = $hold;
+                break;
+        }   
+        
+        // Verificar se imprime guia de retorno
+        if($retorno == $contador){
+            include $this->partial('get-pdf-partial-retorno'); 
+        }else{
+            include $this->partial($holdPartial); 
+        }
+
+        // Se a folha for paisagem imprime o tracejado para corte
+        if($this->orientation === 'L'){
+            include $this->partial('get-pdf-partial-aso-sep'); 
+        }
+
+        // Adiciona 2 ASO ao contador e depois verifica se continua imprimindo na tela
+        $contador ++;
+        
+        if($contador <= $qtdPag){
+            $via = 'do Funcionario';
+            // Verificar se imprime guia de retorno
+            if($retorno == $contador){
+                include $this->partial('get-pdf-partial-retorno'); 
+            }else{
+                include $this->partial($holdPartial); 
+            }
+        }
+
+?>
+    
+</div>

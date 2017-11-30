@@ -1,0 +1,204 @@
+<?php
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$entity = $this->entity;
+/* @var $form \Agenda\Form\Bloco */
+$form = $this->form;
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+$partial = $this->partialObj('tcmed');
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$fh->formInit()->openCol(12); // ===============================================
+
+$fh->openCol(12, ['class' => 'alert alert-info']);
+$fh->openLine();
+$fh->openCol(3)->checkbox('noShow2014', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('noLifeZero', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('noEmpList', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('noTcmed', ['position' => 'right'])->closeCol();
+$fh->openCol(3)->checkbox('noLower3', ['position' => 'right'])->closeCol();
+$fh->openCol(2)->buildButton(['id' => 'refresh-list', 'class' => 'btn-block'], '<i class="fa fa-refresh"></i> Atualizar', 'primary', TRUE)->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(12);
+echo '<hr>';
+$fh->closeCol();
+
+$fh->lineDown();
+
+$fh->openCol(1);
+echo '<strong>Páginas</strong>';
+$fh->closeCol();
+
+$fh->openCol(9);
+
+if ($form->has('checkPage')) {
+    $fh->setHorizontal(TRUE);
+    $fh->renderInputMultiCheckbox('checkPage', ['noClean' => true], ['class' => 'page']);
+    $fh->setHorizontal(FALSE);
+}
+
+$fh->closeCol();
+
+$fh->openCol(2)->text('numPag', [
+    "extra" => ["icon" => "plus", "id" => "add-pagina", "title" => "Incluir Página"],
+    "noLabel" => TRUE
+])->closeCol();
+$numPag = $fh->getLastId();
+
+$fh->closeLine();
+$fh->closeCol();
+
+$fh->closeCol()->formEnd(); // =================================================
+$fh->openLine()->openCol(12);
+
+$table->openTable(TRUE);
+$lambda = function($value, $data) {
+    echo '<td nowrap>'
+//    . '<input class="to-list" type="checkbox" value=' . $value . '> <i class="incluir-listagem hand fa fa-level-up" title="Incluir na listagem"></i>'
+    . '<i data-id="' . $value . '" class="incluir-bloco hand fa fa-check" title="Incluir na listagem"></i>'
+    . '</td>', PHP_EOL;
+};
+$table->setLambda($lambda);
+$table->renderThead(['Página(s)', 'Administradora', 'Cód Emp', 'Razão Social', 'Periódico', 'Endereço', 'CEP', 'Cód Rua', 'vidas', 'Ação']);
+$total = 0;
+/* @var $entity \Tcmed\Entity\Empresa */
+foreach ($this->result as $entity) {
+    $table->renderLine([
+        $entity->getPagina(),
+        $entity->getAdministradora()->getRazaoSocial(),
+        $entity->getReferenciaEmp(),
+        $entity->getRazaoSocial(),
+        $entity->getPeriodicidade(),
+        '',
+        '',
+        '',
+        $entity->getQtdFunc(),
+        $entity->getId()
+    ]);
+    $total++;
+}
+echo '<tr><td colspan="10"><strong>TOTAL: ' . $total . '</strong></td></tr>';
+$table->renderCloseTable();
+
+$fh->closeCol()->closeLine();
+?>
+<center>
+    <strong>Legenda </strong>  
+    <span class="label label-danger">Cond. Inativos</span>
+    <span class="label label-default">Cond. Improdutivos</span>
+    <span class="label label-success">Cond. Reagendados</span>
+    <span class="label label-warning">Cond. Novos</span>
+    <span class="label label-primary">Cond. TEM LISTA</span>
+</center>
+<br>
+<br>
+<?php
+// Var de transferencia PHP to JS
+$transp = array(
+    'numPag' => $numPag
+);
+?>
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        /**
+         * Atualiza a listagem de empresas
+         * 
+         * @param {object} params Caso for preciso modificar algum parametro do 
+         * processa, utilizar este objeto
+         */
+        function refreshList(params) {
+            var data = {
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                type: 'POST',
+                savePage: false,
+                ret: "#listagem-empresa"
+            };
+
+            $.extend(data, params, data);
+            $('#formFiltrosEmpresa').processa(data);
+        }
+
+        /**
+         * Caso o botão atualizar seja clicado, então recarregar a listagem
+         */
+        $('#refresh-list').click(function () {
+            refreshList();
+        });
+
+        /**
+         * Envia request ao servidor, adicionando um campo de filtro de página.
+         * Caso o campo esteja vazio, nada será executado. Do contrário, o request
+         * será enviado ao servidor (que por sua vez, irá ler o valor da página
+         * e adicionar)
+         */
+        $('#add-pagina').click(function () {
+            var pag = $$(transp.numPag).val();
+            if ("" == pag) {
+                $.notify({
+                    message: "Informe o número da página!",
+                    type: "danger"
+                });
+                return false;
+            }
+            refreshList();
+        });
+
+        /**
+         * Adiciona o botão excluir em cada checkbox que contenha .addRemove
+         * (Páginas que estão sendo filtradas).
+         * Posteriormente, é adicionado em cada remove-page, o evento click
+         * para remover o campo de filtro de pagina caso o usuário clique
+         * no elemento .remove-page
+         */
+        $('.page').each(function () {
+            var page = $(this).val();
+            $(this).parent().after(' <i data-id="' + page + '" class="remove-page hand fa fa-times"></i>');
+
+            $('.remove-page').click(function () {
+                var page = $(this).attr('data-id');
+                refreshList({
+                    data: {
+                        removePage: page
+                    }
+                });
+            });
+        });
+
+        /**
+         * @todo FALTA REPARAR
+         */
+        $('.incluir-bloco').click(function () {
+            var id = $(this).attr('data-id');
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'listaNovoBloco'), [], FALSE, FALSE); ?>",
+                type: 'POST',
+                data: {
+                    subOpcao: "incluirEmpresa",
+                    idEmpresa: id
+                },
+                ret: "#lista-novo-bloco"
+            });
+        });
+    });
+
+</script>

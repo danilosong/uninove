@@ -1,0 +1,232 @@
+<?
+$dthis        = $d['this'];
+$controller   = $dthis->dataView['controller'];
+$action       = $dthis->dataView['action'];
+$route        = $dthis->dataView['route'];
+$title        = $dthis->dataView['titulo'];
+$ppraVigencia = $d['ppraVigencia'];
+$fh           = &$obj;
+
+$fh->setHorizontal(TRUE);
+$fh->openCol(12, ['style' => 'border: 3px dotted #aaa']);
+    echo '<br />';
+
+    $importaData = $fh->getIdFor('importaData');
+    $verFotos    = $fh->getIdFor('verFotos');
+
+    $fh->openCol(12)->checkbox('importaData', ['position' => TRUE])->closeCol();
+    $fh->openCol(12, ['id' => 'showImports', 'class' => 'hideOn']);
+
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaTextos'    , 'data-action' => 'tableCapa'          ])->checkbox('capa'          , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaTextos'    , 'data-action' => 'tableIndice'        ])->checkbox('indice'        , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigencias'         , 'data-action' => 'tableIdentificacao' ])->checkbox('identificacao' , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigencias'         , 'data-action' => 'tableHistorico'     ])->checkbox('historico'     , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigencias'         , 'data-action' => 'tableLocais'        ])->checkbox('locais'        , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigencias'         , 'data-action' => 'tableTrabalho'      ])->checkbox('trabalho'      , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaAparelhos' , 'data-action' => 'tableAparelho'      ])->checkbox('aparelho'      , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaAparelhos' , 'data-action' => 'tableRuido'         ])->checkbox('tabRuido'      , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraMedicaos'          , 'data-action' => 'tableMedicao'       ])->checkbox('medicao'       , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaTextos'    , 'data-action' => 'tableQuadro'        ])->checkbox('quadro'        , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaTextos'    , 'data-action' => 'tableItemNr32'      ])->checkbox('item'          , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ocupacaos'             , 'data-action' => 'tableFuncao'        ])->checkbox('funcoes'       , ['position' => TRUE])->closeCol();
+//        $fh->openCol(3, ['class' => 'import', 'data-controller' => ''                      , 'data-action' => ''                   ])->checkbox('condRis'       , ['position' => TRUE])->closeCol();
+//        $fh->openCol(3, ['class' => 'import', 'data-controller' => ''                      , 'data-action' => ''                   ])->checkbox('qualRis'       , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaCronogramas','data-action' => 'tableCronograma'    ])->checkbox('cronograma'    , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaResps'     , 'data-action' => 'tableAssinatura'    ])->checkbox('assinatura'    , ['position' => TRUE])->closeCol();
+        $fh->openCol(3, ['class' => 'import', 'data-controller' => 'ppraVigenciaTextos'    , 'data-action' => 'tableEpi'           ])->checkbox('epi'           , ['position' => TRUE])->closeCol();
+
+        $fh->openCol(12)->checkbox('verFotos'     , ['position' => TRUE])->closeCol();
+        $fh->openCol(12, ['id' => 'showFotos', 'class' => 'hideOn']);
+            $checkFotos = $fh->getIdFor('checkFotos');
+            $fh->openCol(12)->multiCheckbox('checkFotos')->closeCol();
+            $fh->openCol(6, ['class'=> 'text-center'])->buildButton(['id' => 'carregar-fotos'], "<i class='fa fa-refresh'></i> Carregar Fotos", 'primary', TRUE)->closeCol();
+            $fh->openCol(6, ['class'=> 'text-center'])->buildButton(['id' => 'carregar-foto-only'], "<i class='fa fa-refresh'></i> Somente 1 Foto", 'primary', TRUE)->closeCol();
+        $fh->closeCol();
+
+    $fh->closeCol();
+
+$fh->closeCol();
+$fh->setHorizontal(FALSE);
+
+$fh->lineDown();
+
+$fh->openCol(12)->text('texto')->closeCol();
+$texto = $fh->getIdFor('texto');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'importaData',
+    'verFotos',
+    'target',
+    'ppraVigencia',
+    'texto'
+);
+?>
+
+<script src='/js/tinymce/tinymce.min.js'></script>
+<script type="text/javascript">
+    $(function() {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        /**
+         * @description Gera o campo de edição de texto personalizado
+         *
+         * @todo Sempre que o campo for aberto,
+         * as linhas do attr 'setup' abaixo removerá qualquer
+         * requício do tinymce, e dessa forma, eu resolvi
+         * o problema dos menus que estão abrindo do lado
+         * de fora do modal ou do #inter
+         *
+         * @author  Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since   29-03-2017
+         * @example www.tinymce.com/docs/
+         */
+         setTimeout(function() {
+             tinymce.init({
+                 selector: '#' + transp.texto,
+                 setup   : function(editor) {
+                     $('.mce-container').remove();
+                     $('.mce-tooltip').remove();
+                 },
+                 toolbar: 'undo redo | bold italic underline | forecolor backcolor | bullist numlist | alignleft aligncenter | alignright | alignjustify | alignnone | fontsizeselect |  alignright | italic | underline | forecolor | backcolor',
+                 plugins: ['textcolor lists advlist'],
+                 menubar: false,
+                 height : 600
+
+             });
+         }, 1000);
+
+        /**
+         * Abre a exibicao das opcoes
+         */
+        $$(transp.importaData).click(function() {
+            $('#showImports').toggle('fast');
+        });
+
+        /**
+         * Abre a exibicao de fotos
+         */
+        $$(transp.verFotos).click(function() {
+            $('#showFotos').toggle('fast');
+        });
+
+        /**
+         * Remove o import do editor de texto;
+         */
+        function remove(tag) {
+            $('#inter').append("<div id='temp' class='hideOn'></div>");
+            $('#temp').html(tinymce.get(transp.texto).getContent());
+            $('#temp').find(tag).remove();
+            tinymce.get(transp.texto).setContent($('#temp').html());
+            $('#temp').remove();
+        }
+
+        /**
+         * Adiciona o import no editor de texto;
+         */
+        function add(data) {
+            $('#inter').append("<div id='temp' class='hideOn'></div>");
+            $('#temp').html(tinymce.get(transp.texto).getContent());
+            $('#temp').append(data);
+            tinymce.get(transp.texto).setContent($('#temp').html());
+            $('#temp').remove();
+        }
+
+        /**
+         * Importa no target, o objeto selecionado nas opcoes
+         */
+        $('.import').each(function() {
+            var controller = $(this).data('controller');
+            var action     = $(this).data('action');
+
+            $(this).find('input').click(function() {
+                var id = $(this).attr('id');
+                if($(this).prop('checked')) {
+                    getDataServer(controller, action, id);
+                } else {
+                    remove('#import-'+id);
+                }
+            })
+        });
+
+        /**
+         * [getDataServer description]
+         * @param  [type] controller [description]
+         * @param  [type] action     [description]
+         * @param  [type] id         [description]
+         * @return [type]            [description]
+         */
+        function getDataServer(controller, action, id) {
+            $.processa({
+                url: "<?= $dthis->url($route, array('controller' => 'index', 'action' => 'getRoute'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage : false,
+                data: {
+                    controller : controller,
+                    action     : action
+                },
+                callback : function(data){
+                    $.processa({
+                        url : data,
+                        type: "POST",
+                        savePage : false,
+                        data: {
+                            ppraVigencia  : transp.ppraVigencia,
+                            subOpcao      : ''
+                        },
+                        callback : function(data){
+                            add("<div id='import-"+id+"'>" + data + "</div>");
+                        }
+                    });
+                }
+            });
+        }
+
+        $('#carregar-fotos').click(function() {
+            var fotos = [];
+            $('#showFotos').find('input').filter(':checked').each(function() {
+                fotos.push($(this).val());
+            });
+
+            $.processa({
+                url: "<?= $dthis->url($route, array('controller' => 'ppraVigenciaFotos', 'action' => 'getFotosTexto'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage : false,
+                data: {
+                    fotos  : JSON.stringify(fotos)
+                },
+                callback: function(data) {
+                    remove("#import-foto");
+                    add("<div id='import-foto'>" + data + "</div>");
+                }
+            });
+        });
+        
+        $('#carregar-foto-only').click(function(){
+            var foto = '';
+            $('#showFotos').find('input').filter(':checked').each(function() {
+                foto = $(this).val();
+            });
+
+            if(foto == ''){
+                gModal2.alert('Selecione uma foto por favor!');
+                gModal.showHtml();
+                return;
+            }
+            
+            $.processa({
+                url: "<?= $dthis->url($route, array('controller' => 'ppraVigenciaFotos', 'action' => 'getFoto'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage : false,
+                data: {
+                    foto  : foto
+                },
+                callback: function(data) {
+                    remove("#import-foto-only");
+                    add("<div id='import-foto-only'>" + data + "</div>");
+                }
+            });        
+        });
+
+    });
+</script>

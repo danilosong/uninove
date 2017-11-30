@@ -15,9 +15,8 @@ namespace Application\Controller;
  */
 class UsuariosController extends CrudController{
 
-    public function __construct() {
-        parent::__construct('usuario');
-        $this->setFormWithEntityManager(TRUE);
+    public function __construct($name = '', $module = 'Application') {
+        parent::__construct($name, $module);
         $this->setHaveServiceLocatorService(TRUE);
         $this->setFormWithController(TRUE);
     }
@@ -63,7 +62,7 @@ class UsuariosController extends CrudController{
     
     public function changePasswdAction() {        
         $dataView = $this->getDataView('Editando ' . $this->name, 'changePasswd');
-        $form = $this->getForm(['filter' => false]);
+        $form = $this->getForm(['filters' => false]);
         $request = $this->getRequest();
         $entity = null;
         $id = $this->params()->fromRoute('id', 0);
@@ -79,7 +78,8 @@ class UsuariosController extends CrudController{
                 }
                 if (!is_array($resul) AND $this->render) {
                     $param = $this->getParam();
-                    return $this->redirect()->toRoute($param('route','defaultRoute'), array('controller' => 'index', 'action' => 'buildIndex', 'ajax' => 'ok'));
+                    $route = $param('route','defaultRoute');
+                    return $this->redirect()->toRoute(str_replace('default', 'ajax', $route), array('controller' => 'index', 'action' => 'buildIndex', 'ajax' => 'ok'));
                 }
             } else {
                 echo '<h1>invalidos new</h1> <pre>', var_dump($form->getMessages()), '</pre>';

@@ -1,0 +1,22 @@
+<?php 
+/* @var $entity \Tcmed\Entity\Setor */
+if($this->resultSet){
+    $array = [];
+
+    if($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idSetor' => "ID",
+            'menu_nomeSetor' => "Setor",
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idSetor' => $entity->getIdSetor(),
+                'nomeSetor' => $entity->getNomeSetor()
+            ];
+        }
+    }
+
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

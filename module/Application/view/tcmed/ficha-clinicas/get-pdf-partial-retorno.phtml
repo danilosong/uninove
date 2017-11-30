@@ -1,0 +1,49 @@
+<? 
+/* @var $consulta \Tcmed\Entity\Consulta */ 
+?>	
+    <div class='aso'>
+		<div class='topo'>
+                    <img src="<? echo $param('all','asoDirImage'); ?>tcmed3.jpg" class='topologo'>
+			<span class='topot2'>Guia de Retorno de Exame.</span><br />
+                        Data do Retorno <br />
+                        <span class='topot2'>
+                            <? echo $consulta->getDtRetorno('full');  ?>
+                        </span><br />
+			Exame <span class='meio1t1'>
+                            <? echo $param($consulta->getTipo(), "FC_tipo_exame");  ?>
+                        </span><br />			
+			Cod. Autenticidade: R<?php echo $consulta->getId() ?><br /><br />
+		</div>		
+		<div class='meio1'>
+		    TECNO MED ASS E SERV TÉC. EM MEDICINA LTDA<br /><br />
+                    Administradora <? echo $consulta->getAdministradora()->getReferenciaSubhold();  ?> 
+                    <span class='meio1t1'><? echo $consulta->getAdministradora()->getFantasiaAdm();  ?> </span><br />
+                    Empresa (<? echo $consulta->getEmpresa()->getReferenciaEmp();  ?> ) 
+                    <span class='meio1t1'><? echo $consulta->getEmpresa()->getFantasiaEmpresa();  ?> </span> 
+                    Referência: <? echo $consulta->getEmpresa()->getReferenciaAdm();  ?> <br />
+                    CNPJ <? echo $consulta->getEmpresa()->getCnpj();  ?>  
+                    CEP <? echo $consulta->getEmpresa()->getEndereco()->getLogradouro()->getCep();  ?><br />
+                    Email, Tel de Contato DP. :TxtEmpEma<br /><br />
+                    Funcionário <span class='meio1t1'><? echo $consulta->getFuncionario()->getNomeFuncionario();  ?></span> 
+                    (<? echo $consulta->getFuncionario()->getReferenciaFun();  ?>)<br />
+                    Setor:	<span class='meio1t1'><? echo $consulta->getHistOcupacional()->getOcupacao()->getSetor(); ?></span><br />
+                    Cargo:	<span class='meio1t1'><? echo $consulta->getHistOcupacional()->getOcupacao()->getCargo(TRUE); ?></span><br />
+                    RG.: <span class='meio1t1'><? echo $consulta->getFuncionario()->getRg();  ?></span> 
+                    CPF.: <span class='meio1t1'><? echo $consulta->getFuncionario()->getCpf();  ?></span><br />
+                    Data Nasc. <span class='meio1t1'><? echo $consulta->getFuncionario()->getDtNascimento();  ?></span> 
+                    Passar preferencialmente com médico: <br />
+                    <span class='meio1t1'><? echo $consulta->getMedico();  ?></span><br />
+                    Obs.:<span class='meio1t1'><? echo $consulta->getObservacaoRetorno();  ?></span><br /><br />		
+		</div>
+		<div class='meio2'>	
+		    <span class='meio1t1'>Apresentar CPF e RG na clinica </span><br />
+                    <?php echo $consulta->getClinica()->getFantasiaClinica() ?>.<br />
+                    <?php echo $consulta->getClinica()->getInfoAtendimento() ?><br />
+                    <span class='meio1t1'>Local do Atendimento:</span><br /> 
+                    <?php echo $consulta->getClinica()->getEndereco() ?><br />
+		</div>		    
+		<div class='rodape'>
+			<br />
+			<div class='rodapet1'><barcode code="R<?php echo $consulta->getId() ?>" type="C128A" size="1.5" height="0.4" text="R<?php echo $consulta->getId() ?>"/></div>
+		</div>    
+	</div>

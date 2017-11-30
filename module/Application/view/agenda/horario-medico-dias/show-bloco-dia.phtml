@@ -1,0 +1,237 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $horaMedDia \Agenda\Entity\HorarioMedicoDia */
+/* @var $bloco \Agenda\Entity\Bloco */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$partial    = $this->partialObj('application');
+$table      = $this->table();
+$horaMedDia = $this->horaMedDia;
+$bloco      = $horaMedDia->getBloco();
+
+/*
+ * Partial para renderizar o HTML do modal
+ */
+echo $this->partial('partials/modal');
+
+/* +----------------------------------------------------------------------------
+ * | TITULO
+ * +----------------------------------------------------------------------------
+ * 
+ */
+echo "<h2 class='text-center'>Itens do Bloco - Agenda de {$bloco->getTotalHoras()}</h2>";
+
+
+/* +----------------------------------------------------------------------------
+ * | DIAS DE AGENDAMENTO
+ * +----------------------------------------------------------------------------
+ * Exibe os dias de agendamento
+ */
+
+$horariosBloco = $bloco->listHorarioMedicoDia();
+$aux           = array();
+$text          = (0 < count($horariosBloco)) ? "Para a(s) data(s) " : "";
+
+/* @var $hmdBloco Agenda\Entity\HorarioMedicoDia */
+foreach ($horariosBloco as $hmdBloco) {
+    $icon  = "<i class='fa fa-times'></i>";
+    $title = "Remover o bloco deste dia";
+    $show  = "<a class='hand remove-day' data-id='{$hmdBloco->getId()}' title='{$title}'>{$hmdBloco->getDateHoramed()} {$icon} </a>";
+
+    $aux[] = $show;
+}
+
+$diasAgendamento = $text . implode(', ', $aux);
+?>
+<table class="table table-striped table-bordered">
+    <tr>
+        <td><?= "Medico(a): {$bloco->getMedico('nomeMedico')} {$diasAgendamento}" ?></td>
+    </tr>
+    <tr>
+        <td><?= "Criado por: {$bloco->getCreatedBy('nomeUsuario')} na data {$bloco->getCreatedAt()} - Número da lista {$bloco->getReferencia()}" ?></td>
+    </tr>
+    <tr>
+        <td><?= "Alterado por: {$bloco->getUpdatedBy('nomeUsuario')} na data {$bloco->getUpdatedAt()} as {$bloco->getUpdatedAt(FALSE, 'H:i')}" ?></td>
+    </tr>
+    <tr class="info">
+        <td>
+            <div class="col-md-3">
+                <?
+                    echo "Status do bloco: {$bloco->getStatus()}";
+                    if($bloco->getIsOculto()){
+                        echo " e OCULTO";
+                    }
+                ?>
+            </div>
+            <div class="col-md-9 text-right">
+                Horas Restantes: <?= $bloco->getHorasRestantes() ?>  
+            </div>
+        </td>
+    </tr>
+</table>
+<?
+$table->openTable(TRUE);
+$table->setEditLine(FALSE);
+$table->renderThead([
+    ['label' => 'seq', 'options' => ' title="Sequencia"'],
+    ['label' => 'Hora Ini', 'options' => ' title="Hora Final"'],
+    ['label' => 'Hora Fim', 'options' => ' title="Hora Inicial"'],
+    ['label' => 'Dt Periodico', 'options' => ' title="Data do ultimo periódico"'],
+    ['label' => 'Cod.', 'options' => ' title="Número do Condomínio"'],
+    ['label' => 'Nome', 'options' => ' title="Nome do Condomínio"'],
+    ['label' => 'Nº Func', 'options' => ' title="Número de Funcionários"'],
+    ['label' => 'Endereco'],
+    ['label' => 'Bairro'],
+    ['label' => 'Cod. Rua', 'options' => ' title="Código da Rua"'],
+    ['label' => 'Tempo'],
+    ['label' => 'Percurso']
+]);
+/* @var $blocoItem Agenda\Entity\BlocoItem */
+foreach ($bloco->listaBlocoItem() as $blocoItem) {
+
+    /*
+     * Caso exista algum relatório para a empresa do item, então ele será
+     * utilizado para contabilizar o total de reagendados e o total de realizados
+     */
+    $style = '';
+    $relatorio = $blocoItem->getEmpresa("retRelatorioDetEmpBy", [$bloco->getAgendadoEm(TRUE)]);
+    if ($relatorio instanceof \Agenda\Entity\RelatorioDetEmp) {
+        $relatorio->getReagendar() && $style = 'style="background-color: #5cb85c; color: #fff"';
+        $relatorio->getFrustrado() && $style = 'style="background-color: #777; color: #fff"';
+    }
+
+    if ("INATIVO" == $blocoItem->getEmpresa('status')) {
+        $style = 'style="background-color: #d9534f; color: #fff"';
+    }
+
+    $horaIni = array();
+    $horaFim = array();
+
+    foreach ($bloco->listHorarioMedicoDia() as $horaMedDia) {
+
+        $ini = $blocoItem->getHoraIni(FALSE);
+        
+        // @todo Trata erro de exibicao quando 1 bloco está agendado para muitos dias;
+        if($bloco->getManyDays()){
+            $ini = $horaMedDia->getIni(FALSE);
+        }
+        
+        $horaAgendada = $horaMedDia->getHoraAgendada(FALSE);
+        $inicioAlmoco = $horaMedDia->getIntervaloIni(FALSE);
+        $totalAlmoco  = $horaMedDia->totalIntervalo(FALSE);
+
+        /*
+         * Quando o bloco houver muitos dias de agendamento ou quando ainda houver
+         * horas restantes no bloco, então executar as regras abaixo para exibir
+         * a data do dia de agendamento do bloco;
+         */
+        if ($bloco->getManyDays() or 0 < $bloco->getHorasRestantes(FALSE)) {
+            $dia = "({$horaMedDia->getDateHoramed('d/m')}) ";
+            $fim = $ini + $horaAgendada;
+        } else {
+            $dia = "";
+            $fim = $blocoItem->getHoraFim(FALSE);
+        }
+
+        if ($fim > $inicioAlmoco) {
+            $fim += $totalAlmoco;
+        }
+
+        $horaIni[] = $dia . $blocoItem->intToTime($ini);
+        $horaFim[] = $dia . $blocoItem->intToTime($fim);
+    }
+
+
+    $table->renderLine([
+        $blocoItem->getSeq() + 1,
+        implode('<br>', $horaIni),
+        implode('<br>', $horaFim),
+        $blocoItem->getEmpresa('dtPeriodico'),
+        '<span class="hand open-empresa" title="Ir para a empresa" data-id="' . $blocoItem->getEmpresa('id') . '">' . $blocoItem->getEmpresa('referenciaEmp') . '</span>',
+        '<span class="hand open-empresa" title="Ir para a empresa" data-id="' . $blocoItem->getEmpresa('id') . '">' . $blocoItem->getEmpresa('fantasiaEmpresa') . '</span>',
+        $blocoItem->getQtdFunItem(),
+        $blocoItem->getEmpresa('endereco', ['exibeEnderecoSimples']),
+        $blocoItem->getEmpresa('endereco', ['logradouro', ['bairro', ['nomeBairro']]]),
+        $blocoItem->getCodigoRua(),
+        $blocoItem->getTempoCons(),
+        $blocoItem->getTranslado(),
+            ], $style);
+}
+$table->renderCloseTable();
+?>
+<br>
+<center>
+    <strong>Legenda </strong>  
+    <span class="label label-success">Cond. Reagendados</span>
+    <span class="label label-default">Cond. Improdutivos</span>
+    <span class="label label-danger">Cond. Inativos</span>
+</center>
+<br>
+<br>
+<div class="row">
+    <div class="col-md-offset-5 col-md-2">
+        <button id="fechar-lista" class="volta-tela btn btn-primary btn-block"><i class="fa fa-arrow-left"></i> Voltar</button>
+    </div>
+</div>
+<?php
+// Var de transferencia PHP to JS
+$transp = array(
+    'idBloco' => $bloco->getId(),
+    'idHoraMedDia' => ($horaMedDia) ? $horaMedDia->getId() : FALSE,
+    'status' => $bloco->getStatus(),
+);
+?>
+<br>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var transp = <?= json_encode($transp) ?>;
+
+        /**
+         * @event
+         * @description Desfaz a lista de bloco do dia
+         */
+        $('.remove-day').click(function () {
+            var id = $(this).attr('data-id');
+
+            gModal.reset("confirm", 1)
+                    .setClickOk(function () {
+                        $.processa({
+                            url: "<?= $this->url($route, array('controller' => 'HorarioMedicoDias', 'action' => 'deleteBloco'), [], FALSE, FALSE); ?>/" + id,
+                            savePage: false
+                        });
+                    })
+                    .setMsg('Deseja realmente desagendar o bloco do dia selecionado?')
+                    .showModal();
+        });
+
+        /**
+         * @event
+         * @description Fecha a lista de bloco
+         */
+        $('#fechar-lista').click(function () {
+            $("#godown").click();
+        });
+
+        /**
+         *  ====================================================================
+         *  ABRIR EMPRESA
+         *  ====================================================================
+         *  Abre a empresa a partir da listagem de itens do bloco
+         *  
+         */
+        $('.open-empresa').click(function () {
+            var id = $(this).attr('data-id');
+            if (!id || "" == id) {
+                return false;
+            }
+
+            $.processa({
+                url: "<?= $this->url('tcmed/default', array('controller' => 'empresas', 'action' => "edit"), [], FALSE, FALSE); ?>/" + id,
+            });
+        });
+    });
+</script>

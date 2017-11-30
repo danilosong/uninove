@@ -1,0 +1,145 @@
+<?php
+/* @var $form \Tcmed\Form\Funcionario */
+$form = $this->form;
+/**
+ * 
+ */
+$route = $this->dataView["route"];
+/**
+ * 
+ */
+$controller = $this->dataView["controller"];
+/**
+ * 
+ */
+$partialObject = $this->partialObj('tcmed');
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp(
+        $this, $this->form, $this->url(
+                $route, array(
+            'controller' => $controller,
+            'action' => $this->dataView['action'],
+                ), [], FALSE, $this->dataView['ajax']
+        )
+);
+/**
+ * Lê as mensagens do servidor através do flashMessenger
+ */
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+/**
+ * 
+ */
+if ($this->resul and is_array($this->resul) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+echo '<h2>'.$this->dataView["titulo"].'</h2>';
+
+$fh->formInit('Dados do Funcionario a ser copiado ', ["noPreFormInit" => TRUE]);
+
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, "hideCnpj" => TRUE]);
+$fh->closeCol();
+
+$idFuncionario = $fh->getIdFor('idFuncionario');
+$fh->openCol(3)->number('referenciaFun')->closeCol();
+$referenciaFun = $fh->getLastId();
+$fh->openCol(5)->text('nomeFuncionario', ["extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+$nomeFuncionario = $fh->getLastId();
+
+$fh->renderFieldsetFim();
+$fh->renderFieldsetIni('Dados da empresa para inserir o funcionário copiado');
+
+$fh->setPreFix("otherEmpresa");
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'noPrefix' => TRUE, "hideCnpj" => TRUE, "nameField"=>"fieldsOtherEmpresa"]);
+$fh->closeCol();
+$fh->removePreFix("otherEmpresa");
+
+$fh->setPreFix("logFuncionario");
+$fh->openCol(9,3)->textarea('motivo')->closeCol();
+$fh->removePreFix("logFuncionario");
+
+$fh->jumpLine(2);
+
+$fh->openCol(2);
+$fh->buildButton(["id" => "voltar", "class" => "btn-block"], "Voltar", "primary", TRUE);
+$fh->closeCol();
+$fh->openCol(2);
+$fh->buildButton(["id" => "clear", "class" => "btn-block"], "Limpar", "warning", TRUE);
+$fh->closeCol();
+
+$fh->openCol(2, 6);
+$fh->buildButton(["id" => "copiar", "class" => "btn-block"], "Copiar", "primary", TRUE);
+$fh->closeCol();
+
+$fh->renderFieldsetFim();
+
+$fh->jumpLine(3);
+$fh->formEnd();
+
+$fields = array(
+    "nomeFuncionario" => $nomeFuncionario,
+    "idFuncionario" => $idFuncionario,
+    "referenciaFun" => $referenciaFun,
+    "empresa" => $partialObject->fieldsEmpresa,
+    "otherEmpresa" => $partialObject->fieldsOtherEmpresa
+);
+?>
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+
+        $("#voltar").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'ajustaFuncionario'), [], FALSE, FALSE); ?>"
+            });
+        });
+        
+        $("#clear").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'copiaFuncionario'), [], FALSE, FALSE); ?>"
+            });
+        });
+
+        $("#copiar").click(function () {
+            $(this).closest('form').processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'copiaFuncionario'), [], FALSE, FALSE); ?>",
+//                savePage: false
+            });
+        });
+
+        /**
+         * Autocomplete nomeFuncionario
+         * @author Danilo Dorotheu
+         */
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (data) {
+                data.rules = {
+                    "empresa": $$(fields.empresa.idEmpresa).val()
+                };
+                return data;
+            },
+            params: {
+                subOpcao: "type1"
+            },
+            responseTo: {
+                referenciaFun: [fields.referenciaFun],
+                idFuncionario: [fields.idFuncionario],
+                fantasiaEmpresa: [fields.empresa.fantasiaEmpresa],
+                referenciaEmp: [fields.empresa.referenciaEmp],
+                idEmpresa: [fields.empresa.idEmpresa],
+                fantasiaAdm: [fields.empresa.fantasiaAdm],
+                referenciaAdm: [fields.empresa.referenciaAdm],
+                idAdministradora: [fields.empresa.idAdministradora],
+                idHold: [fields.empresa.fantasiaHold],
+            },
+            showCols: ["referenciaFun","nomeFuncionario", "rg"]
+        });
+    });
+</script>
+

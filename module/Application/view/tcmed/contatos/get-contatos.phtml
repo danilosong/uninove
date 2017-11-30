@@ -1,0 +1,58 @@
+<?php
+
+$array = [];
+
+if ($this->contatos) {
+    $showNomeContato = isset($this->showNomeContato)? TRUE : FALSE;
+    
+    /* @var $table \Application\View\Helper\Table */
+    $table = $this->table();
+    $table->openTable(TRUE);
+    
+    $colunas = [];
+    if($showNomeContato){
+        $colunas = array("Nome do Contato");
+    }
+    array_push($colunas, "Tipo de Contato", "Contato", "Ação");
+    
+    $table->renderThead($colunas);
+
+    $lambda = function($value, $data) {
+        echo '<td >',
+        '<i class="fa fa-times excluir" onclick="'.$value.'" ></i>&nbsp;Remover',
+        '</td>';
+    };
+    
+    $table->setLambda($lambda);
+
+    $nomeDoContato = "";
+    /*@var $contato \Tcmed\Entity\Contato*/
+    foreach ($this->contatos as $contato){
+        $meioContato = $contato->getMeioContato("DESC");
+        
+        foreach ($meioContato as $entity){
+            $line = [];
+            if($showNomeContato){
+                if(null == $entity->getContato()){
+                    $line = [];
+                }else{
+                    $nome = $entity->getContato()->getNomeContato();
+
+                    if($nomeDoContato != $nome){
+                        $line = $entity->getContato()->getNomeContato();
+                    }
+                    
+                }
+                
+            }
+            array_push($line, 
+                $entity->getMeioDeContato(),
+                $entity->getTipoMeioContato()->getDescricao(),
+                $entity->getId()
+            );
+            $table->renderLine($line);
+        }
+    }
+    $table->renderCloseTable();
+}
+

@@ -1,0 +1,160 @@
+<?php
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$entity     = $this->entity;
+$form       = $this->form;
+$partial    = $this->partialObj('application');
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh         = $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action' => $action,
+    'id' => ($entity) ? $entity->getId() : 0,
+), [], FALSE, $this->dataView['ajax']));
+
+
+
+echo '<h3>', $title, '</h3><br />';
+
+/** ============================================================================
+ *    QUANDO EDIÇÃO: Carrega o partial de listagem de ocupacoes
+ */
+if($entity) {
+    $this->partialObj('tcmed')->partial('ocupacaos/partial-lista-ocup', $fh, [
+        'this'         => &$this,
+        'entities'     => [$entity],
+        'dataView'     => $dataView,
+        'ppra'         => $entity->getPpra('id'),
+        'idEntity'     => $entity->getId(),
+        'hideFields'   => [
+            '.copyRisco',
+            '.fa-plus-circle',
+            '.fa-minus-circle',
+        ]
+    ]);
+    die;
+}
+
+/** ============================================================================
+ *    QUANDO INCLUSÃO: Carrega os campos de ocupacao
+ */
+$fh->formInit();
+
+    $fh->getIdFor('id');
+
+    $fh->setPreFix('setor');
+
+        $idSetor   = $fh->getIdFor('idSetor');
+        $nomeSetor = $fh->getIdFor('nomeSetor');
+
+        $fh->openCol(6)->text('nomeSetor', [
+            'dt-clear' => $idSetor,
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ])->closeCol();
+
+    $fh->removePreFix('setor');
+
+    $fh->setPreFix('cargo');
+        $idCargo = $fh->getIdFor('idCargo');
+        $cargo   = $fh->getIdFor('cargo');
+
+        $fh->openCol(6)->text('cargo', [
+            'dt-clear' => $idCargo,
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ])->closeCol();
+
+    $fh->removePreFix('cargo');
+
+    $fh->setPreFix('cargoApelido');
+
+        $idCargoApelido = $fh->getIdFor('idCargoApelido');
+        $apelido        = $fh->getIdFor('apelido');
+
+    $fh->removePreFix('cargoApelido');
+
+    $fh->lineDown();
+
+    $fh->setPreFix('descricaoCargo');
+
+        $idDescricaoCargo = $fh->getIdFor('idDescricaoCargo');
+        $descricao        = $fh->getIdFor('descricao');
+
+        $fh->openCol(12)->textarea('descricao', [
+            "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ])->closeCol();
+
+    $fh->removePreFix('descricaoCargo');
+
+    $fh->lineDown();
+
+    $fh->openCol(12);
+
+    $fh->closeCol();
+
+    $fh->jumpLine(2);
+
+    $fh->openCol(12)->Submit('submit')->closeCol();
+
+$fh->formEnd();
+
+// Var de transferencia PHP to JS
+$transp = compact(
+    'nomeSetor',
+    'idSetor',
+    'cargo',
+    'idCargo',
+    'idCargoApelido',
+    'apelido',
+    'descricao',
+    'idDescricaoCargo'
+);
+?>
+<br>
+<br>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+
+        $$(transp.nomeSetor).auto({
+            primary: "nomeSetor",
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            filters: function (query) {
+                query["rules"]    = {"status": "ATIVO"};
+                query["subOpcao"] = "";
+            },
+            responseTo: {
+                idSetor: [transp.idSetor]
+            },
+            showCols: ["nomeSetor"]
+        });
+
+        $$(transp.cargo).auto({
+            primary: "cargo",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            type: "POST",
+            width: 500,
+            params: {
+                subOpcao: "pesquisarCargos",
+            },
+            responseTo: {
+                idCargo       : [transp.idCargo],
+                idCargoApelido: [transp.idCargoApelido],
+                descricao     : [transp.descricao],
+            },
+            showCols: ["cargo", "descricao"]
+        });
+
+    });
+
+</script>

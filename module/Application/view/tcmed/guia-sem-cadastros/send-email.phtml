@@ -1,0 +1,183 @@
+<?php
+/* @var $guia \Tcmed\Entity\Guia */
+/* @var $empresa \Tcmed\Entity\Empresa */
+/* @var $administradora \Tcmed\Entity\Administradora */
+/* @var $funcionario \Tcmed\Entity\Funcionario */
+/* @var $contato \Tcmed\Entity\Contato */
+/* @var $contato \Tcmed\Entity\Clinica */
+$guia = $this->guia;
+$empresa = $guia->getEmpresa();
+$ocupacao = $guia->getOcupacao();
+$administradora = $guia->getEmpresa()->getAdministradora();
+$funcionario = $guia->getFuncionario();
+$contato = $empresa->getContatos(TRUE);
+$clinica = $guia->getClinica();
+$enderecoClinica = $clinica->getEndereco();
+
+//Busca meios de contato (telefone e email) e executa tratamento do resultado
+$telefones = ($contato) ? $contato->getMeioContato("telefone", TRUE) : "";
+$emails = ($contato) ? $contato->getMeioContato("email", TRUE) : "";
+$telefone = (!empty($telefones)) ? $telefones[0]->getMeioDeContato() : "&nbsp;";
+$email = (!empty($emails)) ? $emails[0]->getMeioDeContato() : "&nbsp;";
+?>
+
+<style>
+<?php
+$col = 100 / 12;
+
+//Gera o tamanho das colunas
+for ($i = 1; $i <= 12; $i++) {
+    echo ".col-" . $i . " {";
+    echo "width: " . ($col * $i) . "%;";
+    echo "float: left;";
+    echo "}";
+
+    echo ".col-offset-" . $i . " {";
+    echo "margin-left: " . ($col * $i) . "%;";
+    echo "}";
+};
+?>
+
+    body{
+        margin: 0px;
+        padding: 0px;
+    }
+
+    #container {
+        font-family: arial;
+        font-size: 20px;
+        border: 2px solid #000;
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+            
+    section{
+        padding-top: -10px;
+    }
+
+    p, h3,h4, div{
+        padding: 0px;
+        margin: 0px;
+    }
+    
+    h3{
+        font-size: 22px;
+    }
+            
+    p{
+        font-size: 15px;
+    }
+            
+    #title{
+        font-size: 18px;
+    }
+            
+    .pull-center{
+        text-align: center;
+    }
+            
+    .pull-right{
+        text-align: right;
+    }
+
+    .info{
+        font-size: 16px;
+    }
+
+    .info-reduced{
+        font-size: 12px;
+    }
+            
+    .bold{
+        font-weight: bold;
+    }
+            
+    #imagemLogo{
+        width: 100%;
+        height: 60px;
+    }
+<?php
+//Ajusta #title caso imagem esteja na tela
+if ($clinica->getPathLogo()) {
+    echo "#title{margin-top: -25px;}";
+};
+?>
+            
+</style>
+</head>
+<body>
+    <div id="container">
+        <section>
+            <div class="col-3"><img id="imagemLogo" src="<?php echo $clinica->getPathLogo(); ?>"></div>
+            <div class="col-9 pull-right"><h3><b>Assessoria e Serviços Técnicos em Medicina S/C</b></h3></div>
+            <p id="title" class="col-12 pull-center">Guia de Encaminhamento</p>
+        </section>
+
+        <section id="cabecalho">
+            <p class="col-6">Tipo de Exame: <span class="bold"><?php echo ucfirst($params($guia->getTipo(), "FC_tipo_exame")) ?></span></p>
+            <p class="col-5 col-offset-1 pull-right">Cod. Autenticidade: <span class="bold"><?php echo $guia->getId(7); ?></span></p>
+            <p class="col-6"><?php echo (TRUE) ? "Tem liberação emitida em " . $guia->getCreatedAt() : "-"; ?></p>
+            <p class="col-5 col-offset-1 pull-right">Validade: <span class="bold"><?php echo $guia->getCreatedAt(TRUE)->add(new \DateInterval("P30D"))->format("d/m/Y"); ?></span></p>
+        </section>
+
+        <section id="body">
+
+            <p class="col-3 bold">Administradora:</p>
+            <p class="col-9"><?php echo " (" . $administradora->getReferenciaAdm() . ") " . strtoupper($administradora->getFantasiaAdm()); ?></p>
+
+            <p class="col-3 bold">Empresa:</p>
+            <p class="col-9"><?php echo " (" . $empresa->getReferenciaEmp() . ") " . strtoupper($empresa->getFantasiaEmpresa()); ?></p>
+
+            <p class="col-3 bold">E-mail:</p>
+            <p class="col-4"><?php echo $email ?></p>
+
+            <p class="col-1 bold">Tel.:</p>
+            <p class="col-4"><?php echo $telefone ?></p>
+
+            <p class="col-3 bold">CNPJ:</p>
+            <p class="col-4"><?php echo $empresa->getCnpj(); ?></p>
+
+            <p class="col-1 bold">CEP:</p>
+            <p class="col-4"><?php echo $empresa->getEndereco()->getLogradouro()->getCep(); ?></p>
+
+            <p class="col-3 bold">Funcionario:</p>
+            <p class="col-9"><?php echo $guia->getNomeFuncionario() ?></p>
+
+            <p class="col-3 bold">Setor:</p>
+            <p class="col-9"><?php echo $ocupacao->getSetor()->getNomeSetor(); ?></p>
+
+            <p class="col-3 bold">Cargo:</p>
+            <p class="col-9"><?php echo $ocupacao->getCargo()->getCargo(); ?></p>
+
+            <p class="col-3 bold">RG:</p>
+            <p class="col-4"><?php echo $guia->getRg(); ?></p>
+
+            <p class="col-1 bold">CPF:</p>
+            <p class="col-4"><?php echo $guia->getCpf(); ?></p>
+
+            <p class="col-3 bold">PIS:</p>
+            <p class="col-4"><?php echo $guia->getPis(); ?></p>
+
+            <p class="col-1 bold">Nasc.:</p>
+            <p class="col-4"><?php echo $guia->getDtNascimento(); ?></p>
+
+            <p class="col-3 bold">Carteira Trab.:</p>
+            <p class="col-9"><?php echo $guia->getCarteiraProfissional() ?></p>
+        </section>
+        <hr>
+
+        <section id="info">
+            <p class="info">Apresentar Carteira de Identidade e CPF - Data ___/___/_____ as ____:____ hs</p>
+            <p class="info">PRONTO ATENDIMENTO: Clinica <?php echo $clinica->getFantasiaClinica(); ?></p>
+            <p class="info"><?php echo $clinica->getInfoAtendimento() ?></p>
+            <p class="info-reduced">Local do atendimento: <?php echo $enderecoClinica ?></p>
+        </section>
+        <hr>
+
+        <section id="rodape">
+            <img id="test" src="<? echo $this->url('tcmed/default', array('controller' => 'guias', 'action' => 'buildBarcode', 'id' => $guia->getId()), [], FALSE, FALSE) . "?" . rand(0, 1000); ?>"/>
+        </section>
+    </div>

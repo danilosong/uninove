@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Inicia resultados
+ */
+if ($this->resultSet) {
+    $array = [];
+    switch ($this->subOpcao) {
+        default :
+            /* @var $entity \Tcmed\Entity\PpraResponsavel */
+            $array[] = [
+                'menu_id'        => 'ID' ,
+                'menu_nome'      => 'Nome' ,
+                'menu_nit'       => 'NIT' ,
+                'menu_RegConCla' => 'RGC' ,
+                'menu_respPor'   => 'Responsável por' ,
+                'menu_situacao'  => 'Situação' ,
+            ];
+            foreach ($this->resultSet as $entity) {
+                $array[] = [
+                    'id'        => $entity->getId(),
+                    'nome'      => $entity->getNome(),
+                    'nit'       => $entity->getNit(),
+                    'regConCla' => $entity->getRegConCla(),
+                    'respPor'   => $entity->getRespPor(),
+                    'situacao'  => $entity->getStatus(),
+                ];
+            }
+            break;
+    }
+
+    echo json_encode($array);
+}

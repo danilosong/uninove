@@ -1,0 +1,31 @@
+<h3><?php
+    echo $this->dataView['titulo'];
+    $controller = 'exameComplObrigs';
+    $route = 'tcmed/default';
+    ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp
+ * @author Allan Davini */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$fh->formInit('Cadastro ExameComplObrig:');
+
+$fh->openCol('6')->text('periodicidade')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->select('empresa')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->select('grupo')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->select('setor')->closeCol();
+$fh->lineDown();
+$fh->openCol('6')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+</script>

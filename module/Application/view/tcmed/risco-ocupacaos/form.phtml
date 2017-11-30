@@ -1,0 +1,47 @@
+<h3><?php 
+/**
+ * @author
+ */
+echo $this->dataView['titulo']; 
+$controller = 'riscoocupacaos';
+$route = 'tcmed/default';
+?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp*/
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro Risco Ocupacao:');
+    $fh->openCol('12')->text('tipo')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('classifAgente')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('classifExposicao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('intensConc')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('prioridade')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('somatoria')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('tecnicaUtil')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('agente')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->text('controle')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('ocupacao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('risco')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascript">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

@@ -1,0 +1,1226 @@
+<?php
+/**
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 29/12/2015
+ */
+//
+// == DEFINIÇÕES ===============================================================
+//
+/* @var $form \Tcmed\Form\Funcionario */
+$form = $this->form;
+
+/* @var $funcionario \Tcmed\Entity\Funcionario */
+$funcionario = ($this->entity) ? $this->entity : FALSE;
+
+/* @var $acl \Application\View\Helper\Acl */
+$acl = $this->Acl();
+
+/** ============================================================================
+ * DISPONIBILIZA VARIAVEIS RELACIONADAS AO TIPO DE FORM (edicao ou novo)
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * 
+ */
+/** Verifica se este é um formulario novo */
+$formularioNovo = ("new" == $this->dataView['action']);
+/** Verifica se este é um formulario em edição */
+$formularioEdicao = ("edit" == $this->dataView['action']);
+// =============================================================================
+//
+//
+/** ============================================================================
+ * DISPONIBILIZA VARIÁVEIS RELACIONADAS AO STATUS DA ENTIDADE, PARA TRATAMENTO
+ * DE VISUALIZAÇÃO DO FORMULÁRIO, ENTRE OUTRAS POSSIBILIDADES
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * 
+ */
+/** Lê o status do funcionário */
+$statusFuncionario = ($funcionario) ? $funcionario->getStatus() : FALSE;
+/* Verifica se funcionário encontra-se ATIVO */
+$funcionarioAtivo = ("ATIVO" == $statusFuncionario);
+/* Verifica se funcionário encontra-se AFASTADO */
+$funcionarioAfastado = ("AFASTADO" == $statusFuncionario);
+/* Verifica se funcionário encontra-se PENDENTE */
+$funcionarioPendente = ("PENDENTE" == $statusFuncionario);
+/* Verifica se funcionário encontra-se DEMITIDO */
+$funcionarioDemitido = ("DEMITIDO" == $statusFuncionario);
+/* Verifica se funcionário encontra-se CANCELADO */
+$funcionarioCancelado = ("CANCELADO" == $statusFuncionario);
+/* Verifica se este funcionário é editavel baseado em outras variáveis relacionadas ao status */
+$funcionarioEditavel = ($funcionarioAfastado or $funcionarioAtivo or $funcionarioPendente);
+
+/** Lê o status da empresa */
+$statusEmpresa = ($funcionario) ? $funcionario->getEmpresa()->getStatus() : FALSE;
+/* Verifica se empresa encontra-se ATIVO */
+$empresaAtiva = ("ATIVO" == $statusEmpresa);
+// =============================================================================
+
+/**
+ * @var int Retorna o total de ocorrencias encontradas neste funcionario
+ */
+$totalOcorrencias = ($funcionario) ? count($funcionario->getListOcorrencia()) : "0";
+/**
+ * @var int Retorna o total de consultas encontradas neste funcionario
+ */
+$totalConsultas = ($funcionario) ? count($funcionario->getListConsulta()) : "0";
+/**
+ * @var string controller da entidade funcionario
+ */
+$controller = 'funcionarios';
+/**
+ * @var string controller da entidade histOcupacional
+ */
+$controllerHistorico = 'hist-ocupacionals';
+/**
+ * @var boolean Acesso do usuário em Agenda
+ */
+$temAcessoAgenda = $acl('tcmed:agendaAmbuls:new', 'allow');
+/**
+ * @var string rota default desta entidade
+ */
+$route = 'tcmed/default';
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp(
+        $this, $this->form, $this->url(
+                $route, array(
+            'controller' => $controller,
+            'action' => $this->dataView['action'],
+            'id' => ($this->entity) ? $this->entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']
+        )
+);
+/**
+ * @var array Mensagens do servidor que serão lidas na view
+ * OBS: Após ler mensagens, fila é apagada
+ * @see javascript::createMessages
+ */
+$messages = $this->flashMessenger()->getCurrentAllMessages();
+$this->flashMessenger()->clearCurrentAllMessages();
+/**
+ * @var Object Partials (pedacos) de outras entidades presentes neste form
+ */
+$partialObject = $this->partialObj('tcmed');
+if($funcionario){
+    $showAlerta = [];
+    if($funcionario->getEmpresa() AND $funcionario->getEmpresa()->getAlerta()){
+        $showAlerta['empresa'] = $funcionario->getEmpresa();
+    }  
+    if($funcionario->getAlerta()){
+        $showAlerta['funcionario'] = $funcionario;
+    }  
+    if(!empty($showAlerta)){
+        $showAlerta['partial'] = $partialObject;
+        $partialObject->partial('alertas/partial-show', $this, $showAlerta);
+    }
+}
+/**
+ * Helper de tabelas
+ */
+$table = $this->table();
+
+// ===================================================================== FIM ===
+//
+//
+// === CABEÇALHO DA PAGINA =====================================================
+/**
+ * Renderiza o título da view
+ * Renderiza o campo de código de autenticidade na tela
+ */
+$fh->formInit();
+?>
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-8"><h2><?php echo $this->dataView['titulo'] ?> <small id="codigo-aut-view"></small></h2></div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <?php
+                $fh->openCol(12)->text('idGuia', ['spanLabel' => TRUE, 'extra' => ["icon" => "search"]])->closeCol();
+                $idGuia = $fh->getLastId();
+                ?>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<?php
+/**
+ * Inicializa formulario
+ */
+$fh->openCol(12);
+
+//Printa as mensagens do servidor diretamente no form
+if (is_array($this->resul) and isset($this->resul[0]) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+$idFuncionario = $fh->getIdFor('idFuncionario');
+// ===================================================================== FIM ===
+// 
+// 
+// 
+// === DADOS DO FUNCIONARIO ====================================================
+$fh->renderFieldsetIni('Dados do Funcionário');
+$horizontal = $fh->getHorizontal();
+$fh->openCol(12)->setHorizontal(true)->renderInputCheckbox('checkCam')->closeCol()->setHorizontal($horizontal);
+$inpCheckCam = $fh->getLastId();
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this]);
+$fh->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(3)->text('referenciaFun')->closeCol();
+$referenciaFun = $fh->getLastId();
+
+$fh->openCol(5)->text('nomeFuncionario', [
+    "extra"    => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"],
+    "dt-clear" => join(",", array($idFuncionario, $referenciaFun)),
+])->closeCol();
+$nomeFuncionario = $fh->getLastId();
+
+$fh->jumpLine(2);  // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(5);
+    $fh->openLine();
+
+        $fh->openCol(12)->calend('dataCad')->closeCol();
+        $dataCad = $fh->getLastId();
+        $fh->lineDown();
+
+        $editDtAdmissao = ($funcionarioPendente or $funcionarioDemitido or ! $funcionario);
+        $fh->openCol(12)->calend('dtAdmissao')->closeCol();
+        $dtAdmissao = $fh->getLastId();
+        $fh->lineDown();
+
+        $fh->openCol(12)->select('status', [], ["disabled" => $funcionarioPendente])->closeCol();
+        $status = $fh->getLastId();
+        $fh->lineDown();
+
+
+        $editDtDemissao = ($funcionarioPendente or $funcionarioDemitido);
+        $fh->openCol(12)->calend('dtDemissao', [], ["disabled" => $editDtDemissao])->closeCol();
+        $dtDemissao = $fh->getLastId();
+        $fh->lineDown();
+
+        $fh->openCol(12);
+        if ($funcionarioPendente) {
+            echo '<div style="padding: 6px" class="alert alert-info">';
+            echo '<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>';
+            echo "<i>*Para registrar o Funcionário como ativo, deve-se salvar este cadastro no fim do formulário</i>";
+            echo '</div>';
+        }
+        $fh->closeCol();
+    $fh->closeLine();
+$fh->closeCol();
+
+$fh->openCol(7);
+    $img = '';
+    $src = '';
+    if($this->entity) {
+        /* @var $entity \Tcmed\Entity\Funcionario */
+        $entity = $this->entity;
+        $src = $this->Param('all','funcDir') . $entity->getEmpresa('id') . '/' . $entity->getFoto();   
+        $img = $this->Image($src);
+    }
+    /* @var $imagem se imagem for vazia irá substituir por imagem com desenho de "sem foto" 
+     * senão imagem será preenchia por um upload ou foto de cam
+     * @author danilo song <danilosong@outlook.com>
+     */
+    $noImage = $this->Param('sem_cam', 'funcionario_sem_cam');
+    $imagem  = empty($img) ? $this->Image($noImage): $img;
+?>
+
+    <div style="width:330px;float:left;align-content: center">
+        <div id="webcam">
+        </div>
+        <button type="button" class="btn btn-small btn-primary" id="btn-tira-foto"><i class="fa fa-photo"></i> Tirar Foto</button>
+        <button type="button" class="btn btn-small btn-primary" id="btn-rm-foto"><i class="fa fa-close"></i> Remover Foto</button>
+    </div>
+    <div style="width:330px;float:left;">
+        <p><img id="image" src="<?=$imagem;?>" alt='Sem Imagem <?=$src;?>' class='img-thumbnail' style="width:330px;height:230px;"/></p>
+    </div>
+    <div id="web-cam-hided">
+        <?  echo $fh->renderInputTextArea('foto', [], ['value' => '']);
+            $inpFoto = $fh->getLastId();
+        ?>
+        <div style="margin:5px;">
+            <img src="/img/webcamlogo.png" style="vertical-align:text-top"/>
+            <select id="cameraNames" size="1" style="width:180px;font-size:10px;height:25px;">
+            </select>
+        </div>
+    </div>
+<?
+$fh->closeCol();
+
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+if ($funcionarioDemitido or $funcionarioCancelado) {
+    $fh->openCol(6, 6);
+    echo '<div class="alert alert-info">';
+    echo '<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>';
+    echo ' <i>*Não é possível fazer alterações neste cadastro, pois o atual status deste Funcionário é "' . $statusFuncionario . '". As alterações somente serão permitidas se o Funcionário for reativado.</i>';
+    echo '</div>';
+    $fh->closeCol();
+}
+
+$fh->renderFieldsetFim();
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+//
+// === BOTOES DE OPCOES ========================================================
+$fh->renderFieldsetIni('Opções');
+
+
+if ($formularioEdicao and ( $funcionarioAtivo or $funcionarioAfastado) and $temAcessoAgenda) {
+    $fh->openCol('3')
+            ->button(["class" => "btn-block incluirAgenda"], 'Colocar na Agenda', "primary")
+            ->closeCol();
+}
+
+if ($acl("tcmed:funcionarios:edit", "incluirPendente")) {
+    $fh->openCol('3')
+            ->button(["class" => "btn-block", "id" => "exibePendentes"], 'Lista Pendentes', "primary")
+            ->closeCol();
+}
+
+if ($acl("tcmed:funcionarios:index", "verExames") and $formularioEdicao) {
+    $fh->openCol('3')
+            ->button(["class" => "btn-block", "id" => "exibeConsultas"], '<span class="badge">' . $totalConsultas . '</span> Exames Realizados', "primary")
+            ->closeCol();
+}
+
+if ($acl("tcmed:funcionarios:read", "verOcorrencia") and $formularioEdicao) {
+    $fh->openCol('3')
+            ->button(["class" => "btn-block", "id" => "exibeOcorrencia"], '<span class="badge">' . $totalOcorrencias . '</span> Ocorrência(s)', "primary")
+            ->closeCol();
+}
+if ($formularioEdicao) {
+    $fh->openCol('3')
+            ->button(["class" => "btn-block", "id" => "incluirProximo"], 'Incluir Próximo', "primary")
+            ->closeCol();
+}
+
+$fh->openCol('3')
+        ->button(["class" => "btn-block", "id" => "renewForm"], 'Limpar Tela', "primary")
+        ->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(12, ["id" => "container-data", "class" => "hideOn", "style" => "margin-top: 30px;"])->closeCol();
+
+$fh->renderFieldsetFim();
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+//
+//
+// === OCUPACOES ===============================================================
+
+$fh->renderFieldsetIni('Ocupações');
+if ($formularioNovo or $funcionarioEditavel) {
+    $fh->setHorizontal(FALSE);
+
+    $fh->setPreFix('histOcupacional');
+
+    $fh->setPreFix('ocupacao');
+    $idOcupacao = $fh->getIdFor('idOcupacao');
+
+//LOAD SETOR
+    $fh->setPreFix('setor');
+    $idSetor = $fh->getIdFor('idSetor');
+    $fh->openCol(4)->text("nomeSetor", ['dt-clear' => $idSetor, "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+    $nomeSetor = $fh->getLastId();
+    $fh->removePreFix('setor');
+
+//LOAD CARGO
+    $fh->setPreFix('cargo');
+    $idCargo = $fh->getIdFor('idCargo');
+    $fh->openCol(4)->text("cargo", ['dt-clear' => $idCargo, "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]])->closeCol();
+    $cargo = $fh->getLastId();
+    $fh->openCol(4)->text("cbo")->closeCol();
+    $cbo = $fh->getLastId();
+    $fh->removePreFix('cargo');
+    
+//LOAD PPRA campo pausado!! será retornado brevemente.
+
+//    $fh->setPreFix('ppra');
+//    $fh->openCol(4);
+//    $inpPpraId = $fh->getIdFor('id');
+//    $fh->renderInputText("locais[local]", 
+//            ['dt-clear' => $inpPpraId, "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]]);
+//    $inpPpra = $fh->getLastId();
+//    $fh->closeCol();
+//    $fh->removePreFix('ppra');
+    $fh->removePreFix('ocupacao');
+    $fh->openCol(4)->calend("dtIni")->closeCol();
+    $dtIni = $fh->getLastId();
+
+    $fh->setHorizontal(TRUE);
+    $fh->removePreFix('histOcupacional');
+
+    if ($formularioEdicao) {
+        $fh->openCol(4, 4);
+        echo $fh->buildButton(["id" => "addHistorico", "class" => "btn-block", "style" => "margin-top:25px"], "Adicionar", "primary");
+        $fh->closeCol();
+    }
+}
+$fh->renderFieldsetFim();
+
+if ($formularioEdicao && $funcionario) {
+    $lambda = function($value, $data) {
+        echo '<td nowrap>',
+        '<span class="hand delete" data-id="' . $value . '"><i class="fa fa-trash"></i> Del</span>',
+        '</td>';
+    };
+    $table->setLambda($lambda);
+    $table->openTable(TRUE);
+    $table->renderThead(['Setor', 'Cargo', 'Data Inicio', 'Data Fim', 'Ação']);
+
+    /**
+     * @var $firstHistOcupacional Permite ao proximo foreach, identificar e tratar
+     * dados apenas do dado contido no primeiro indice do array $listaHistOcupacional
+     */
+    $firstHistOcupacional = TRUE;
+    /**
+     * @var $listHistOcupacional Lista todos os historicos ocupacionais do 
+     * funcionario de baixo para cima (o ultimo dado persistido será o primeiro
+     * da lista) e os dados são ordenados a partir da coluna 'idHistOcupacional'
+     */
+    $listaHistOcupacional = $funcionario->listHistOcupacional("DESC", "idHistOcupacional");
+    /* @var $historico \Tcmed\Entity\HistOcupacional */
+    foreach ($listaHistOcupacional as $historico) {
+        /**
+         * OBS: Quando o foreach inicializa, a variavel $firstHistOcupacional
+         * já contem o valor TRUE indicando que este é o primeiro valor do array
+         * $listHistOcupacional. Dentro deste primeiro valor, contém um Historico
+         * Ocupacional, identificado por $historico. Caso este $historico contenha
+         * o valor '-' em getDtFim(), então quer dizer que ainda não foi fechado
+         * o ultimo histórico do funcionário, bloqueando então a adição de novos
+         * históricos com o parametro $lastDataFim (sendo este TRUE quando for 
+         * permitido adicionar um novo histórico ou FALSE para bloquear esta 
+         * adição). Também é adicionado o icone 'pencil' quando for possível
+         * adicionar a data de fim do historico ou o icone 'times' quando o 
+         * historico já tiver uma data setada
+         */
+        $dataFimHistorico = $historico->getDtFim();
+        if ($firstHistOcupacional) {
+            if ("-" == $dataFimHistorico) {
+                $dataFimHistorico .= ' <i class="fa fa-pencil editar-datafim" data-dt="' . $historico->getDtFim() . '" data-id="' . $historico->getId() . '"></i>';
+                $lastDataFim = TRUE;
+            } else {
+                $dataFimHistorico .= ' <i class="fa fa-times remover-datafim" data-id="' . $historico->getId() . '"></i>';
+                $lastDataFim = FALSE;
+            }
+            $firstHistOcupacional = FALSE;
+        }
+
+        /* @var $ocupacao \Tcmed\Entity\Ocupacao */
+        $ocupacao = $historico->getOcupacao();
+        $table->renderLine([
+            $ocupacao->getSetor()->getNomeSetor(),
+            $ocupacao->getCargo(TRUE),
+            $historico->getDtIni(),
+            $dataFimHistorico,
+//            $historico->getDtFim() . ' <i data-dt="' . $historico->getDtFim() . '" data-id="' . $historico->getId() . '" class="fa fa-pencil edit-datafim"></i>',
+            $historico->getId(),
+        ]);
+
+        $excluirDataFim = "";
+    }
+    $table->renderCloseTable();
+}
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+//
+// === DADOS PESSOAIS ==========================================================
+$fh->renderFieldsetIni('Dados Pessoais');
+
+$fh->setHorizontal(FALSE);
+$fh->openCol(4)->cpf('cpf')->closeCol();
+$cpf = $fh->getLastId();
+
+$fh->openCol(4)->text('rg')->closeCol();
+$rg = $fh->getLastId();
+
+$fh->openCol(4)->pis('pis')->closeCol();
+$pis = $fh->getLastId();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(4)->calend('dtNascimento')->closeCol();
+$dtNascimento = $fh->getLastId();
+
+$fh->openCol(4)->select('sexo')->closeCol();
+$sexo = $fh->getLastId();
+
+$fh->openCol(4)->select('estadoCivil')->closeCol();
+$estadoCivil = $fh->getLastId();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+
+$fh->openCol(4)->text('carteiraProfissional')->closeCol();
+$carteiraProfissional = $fh->getLastId();
+
+$fh->openCol(4)->select('periodicidade')->closeCol();
+$periodicidade = $fh->getLastId();
+
+$fh->openCol(4);
+if($formularioEdicao){
+    $fh->buildButton(["class" => "btn-block salvarForm", "style" => "margin-top:25px"], "Salvar", "success", TRUE);
+}
+$fh->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+// Carrega o partial de contatos
+$fh->openCol(12);
+$partialObject->partial('contatos/partial-form-contato', $fh, [
+    'this' => &$this,
+    'entity' => $entity,
+    'noDeleteContatos' => FALSE,
+    'noContatoField' => TRUE,
+    'noList' => TRUE,
+]);
+$fh->closeCol();
+
+$fh->setHorizontal(TRUE);
+$fh->renderFieldsetFim()->closeCol();
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+//
+// === ENDERECO ================================================================
+$fh->closeLine();
+$fh->renderFieldsetIni('Endereço', ['notOpenLine' => TRUE]);
+$fh->openCol(12);
+echo "<button type='button' class='btn btn-danger' id='btn-end'>Se houver endereço <b>clique no botão</b></button>";
+$fh->closeCol();
+echo "<div id='endFunc'>";
+$partialObject->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
+echo "</div>";
+$fh->renderFieldsetFim();
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+//
+// === RODAPE ==================================================================
+
+
+$fh->openLine()->openCol(6, 6);
+if ($funcionarioPendente) {
+    echo '<div class="alert alert-warning">';
+    echo '<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>';
+    echo "<i> CUIDADO: Ao Excluir Funcionário Pendente, os dados serão apagados definitivamente</i>";
+    echo '</div>';
+}
+$fh->closeCol()->closeLine();
+
+$fh->openLine();
+
+$fh->openCol(3);
+$fh->buildButton(["id" => "voltar-home", "class" => "btn-block"], "Voltar", "primary", TRUE);
+$fh->closeCol();
+
+$fh->openCol(3);
+if ($formularioEdicao and ( $funcionarioAtivo or $funcionarioAfastado) and $temAcessoAgenda) {
+    $fh->button(["class" => "btn-block incluirAgenda"], 'Colocar na Agenda', "primary");
+}
+$fh->closeCol();
+
+$fh->openCol(3);
+if ($funcionarioPendente) {
+    $fh->buildButton(["id" => "deletePendente", "class" => "btn-block"], "Excluir Funcionário Pendente", "warning", TRUE);
+}
+$fh->closeCol();
+
+$fh->openCol(3);
+$fh->buildButton(["class" => "btn-block salvarForm"], "Salvar", "success", TRUE);
+$fh->closeCol();
+
+$fh->closeLine();
+
+$fh->closeCol();
+$fh->formEnd();
+// ===================================================================== FIM ===
+//
+?><br><br><?php
+//
+// === MODAL ===================================================================
+echo <<<EOF
+    <div id="modal" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Definir data final do cargo</h4>
+          </div>
+          <div class="modal-body">
+          <form id="set-data-fim">
+EOF;
+$fh->renderFieldsetIni('');
+$fh->setPreFix('histOcupacional');
+$idHistOcupacional = $fh->getIdFor('idHistOcupacional');
+$fh->openCol(12)->calend("dtFim")->closeCol();
+$dtFim = $fh->getLastId();
+$fh->removePreFix('histOcupacional');
+$fh->renderFieldsetFim();
+echo <<<EOF
+            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button id="enviar-data-modificada" type="button" class="btn btn-success">Salvar</button>
+            </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+EOF;
+// ===================================================================== FIM ===
+//
+//
+// === TRANSPORTE ==============================================================
+/**
+ * @var array Array de transporte do PHP para javascript
+ */
+$fieldsFuncionario = [
+    "idFuncionario" => $idFuncionario,
+    "idGuia" => $idGuia,
+    "ultimoCodAut" => ($funcionario) ? $funcionario->getUltimoCodAut() : "",
+    "nomeFuncionario" => $nomeFuncionario,
+    "estadoCivil" => $estadoCivil,
+    "dtIni" => isset($dtIni) ? $dtIni : "",
+    "dtFim" => isset($dtFim) ? $dtFim : "",
+    "dtDemissao" => $dtDemissao,
+    "sexo" => $sexo,
+    "cpf" => $cpf,
+    "rg" => $rg,
+    "pis" => $pis,
+    "carteiraProfissional" => $carteiraProfissional,
+    "status" => (isset($status)) ? $status : "",
+    "flag" => "#flag",
+    "dataCad" => $dataCad,
+    "dtNascimento" => $dtNascimento,
+    "nomeSetor" => isset($nomeSetor) ? $nomeSetor : FALSE,
+    "idSetor" => isset($idSetor) ? $idSetor : FALSE,
+    "cargo" => isset($cargo) ? $cargo : FALSE,
+    "idCargo" => isset($idCargo) ? $idCargo : FALSE,
+    "dtIni" => isset($dtIni) ? $dtIni : FALSE,
+    "cbo" => isset($cbo) ? $cbo : FALSE,
+    "idOcupacao" => isset($idOcupacao) ? $idOcupacao : FALSE,
+    "lastDataFim" => isset($lastDataFim) ? $lastDataFim : FALSE,
+    "idHistOcupacional" => isset($idHistOcupacional) ? $idHistOcupacional : FALSE,
+    "dtFim" => isset($dtFim) ? $dtFim : FALSE,
+    "inpFoto" => $inpFoto,
+    "inpCheckCam" => $inpCheckCam,
+//    "inpPpraId" => $inpPpraId,
+//    "inpPpra" => $inpPpra,
+];
+/**
+ * Mesclar os dados de empresa com os dados de funcionario
+ */
+$fieldsFuncionario = array_merge($partialObject->fieldsEmpresa, $fieldsFuncionario);
+/**
+ * Se não for uma edição limitada, então mesclar os dados de ocupacao com
+ * os dados de funcionario
+ */
+// ===================================================================== FIM ===
+
+/* +----------------------------------------------------------------------------
+ * | MODAL se parametriza usando a variavel global gModal
+ * +----------------------------------------------------------------------------
+ *  Estrutura do modal, para Confirmar com o usuario a ação desejada.
+ * 
+ */
+echo $this->partial('partials/modal', array());
+?>
+
+
+<script language="JavaScript" src="/js/swfobject.js"></script>
+<script language="JavaScript" src="/js/scriptcam.js"></script>
+<script type="text/javascript" lang="javascript">
+    function isValid() {
+        return true;
+
+        var fields = <?php echo json_encode($fieldsFuncionario) ?>;
+        var pass = true;
+        var pis = $$(fields.pis).validarPis();
+        if (!pis) {
+            pass = pis;
+            $.notify({
+                message: "Campo PIS preenchido incorretamente",
+                type: "danger"
+            })
+        }
+
+        return pass;
+
+    }
+
+    $(function () {
+        /* === Variaveis publicas  ========================================== */
+        /**
+         * @property {Object} fields : Objeto contendo os nomes dos campos
+         * do form da página 
+         */
+        var fields = <?php echo json_encode($fieldsFuncionario) ?>;
+        var messagesGroup = <?php echo json_encode($messages) ?>;
+        
+
+
+        $$(fields.inpCheckCam).click(function(){
+            if($(this).is(':checked')){
+                module.Cookie.set({name : 'WEBCAM', value : "0", expires : '0'}); 
+            }else{
+                module.Cookie.set({name : 'WEBCAM', value : "1", expires : '0'}); 
+            }
+        });
+        
+        if(module.Cookie.get('WEBCAM') == '0'){
+            $$(fields.inpCheckCam).prop( "checked", true );
+        }
+        
+        setTimeout(function(){
+            if(module.Cookie.get('WEBCAM') == '0'){
+                return;
+            }
+            $("#webcam").scriptcam({
+                showMicrophoneErrors: false,
+                onError: function(errorId, errorMsg) {
+                    $("#btn-tira-foto").attr("disabled", true);
+                    $("#btn-rm-foto").attr("disabled", true);
+                    alert(errorMsg);
+                },
+                cornerRadius: 20,
+                disableHardwareAcceleration: 1,
+                cornerColor: 'e3e5e2',
+                onWebcamReady: function(cameraNames, camera, microphoneNames, microphone, volume) {
+                    $.each(cameraNames, function (index, text) {
+                        $('#cameraNames').append($('<option></option>').val(index).html(text))
+                    });
+                    $('#cameraNames').val(camera);
+                },
+                uploadImage: '/img/upload.gif',
+                onPictureAsBase64: function(b64) {
+                    $('#formfield').val(b64);
+                    $('#image').attr("src", "data:image/png;base64," + b64);
+                }
+                ,path : '/js/'
+            });
+        },2000);
+        
+        $('#btn-tira-foto').click(function(){
+            var img64 = $.scriptcam.getFrameAsBase64();
+            $('#image').attr("src", "data:image/png;base64," + img64);
+            $$(fields.inpFoto).val(img64);
+        });
+        $('#btn-rm-foto').click(function(){
+            gModal.reset('confirm',3)
+                .setMsg('Deseja Realmente excluir esta imagem?')
+                .setClickOk(function(){
+                    var img64 = '';
+                    $('#image').attr("src", "data:image/png;base64," + img64);
+                    $$(fields.inpFoto).val(img64);
+                    var id = $$(fields.idFuncionario).val();
+                    if(id != ''){
+                        $.processa({
+                            url: "<?php echo $this->url($route, array('controller' => "funcionarios", 'action' => "rmFoto"), [], FALSE, FALSE); ?>/" + id
+                            ,savePage: false
+                            ,callback: function (data, defaults) {
+                                var data = JSON.parse(data);
+                                if(data.status == 'ok'){
+                                    gModal.reset('alert',2).setMsg(data.msg).showModal();
+                                }else{
+                                    gModal.reset('alert',3).setMsg(data.msg).showModal();                                    
+                                }
+                            }
+                        });
+                    }
+                })
+                .showModal();
+        });
+        
+        $('#cameraNames').change(function(){
+            $.scriptcam.changeCamera($('#cameraNames').val());            
+        });
+        
+        $('#web-cam-hided').hide();
+        
+        /**
+         * @name createMessages
+         */
+        $.each(messagesGroup, function (type, messages) {
+            $.each(messages, function (_, message) {
+                $.notify({
+                    "message": message,
+                    "type": type
+                });
+            });
+        });
+
+        /**
+         * @property {jQuery} idFuncionario : Alias contendo valor do campo do
+         * id do Funcionario
+         */
+        var idFuncionario = $$(fields.idFuncionario).val();
+        /**
+         * @property {string} idGuiaVal: Clona o ID da Guia e armazena em variável.
+         * Desta forma, o ID da Guia sempre estará disponível, mesmo que o campo
+         * seja apagado
+         */
+        fields.idGuiaVal = $.trim($$(fields.idGuia).val());
+
+        $$(fields.nomeSetor).auto({
+            primary: "nomeSetor",
+            width: 300,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                "idSetor": [fields.idSetor]
+            },
+            filters: function (query) {
+                query.rules = {
+                    "idEmpresa" : $$(fields.idEmpresa).val()
+                };
+            },
+        });
+
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (data) {
+                data.rules = {
+                    "empresa": $$(fields.idEmpresa).val()
+                };
+                return data;
+            },
+            callback: function (data) {
+                $.processa({
+                    url: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'edit'), [], FALSE, FALSE); ?>/" + data["idFuncionario"],
+                })
+            },
+            showCols: ["nomeFuncionario", "rg"]
+        });
+
+        $$(fields.cargo).auto({
+            primary: "cargo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                idSetor   : [fields.idSetor],
+                idCargo   : [fields.idCargo],
+                nomeSetor : [fields.nomeSetor],
+                cbo       : [fields.cbo],
+                idOcupacao: [fields.idOcupacao]
+            },
+            filters: function (query) {
+                query["idEmpresa"] = $$(fields.idEmpresa).val();
+                query["idSetor"] = $$(fields.idSetor).val();
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+        
+//        $$(fields.inpPpra).auto({
+//            primary: "local",
+//            width: 500,
+//            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'PpraOcupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+//            noCache: true,
+//            responseTo: {
+//                id        : [fields.te],
+//            },
+//            filters: function (query) {
+//                query["idEmpresa"] = $$(fields.idEmpresa).val();
+//                query["idSetor"] = $$(fields.idSetor).val();
+//            },
+//            showCols: ["id", "local"]
+//        });
+
+        $$(fields.cbo).auto({
+            primary: "cbo",
+            width: 500,
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocupacaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                cargo: [fields.cargo],
+                nomeSetor: [fields.nomeSetor],
+                idOcupacao: [fields.idOcupacao]
+            },
+            filters: function (query) {
+                query["idEmpresa"] = $$(fields.idEmpresa).val()
+                query["idSetor"] = $$(fields.idSetor).val()
+            },
+            showCols: ["nomeSetor", "cargo", "apelido", "cbo"]
+        });
+
+        /**
+         * @description Adiciona novo Historico Ocupacional no funcionário
+         * OBS: Caso os campos 'cargo', 'nomeSetor' e 'idOcupacao' não estiverem
+         * preenchidos, assim como se não houver uma data final do primeiro 
+         * registro de Historico Ocupacional do Funcionário, então a requisição
+         * não deve ser enviada ao servidor;
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since 25/02/2016
+         * @return {void}
+         */
+        $("#addHistorico").click(function () {
+            if ($$(fields.idOcupacao).isEmpty() || $$(fields.cargo).isEmpty() || $$(fields.nomeSetor).isEmpty()) {
+                $.notify({
+                    "message": "É necessário possuir cargo e setor definidos para inserir registro",
+                    "type": "danger"
+                });
+                return;
+            }
+            if (fields.lastDataFim) {
+                $.notify({
+                    "message": "Voce ainda não fechou o ultimo Histórico do Funcionário",
+                    "type": "danger"
+                });
+                return;
+            }
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "addHistorico"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage: false,
+                data: {
+                    idFuncionario: $$(fields.idFuncionario).val(),
+                    idOcupacao: $$(fields.idOcupacao).val(),
+                    dtIni: $$(fields.dtIni).val()
+                }
+            });
+        });
+
+        // == HISTÓRICO OCUPACIONAL =============================== INICIO =====+++
+        //  - Funcoes de apoio para inclusão, exclusão e 
+        // edição de dados do Histórico Ocupacional em Funcionário
+        //
+
+        /**
+         * @description Inicializa o modal para alterar data do Historico Ocupacional 
+         * OBS: Armazena o ID e a data preenchida do Histórico e grava estes valores
+         * no modal, sendo o ID no atributo data-id e a data no input referente
+         * a dtFim
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since 25/02/2016
+         * @return {void}
+         */
+        $(".editar-datafim").click(function () {
+            var idHistorico = $(this).attr("data-id");
+            var data = $(this).attr("data-dt");
+            $("#modal").attr({"data-id": idHistorico});
+            $("#modal").modal();
+            $$(fields.dtFim).val(data);
+        });
+        /**
+         * @description Remove a data setada do ultimo histórico exercido pelo funcionário
+         * OBS: Lê o atributo data-id do botão .remover-datafim (que contém o id
+         * do Histórico Ocupacional cujo qual possui a data final preenchida) e 
+         * envia para o servidor que por sua vez, apaga o campo 'dtFim' e seta o 
+         * status do histórico como 'ativo'
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since 25/02/2016
+         * @return {void}
+         */
+        $(".remover-datafim").click(function () {
+            var idHistorico = $(this).attr('data-id');
+            if (confirm("Deseja realmente excluir a data fim da ocupacao do funcionario?")) {
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => "histOcupacionals", 'action' => "changeDataFim"), [], FALSE, FALSE); ?>/" + idHistorico,
+                    savePage: false,
+                });
+            }
+        });
+        /**
+         * @description Seta a data de fechamento do histórico ocupacional do funcionário
+         * OBS: Caso o campo da data cujo qual será enviada ao servidor contiver 
+         * o valor '-' (que em teoria, significa que este histórico ainda
+         * não foi fechado), a requisição não será enviada para o servidor.
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since 25/02/2016
+         * @return {void}
+         */
+        $("#enviar-data-modificada").click(function () {
+            $("#modal").modal("hide");
+            var novaData = $("#modal").find("input").val();
+            if ("-" == novaData) {
+                $.notify({
+                    "message": "Você não selecionou uma data para fechar o Histórico",
+                    "type": "danger",
+                });
+                return;
+            }
+            $("#set-data-fim").processa({
+                url: "<?php echo $this->url($route, array('controller' => "histOcupacionals", 'action' => "changeDataFim"), [], FALSE, FALSE); ?>",
+                savePage: false,
+                data: {
+                    idHistOcupacional: $("#modal").attr("data-id"),
+                },
+            });
+        });
+
+        /**
+         * @description Deleta o histórico ocupacional selecionado do servidor
+         * OBS: O histórico será setado como cancelado, ou seja, existirá no banco
+         * mas o dado não será visível na tabela 
+         *
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since 25/02/2016
+         * @return {void}
+         */
+        $(".delete").click(function () {
+            if (confirm("Este histórico será excluído e não será mais visível na tabela. Deseja realmente excluir Histórico?")) {
+                var id = $(this).attr("data-id");
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => "histOcupacionals", 'action' => "delete"), [], FALSE, FALSE); ?>/" + id,
+                    savePage: false,
+                });
+            }
+        });
+        //
+        //
+        // == HISTÓRICO OCUPACIONAL =============================== FIM ========+++
+
+
+        if ($$(fields.idGuia).val()) {
+            $("#codigo-aut-view").html("(Cod. Autenticidade: " + $$(fields.idGuia).val() + ")");
+        }
+
+
+        $("#renewForm").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'new'), [], FALSE, FALSE); ?>",
+                savePage: false,
+            });
+        });
+
+        /**
+         * OBS: Caso o valor encontrado no campo do ID da Guia esteja vazio e 
+         * exista um valor cadastrado no atributo ultimoCodAut em Funcionário,
+         * então passar este valor do ultimoCodAut para inserir este registro na
+         * Agenda
+         */
+        $(".incluirAgenda").click(function () {
+            if (1 > fields.idGuiaVal.length && fields.ultimoCodAut) {
+                fields.idGuiaVal = fields.ultimoCodAut;
+            }
+
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'AgendaAmbuls', 'action' => 'new'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    flag: "noPersist",
+                    idFuncionario: $$(fields.idFuncionario).val(),
+                    idGuia: fields.idGuiaVal
+                }
+            });
+        });
+
+        /**
+         * @event Botão de voltar tela e cancelar edicao/inclusao
+         */
+        $("#voltar-home").click(function () {
+            if (confirm("Deseja confirmar solicitação?")) {
+                $("#home").click();
+            }
+        });
+
+
+
+
+        /**
+         * @event Botao de visualização da consulta
+         */
+        $("#exibeConsulta").click(function () {
+            var $fichas = $("#container");
+            if ($fichas.is(":visible")) {
+                $fichas.hide();
+            } else {
+                $fichas.show();
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => 'funcionarios', 'action' => 'getLastConsulta'), [], FALSE, FALSE); ?>" + "/" + idFuncionario,
+                    savePage: false,
+                    callback: function (result) {
+                        $("#body-cont").html(result);
+                        $("#title-cont").html("Lista de Ultimas Consultas");
+                    },
+                });
+            }
+        });
+
+        /**
+         * Localiza a Guia ou a GuiaSemCadastro através do campo 
+         * Cod. Autenticidade.
+         * OBS: Para diferenciar GuiaSemCadastro de Guia, foi utilizada a 
+         * estratégia de ler o campo 'Cod. Autenticidade' e ler o primeiro
+         * valor do campo (que deve ser um char) e então, separar a requisição
+         * pela Action contida no atributo url da variável obj.
+         * 
+         * @event Busca do funcionario ou guia no servidor 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         * @version 2 23/02/2016
+         */
+        $("#icon_idGuia").click(function () {
+            var text = $.trim($$(fields.idGuia).val());
+            var cod  = text.toUpperCase();
+
+            // Valida o campo contendo o numero do cod. autenticidade
+            var regex = /((A)|(C)|(S)){1}\d+/;
+
+            if (!regex.test(cod)) {
+                $.notify({
+                    message: "Código de Autenticidade errado!!",
+                    type: "danger"
+                });
+                return false;
+            }
+            
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'Funcionarios', 'action' => 'getFuncGuia'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    codigo: cod
+                },
+                callback: function(data) {
+                    if("noEntity" != data) {
+                        $('#inter').html(data);
+                        return false;
+                    }
+                    
+                    $.notify({
+                        message: "Guia inexistente!",
+                        type: "danger"
+                    });
+                }
+            });
+            
+            return false;
+        });
+
+        /**
+         * Remove o atributo 'onKeyDown' do campo e adiciona o evento
+         * keyPress. Quando este campo for clicado com a tecla enter,
+         * uma trigger será acionada clicando o botao #icon_idGuia,
+         * e então será executada a funcao referente a este botão
+         * @author Danilo Dorotheu 
+         */
+        $("#idGuia").removeAttr("onkeydown").keyup(function (e) {
+            if (e.which == 13) {
+                $("#icon_idGuia").click();
+            }
+        });
+
+        /**
+         * @event Botao de visualização de pendentes 
+         */
+        $("#exibePendentes").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'funcionarios', 'action' => 'getListaPendentes'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                callback: function (data) {
+                    $("#container-data").html(data).show();
+                }
+            })
+        });
+
+        /**
+         * Busca todas as ocorrencias do funcionario 
+         */
+        $("#exibeOcorrencia").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "ocorrencias", 'action' => 'index'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    "idFuncionario": idFuncionario
+                },
+            });
+        });
+        /**
+         * Busca todas as consultas do funcionario 
+         */
+        $("#exibeConsultas").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'exibeConsultas'), [], FALSE, FALSE); ?>" + "/" + idFuncionario,
+                savePage: false,
+                callback: function (data) {
+                    $("#container-data").html(data).show();
+                }
+            });
+        });
+
+        /**
+         * Evento trigger que envia todos os dados preenchidos na pagina para o 
+         * servidor.
+         * @author Danilo Dorotheu
+         */
+        $(".salvarForm").click(function () {
+            if (confirm("Deseja realmente salvar este registro?")) {
+                var typeForm = "<?php echo $this->dataView["action"] ?>";
+                var aux = ("edit" == typeForm) ? "/" + idFuncionario : "";
+                $(this).closest("form").processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => $this->dataView["action"]), [], FALSE, FALSE) ?>",
+                });
+            }
+        });
+
+
+        $("#clearGetCodAut").click(function () {
+            $("#numCodAut").val("");
+        });
+
+        /**
+         * Exclui o cadastro quando este possui status = PENDENTE
+         *
+         * @since 09-03-2016
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com> 
+         */
+        $("#deletePendente").click(function () {
+            if (confirm("Deseja realmente deletar este funcionário pendente? Ao deletar, o cadastro inteiro será excluído definitivamente.")) {
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'deletePendente'), [], FALSE, FALSE); ?>" + "/" + idFuncionario,
+                    savePage: false,
+                });
+            } else {
+                $.notify({
+                    message: "Ação cancelada!",
+                    type: "info"
+                })
+            }
+        });
+
+        $("#incluirProximo").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'funcionarios', 'action' => 'new'), [], FALSE, FALSE); ?>",
+                frm: true,
+                data: {
+                    "subOpcao": "incluirProximo",
+                    "idEmpresa": $$(fields.idEmpresa).val()
+                },
+                savePage: false,
+            });
+        });
+                //mascara de CBO
+        $$(fields.cbo).mask("9999-99");
+        
+       /*
+        * Feito funcao para botao hide ou tougle no endereço
+        * @author Danilo Song
+        */
+        $(document).ready(function (e) {
+            $("#endFunc").hide();
+            
+            $("#btn-end").click(function (e) {
+                $("#endFunc").toggle();
+            });
+        });
+    });
+
+</script>

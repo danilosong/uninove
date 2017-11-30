@@ -1,0 +1,103 @@
+<?php
+
+/* @var $entity \Tcmed\Entity\Funcionario */
+if ($this->resultSet) {
+    if (empty($this->subOpcao)) {
+        $array[] = [
+            'menu_idFuncionario' => 'idFunc',
+            'menu_nomeFuncionario' => 'Nome do Funcionario',
+            'menu_rg' => 'RG',
+            'menu_referenciaFun' => 'referenciaFun',
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idFuncionario' => $entity->getId(),
+                'nomeFuncionario' => $entity->getNomeFuncionario(),
+                'rg' => $entity->getRg(),
+                'referenciaFun' => $entity->getReferenciaFun()
+            ];
+        }
+    }
+    if ("type1" == $this->subOpcao) {
+        $array[] = [
+            'menu_idFuncionario' => 'ID Funcionario',
+            'menu_funcionario' => 'ID',
+            'menu_referenciaFun' => 'Ref',
+            'menu_nomeFuncionario' => 'Nome do Funcionario',
+            'menu_fantasiaAdm' => 'Administradora',
+            'menu_fantasiaEmpresa' => 'Empresa',
+            'menu_cpf' => 'CPF',
+            'menu_rg' => 'RG',
+            'menu_idAdministradora' => 'ID Adm',
+            'menu_referenciaAdm' => 'Ref Adm',
+            'menu_idEmpresa' => 'ID Empresa',
+            'menu_cnpj' => 'CNPJ',
+            'menu_idHold' => 'ID Hold',
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                "idFuncionario" => $entity->getId(),
+                "funcionario" => $entity->getId(),
+                "referenciaFun" => $entity->getReferenciaFun(),
+                "nomeFuncionario" => $entity->getNomeFuncionario(),
+                "fantasiaAdm" => $entity->getEmpresa()->getAdministradora()->getFantasiaAdm(),
+                "referenciaEmp" => $entity->getEmpresa()->getReferenciaEmp(),
+                "fantasiaEmpresa" => $entity->getEmpresa()->getFantasiaEmpresa(),
+                "cpf" => $entity->getCpf(),
+                "rg" => $entity->getRg(),
+                "idAdministradora" => $entity->getEmpresa()->getAdministradora()->getId(),
+                "referenciaAdm" => $entity->getEmpresa()->getAdministradora()->getReferenciaAdm(),
+                "idEmpresa" => $entity->getEmpresa()->getId(),
+                "cnpj" => $entity->getEmpresa()->getCnpj(),
+                "idHold" => $entity->getEmpresa()->getAdministradora()->getHold()->getId(),
+            ];
+        }
+    }
+    /**
+     * Modelo para substituir o autocompl default (por possuir razaoSocialEmp,
+     * razaoSocialAdm...
+     */
+    if ("new" == $this->subOpcao) {
+        $array[] = [
+             // Funcionario
+            'menu_idFuncionario' => 'ID Funcionario',
+            'menu_referenciaFun' => 'Ref',
+            'menu_nomeFuncionario' => 'Nome do Funcionario',
+            'menu_cpf' => 'CPF',
+            'menu_rg' => 'RG',
+             // Empresa
+            'menu_idEmpresa' => 'ID Empresa',
+            'menu_razaoSocialEmp' => 'Empresa',
+            'menu_referenciaEmp' => 'Ref Emp',
+            'menu_cnpj' => 'CNPJ',
+             // Administradora
+            'menu_idAdministradora' => 'ID Adm',
+            'menu_razaoSocialAdm' => 'Administradora',
+            'menu_referenciaSubhold' => 'Ref Adm',
+            'menu_hold' => 'ID Hold',
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                //Funcionario
+                "idFuncionario" => $entity->getId(),
+                "referenciaFun" => $entity->getReferenciaFun(),
+                "nomeFuncionario" => $entity->getNomeFuncionario(),
+                "cpf" => $entity->getCpf(),
+                "rg" => $entity->getRg(),
+                //Empresa
+                "idEmpresa" => $entity->getEmpresa()->getId(),
+                "razaoSocialEmp" => $entity->getEmpresa()->getFantasiaEmpresa(),
+                "referenciaEmp" => $entity->getEmpresa()->getReferenciaEmp(),
+                "cnpj" => $entity->getEmpresa()->getCnpj(),
+                //Administradora
+                "idAdministradora" => $entity->getEmpresa()->getAdministradora()->getId(),
+                "razaoSocialAdm" => $entity->getEmpresa()->getAdministradora()->getFantasiaAdm(),
+                "referenciaSubhold" => $entity->getEmpresa()->getAdministradora()->getReferenciaSubhold(),
+                "fantasiaHold" => $entity->getEmpresa()->getAdministradora()->getHold()->getFantasiaHold(),
+            ];
+        }
+    }
+    echo json_encode($array);
+} else {
+    echo '{}';
+}

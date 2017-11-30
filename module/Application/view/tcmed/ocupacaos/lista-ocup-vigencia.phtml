@@ -1,0 +1,33 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'    ];
+$route      = $this->dataView['route'     ];
+$title      = $this->dataView['titulo'    ];
+$orderBy    = $this->dataView['orderBy'   ];
+
+/* @var $table \Application\View\Helper\Table */
+$table      = $this->table();
+
+// Messenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+// Modal
+echo $this->partial('partials/modal', array());
+
+?>
+<br />
+<br />
+<legend>
+    <button id="addOcupacao" class="btn btn-primary"><i class='fa fa-plus'></i> Novo</button>
+    <?= $title ?>
+</legend>
+<?php
+
+$this->partialObj('tcmed')->partial('ocupacaos/partial-lista-ocup', NULL, [
+    'this'         => &$this,
+    'entities'     => $this->data,
+    'dataView'     => $dataView,
+    'ppra'         => $this->params['ppra'],
+    'ret'          => $this->params['ret'],
+    'redirectTo'   => 'listaOcupVigencia'
+]);

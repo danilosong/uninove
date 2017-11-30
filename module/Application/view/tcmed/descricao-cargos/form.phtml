@@ -1,0 +1,26 @@
+<h3><?php echo $this->dataView['titulo']; 
+$controller = 'descricaoCargos';
+$route = 'tcmed/default';
+?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp
+ * @author Allan Davini */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$this->dataView['action']),[],FALSE,$this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro de Descrição do Cargo:');
+    $fh->openCol('12')->textarea('descricao')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->select('ppra')->closeCol();
+$fh->lineDown();
+    $fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascript">   
+    
+    function isValid(){
+        return true;
+    }
+    
+</script>

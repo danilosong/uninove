@@ -1,0 +1,45 @@
+<?php
+/* @var $table \Application\View\Helper\Table 
+ * @author Paulo Watakabe <email>watakabe05@gmail.com</email>
+ * 
+ */ 
+$table = $this->table();
+$controller = 'cats';
+$route = 'tcmed/default';
+?>
+<?php
+$table->openTable(TRUE);
+$table->renderThead([
+    'Data', 
+    'Numero', 
+    'Observaçao', 
+    'Incluido Em', 
+    'Incluido Por', 
+    'Ação'
+]);
+$lambda = function ($value,$data){
+    echo "\t<td nowrap>",
+            '<span class="hand" onClick="editCatInFC(\'', $value, '\',this)" title="Editar"><i class="fa fa-pencil"></i> Edit','</span>&nbsp;', PHP_EOL,
+            '<span class="hand" onClick="delCatInFC(\'', $value, '\')" title="Deletar"><i class="fa fa-trash"></i> Del</span>',
+         "</td>", PHP_EOL;  
+};
+$table->setLambda($lambda);
+/* @var $entity \Tcmed\Entity\Cat */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getDtCat(),
+        $entity->getCatNumero(),
+        $entity->getCatObservacao(),
+        $entity->getCreatedAt(),
+        $entity->getCreatedBy(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+<br />
+<script lang="javascritp">   
+    
+    
+</script>

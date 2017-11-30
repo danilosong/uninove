@@ -1,0 +1,211 @@
+<style>
+    #status {
+        background: #eee; /*Simular campo inativo */
+        pointer-events: none;
+        touch-action: none;
+    }
+</style>
+<?php
+$controller   = $this->dataView['controller'];
+$action       = $this->dataView['action'];
+$route        = $this->dataView['route'];
+$title        = $this->dataView['titulo'];
+/* @var $entity \Application\Entity\Chamado */
+$entity       = $this->entity;
+
+/* @var $user \Application\Entity\Usuario */
+$user = $this->user;
+
+/* @var $form \Application\Form\Chamado */
+$form = $this->form;
+$id = $form->getValue('id', 0);
+$partial = $this->partialObj('application');
+$tcmedPartial = $this->partialObj('tcmed');
+
+echo '<h3>', $title, '</h3><br />';
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+            'id' => ($entity) ? $entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']));
+
+$inpNomeUsuarios = FALSE;
+if ($entity) {
+    foreach ($entity->getCopiaPara() as $id => $email) {
+        $inpNomeUsuarios[$id] = $email;
+    }
+}
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+
+$fh->openCol(8)->renderInputText('titulo')->closeCol();
+$fh->openCol(4)->renderInputSelect('status')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(12)->renderInputTextArea('desc')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(4)->renderInputFile('anexoPath')->closeCol();
+$fh->openCol(4)->renderInputSelect('prioridade')->closeCol();
+$fh->openCol(4)->renderInputSelect('setor')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(3);
+echo "<center><b>Categoria da C.i</b></center>";
+$fh->closeCol();
+$fh->openCol(5)->closeCol();
+$fh->lineDown();
+
+$fim = 4;
+$fh->openCol(2)->renderInputMultiCheckbox('categoria', ['noClean' => true, 'partial' => ['ini' => 0, 'fim' => $fim]])->closeCol();
+$fh->openCol(2)->renderInputMultiCheckbox('categoria', ['noClean' => true, 'partial' => ['ini' => $fim]])->closeCol();
+$fh->openCol(3)->closeCol();
+
+$fh->openCol(1)->closeCol();
+$inpUsuario = $fh->getIdFor('id');
+$fh->openCol(5)->text('copiaPara', [
+    'dt-clear' => $inpUsuario,
+    "extra" => [
+        ["icon" => "arrow-down", "id" => "btn-join-user", "title" => "Incluir na lista de cópia"]
+        , ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+    ]
+])->closeCol();
+$inpNomeUsuario = $fh->getLastId();
+
+$fh->openCol(1)->closeCol();
+$fh->openCol(5);
+echo '<center><strong>Listagem de cópia para: </strong></center>';
+$inpDivUsuario = 'email-list';
+$fh->openLine(['id' => $inpDivUsuario, 'class' => 'border-bottom border-right', 'style' => 'margin : 2px;']);
+$fh->closeLine();
+$fh->closeCol();
+$fh->lineDown();
+
+echo '<br/>';
+$fh->openCol(10,['class' => 'text-center']); echo $fh->buildButton(['id' => 'btn-abrir-chamado'], 'Enviar','success'); $fh->closeCol();
+$fh->openCol(2)->closeCol();
+$fh->lineDown();
+
+$fh->formEnd();
+
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+        'id'
+        , 'action'
+        , 'controller'
+        , 'inpUsuario'
+        , 'inpNomeUsuario'
+        , 'inpDivUsuario'
+);
+?>
+<script lang="javascript">
+    function isValid() {
+        return true;
+    }
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+
+        $$(transp.inpNomeUsuario).auto({
+            primary: "emailUsuario",
+            width: 800,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                idUsuario: [transp.inpUsuario]
+            },
+            showCols: ["nomeUsuario", "emailUsuario", "idUsuario"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpNomeUsuario).change(function () {
+            $$(transp.inpUsuario).val("");
+        });
+
+  
+
+        $('#btn-join-user').click(function () {
+            var $idUser = $$(transp.inpUsuario);
+            var $emailUser = $$(transp.inpNomeUsuario);
+            if ($idUser.val() == '' && $emailUser.val() != '') {
+                gModal2.alert('O usuário deve estar cadastrado no sistema!!!', 1);
+            }
+            if ($idUser.val() == '') {
+                return;
+            }
+            var list = action.getPublic('all', 'listCopiaUser');
+            var has = false;
+            if (list) {
+                $.each(list, function (k, v) {
+                    if (k == $idUser.val()) {
+                        has = true;
+                    }
+                });
+            } else {
+                list = {};
+            }
+            if (!has) {
+                list[$idUser.val()] = $emailUser.val();
+            }
+            action.setPublic(list, 'listCopiaUser');
+            $$(transp.inpDivUsuario).click();
+            $idUser.val('');
+            $emailUser.val('');
+        });
+
+        if (transp.inpNomeUsuarios) {
+            action.setPublic(transp.inpNomeUsuarios, 'listCopiaUser');
+        }
+
+        $$(transp.inpDivUsuario).click(function () {
+            var list = action.getPublic('all', 'listCopiaUser');
+            var tb = '';
+            tb += '<div class="col-md-2 text-center border-top border-left"><label>ID</label></div>';
+            tb += '<div class="col-md-8 text-center border-top border-left"><label>E-mail</label></div>';
+            tb += '<div class="col-md-2 text-center border-top border-left"><label>Ação</label></div>';
+            if (list) {
+                $.each(list, function (k, v) {
+                    tb += '<div class="border-top border-left col-md-2 text-center">' + k + '</div>';
+                    tb += '<div class="border-top border-left col-md-8">' + v + '</div>';
+                    tb += '<div class="border-top border-left col-md-2 text-center">';
+                    tb += '<i title="Excluir este da item da lista" class="fa fa-trash hand btn-rm-nomeUsuario" data-id="' + k + '"></i>';
+                    tb += '</div>';
+                });
+            }
+            $(this).html(tb);
+            $('.btn-rm-nomeUsuario').click(function () {
+                var list = action.getPublic('all', 'listCopiaUser');
+                var user = $(this).data('id');
+                var newlist = {};
+                $.each(list, function (k, v) {
+                    if (k != user) {
+                        newlist[k] = v;
+                    }
+                });
+                action.setPublic(newlist, 'listCopiaUser');
+                $$(transp.inpDivUsuario).click();
+            });
+        }).click();
+        
+        $('#btn-abrir-chamado').click(function(){
+            var copiaDePara = action.getPublic('all','listCopiaUser');
+            $.processa({
+                url : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                frm : true,
+                type: "POST",
+                savePage: false,
+                ret : transp.ret,
+                data: {
+                    ret               : transp.ret,
+                    copiaPara       : JSON.stringify(copiaDePara)
+                }
+            });
+        });
+    });
+
+</script>

@@ -1,0 +1,153 @@
+<?php
+/**
+ * RETORNA LISTA DE CONTATOS
+ * @category Contato
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 19/02/2016
+ */
+/* @var $table \Application\View\Helper\Table */
+/* @var $entity \Tcmed\Entity\Administradora */
+$table = $this->table();
+$entity = $this->entity;
+
+/**
+ * @var array Mensagens do servidor que serão lidas na view
+ * OBS: Após ler mensagens, fila é apagada
+ * @see javascript::createMessages
+ */
+$messages = $this->flashMessenger()->getCurrentAllMessages();
+$this->flashMessenger()->clearCurrentAllMessages();
+
+$controller = $this->controller;
+$route = 'tcmed/default';
+
+$incluirContato = '<button id="incluirContato" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Incluir</button>';
+
+echo <<<EOF
+    <legend>Outros Contatos {$incluirContato}</legend>
+EOF;
+
+$lambda = function($value, $data) {
+    echo <<<EOF
+    <td>
+        <span data-id="{$value}" class="hand excuirMeioContato">
+            <i class="fa fa-trash"></i> 
+        </span> 
+    </td>
+EOF;
+};
+$table->setLambda($lambda);
+
+$table->openTable(TRUE);
+$table->renderThead([
+    '<i class="fa fa-user"></i> Contato',
+    '<i class="fa fa-phone"></i> Telefone',
+    '<i class="fa fa-mobile"></i> Celular',
+    '<i class="fa fa-envelope"></i> Email',
+    '<i class="fa fa-minus"></i>'
+]);
+
+foreach ($entity->listContatos(["principal" => FALSE]) as $contato) {
+
+    $listaMeioContatos = $contato->listMeioContato();
+
+    if (1 > count($listaMeioContatos)) {
+        continue;
+    }
+
+    $telefone = $listaMeioContatos[0]->getMeioDeContato();
+    $celular = $listaMeioContatos[1]->getMeioDeContato();
+    $email = $listaMeioContatos[2]->getMeioDeContato();
+
+    $table->renderLine([
+        $contato->getNomeContato(),
+        $telefone,
+        $celular,
+        $email,
+        $contato->getId()
+    ]);
+}
+
+$table->renderCloseTable();
+?>
+<div id="modal-add"></div>
+<br>
+<script type="text/javascript">
+    $(function () {
+        var idEntity = <?php echo $entity->getId(); ?>;
+
+        function refresh() {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getContatos'), [], FALSE, FALSE); ?>/" + idEntity,
+                callback: function (data) {
+                    $("#listaContatos").html(data);
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * @event Traz modal com informacoes de peso, altura, 
+         * pressao e temperatura 
+         */
+        $(".addMeioContato").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "addNewContato"), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    "idContato": $(this).attr("data-id"),
+                    "idEntity": idEntity
+                },
+                callback: function (data) {
+                    $("#modal-add").html(data);
+                }
+            });
+            return false;
+        });
+
+        $(".excuirMeioContato").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => "Contatos", 'action' => "delete"), [], FALSE, FALSE); ?>/" + $(this).attr("data-id"),
+                callback: function (data) {
+                    $.processa({
+                        url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getContatos'), [], FALSE, FALSE); ?>/" + idEntity,
+                        callback: function (data) {
+                            $("#listaContatos").html(data);
+                        }
+                    });
+                }
+            });
+            return false;
+        });
+
+        $("#incluirContato").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "addNewContatoModal"), [], FALSE, FALSE); ?>/" + idEntity,
+                callback: function (data) {
+                    $("#modal-add").html(data);
+                }
+            });
+            return false;
+        });
+        
+        //== MENSAGENS DO SISTEMA ==============================================
+        /**
+         * @see (PHP) flashMessenger
+         * @property {object} messagesGroup Necessário para exibir mensagens 
+         * na tela
+         */
+        var messagesGroup = <?php echo json_encode($messages) ?>;
+        /**
+         * @event Exibe as mensagens do servidor na view
+         */
+        $.each(messagesGroup, function (type, messages) {
+            $.each(messages, function (_, message) {
+                $.notify({
+                    "message": message,
+                    "type": type
+                });
+            });
+        });
+// ========================================================== FIM ======
+    });
+</script>

@@ -1,0 +1,284 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+/* @var $fh    \Application\View\Helper\FormHelp */
+/* @var $partial    \Application\View\Helper\PartialObj */
+/* @var $form       \Tcmed\Form\PpraMedicaoResul */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+$aparelhos  = $this->dataView['aparelhos'] ?? [];
+$form       = $this->form;
+$formId     = 'showListPpraMedicaoResul';
+$ret        = $form->get('ret')->getValue();
+
+$form->setAttribute('id', $formId);
+$form->setAttribute('target', $ret);
+$table   = $this->table();
+$fh      = $this->formHelp($this,$form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj();
+
+// Lê as mensagens do servidor através do flashMessenger
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+if($ret == '#inter'){
+    $fh->formInit();
+    $_POST['formId'] = $formId;
+}else{
+    $form->remove('ret');
+    $fh->renderFieldsetIni()->renderAllHidden();
+    $formId = true;
+}
+
+$fh->openCol(8);
+?>
+<div id="ppraMedicaoResulIndexMenu">
+<h3 class=""><?php echo $this->dataView['titulo']; ?></h3>
+</div>
+<?php
+$fh->closeCol()->lineDown()->setPreFix('ppraMedicaoResul');
+$fh->openCol('12')->renderInputMoeda('valor',['noLabel' => true,'extra' => ['icon' => 'save']],['id' => 'valorResposta'])->closeCol(); // oculto 
+$fh->lineDown()->removePreFix('ppraMedicaoResul');
+
+$fh->openCol(12);
+    $table->openTable(TRUE);
+    $table->setEditLine(false);
+    $table->setOrderList($this->dataView['orderBy']);
+    $coluns = [
+         ['label' => 'Sequência'       ,'options' => ' rowspan="2" ', 'css' => 'pcenter'  ]
+        ,['label' => 'Local'           ,'options' => ' rowspan="2" ', 'css' => 'pcenter'  ]
+        ,['label' => 'Detalhe Local'   ,'options' => ' rowspan="2" ', 'css' => 'pcenter'  ]
+        ,['label' => 'Qtd Func'        ,'options' => ' rowspan="2" ', 'css' => 'pcenter'  ]
+    ];
+    /* @var $aparelho \Tcmed\Entity\PpraVigenciaAparelho */
+    $qtdAp = 0;
+    foreach ($aparelhos as $aparelho) {
+        $coluns[]      = ['label' => $aparelho->getPpraAparelho('nome')      ,'options' => ' colspan="2" ', 'css' => 'pcenter' ];
+        $qtdAp++;
+    }
+    $table->renderThead($coluns, '', [], [], [], 'open');
+    $aparelhoDados = [];
+    for($i = 0; $i < $qtdAp; $i++){
+        $aparelhoDados[] = ['label' => 'Encontrado'  , 'css' => 'pcenter'];
+        $aparelhoDados[] = ['label' => 'Especificado', 'css' => 'pcenter'];
+    }
+    $table->renderThead($aparelhoDados, '', [], [], [], 'close');
+    /* @var $entity \Tcmed\Entity\PpraMedicao */
+    foreach ($this->data as $entity) {
+        $line   = [];
+        $line[] = $entity->getSeq();
+        $line[] = $entity->getPpraLocal('nome');
+        $line[] = $entity->getPpraLocalDet('nome');
+        $line[] = $entity->getQtdFunc();
+        $tdOpt  = ['','', '','align="center" class="inputVlr" data-id="'.$entity->getId().'" data-ap="qtd" data-type="ppraMedicao" data-input="qtdFunc"'];
+        $medicaoResuls = $entity->listPpraMedicaoResul();
+        // Aqui faz a ordenação do da exibição dos aparelhos
+        foreach ($aparelhos as $aparelho) {
+            /* @var $medicaoResul \Tcmed\Entity\PpraMedicaoResul */
+            $finded = false;
+            foreach ($medicaoResuls as $medicaoResul){
+                if($medicaoResul->getPpraAparelho('id') == $aparelho->getPpraAparelho('id')){
+                    $line[] = $medicaoResul->getValor();
+                    $line[] = $medicaoResul->getDefault();
+                    $tdOpt[] = 'align="center" class="inputVlr" data-id="'.$medicaoResul->getId().'" data-ap="'.$medicaoResul->getPpraAparelho('id').'A" data-type="ppraMedicaoResul" data-input="valor"';
+                    $tdOpt[] = 'align="center" class="inputVlr" data-id="'.$medicaoResul->getId().'" data-ap="'.$medicaoResul->getPpraAparelho('id').'B" data-type="ppraMedicaoResul" data-input="default"';
+                    $finded = true;
+                    break;
+                }
+            }
+            if(!$finded){
+                $tdOpt[] = 'align="center"';
+                $tdOpt[] = 'align="center"';
+                $line[] = '-';
+                $line[] = '-';
+            }
+        }
+        $table->setTdopt($tdOpt);
+        $table->renderLine($line);        
+    }
+    $table->renderCloseTable();
+$fh->closeCol()->closeLine();
+
+if($ret == '#inter'){
+    $fh->formEnd();
+}
+// === TRANSPORTE ==============================================================
+$fields = [
+    'ret'   => $ret
+    , 'frm' => $formId
+];
+// ===================================================================== FIM ===
+?>
+<br />
+<div id="ajaxResul"></div>
+
+<style>
+    .pcenter {
+        text-align: center;
+    }
+    .indicador{
+        width: 100%; 
+        border: solid #000 1px;
+    }  
+    .indicador td, .indicador th.cent{
+        text-align: center;
+        border-left: solid #000 1px;
+    } 
+    .indicador td.tit{
+        text-align: left;
+    }
+    .inputVlr, .alr{
+        text-align: right;
+    }
+    .inputVlr{
+        max-width: 130px;
+    }
+    .inputVlr div{
+        padding: 0px;
+    }
+    .inputVlr div div{
+        margin: 0px;
+    }
+</style>
+<script lang="javascript">
+    var fieldsPpraMedicaoResuls = <?php echo json_encode($fields) ?>;
+       
+    
+    
+    $(function () {
+        var fields = <?php echo json_encode($fields) ?>;
+        // Esconder menu superior do index
+        if('#inter' !== fields.ret){
+            $('#ppraMedicaoResulIndexMenu').hide();
+        }   
+        
+        // editar valor direto no td
+        var idEditedCell = '';
+        var oldTdValorResposta = '';
+        var oldTdValorRespostaVlr = '';
+        var editValorResposta = function(){
+            var $td = $(this);
+            var id = $td.data('id');
+            var $valorResposta = $('#valorResposta');
+            if(idEditedCell === id){
+                return;
+            }
+            if(oldTdValorResposta != ''){
+                $valorResposta.closest('.form-group').parent().hide().appendTo(fields.ret);  
+                oldTdValorResposta.html(oldTdValorRespostaVlr);
+            }
+            oldTdValorResposta = $td;
+            oldTdValorRespostaVlr = $td.html();
+            idEditedCell = id;
+            $valorResposta.val($td.html());
+            $td.html('');
+            $valorResposta.closest('.form-group').parent().show().appendTo($td); 
+            $valorResposta.focus().select();
+        };
+        
+        var setKeyupValorResposta = function (){
+            $('#valorResposta').keyup(function(e) {
+                switch(e.which){
+                case 13: 
+                    saveValorResposta();
+                    break;
+                case 37: 
+                    nextRespostaTarget('le');
+                    break;
+                case 38: 
+                    nextRespostaTarget('up');
+                    break;
+                case 39: 
+                    nextRespostaTarget('ri');
+                    break;
+                case 40: 
+                    nextRespostaTarget('dow');
+                    break;
+                }
+            });
+        };
+        
+        setKeyupValorResposta();
+        
+        // ocultar campo que vai editar valor do td
+        $('#valorResposta').closest('.form-group').parent().hide();
+        $('.inputVlr').click(editValorResposta);    
+    
+    
+        var saveValorResposta = function(){
+            var $valorResposta = $('#valorResposta');        
+            $valorResposta.closest('.form-group').parent().hide().appendTo(fields.ret);  
+            if(oldTdValorResposta != ''){
+                oldTdValorResposta.html($valorResposta.val());
+            }
+            if(oldTdValorRespostaVlr !== $valorResposta.val()){
+                $.processa({
+                    url : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'save'), [], FALSE, FALSE); ?>",
+                    type : 'POST',
+                    ret : 'ajaxResul',
+                    data : {
+                        id      : idEditedCell
+                        ,valor  : $valorResposta.val()
+                        ,input  : oldTdValorResposta.data('input')
+                        ,type   : oldTdValorResposta.data('type')
+                    },
+                    callback: function (data, defaults) {
+                        data = JSON.parse(data);
+                        if(data["result"] == 'ok'){
+                            oldTdValorResposta.html(data.valor);
+                        }else{
+                            oldTdValorResposta.html(oldTdValorRespostaVlr);
+                            $('#ajaxResul').html(data);
+                        }
+                        nextRespostaTarget(null);
+                        $.flashMessenger(data.messenger);
+                    },
+                    savePage : false,
+                    last : false
+                });
+            }else{
+                nextRespostaTarget(null);
+            }
+        };
+        
+        $('#icon_valor').click(
+            saveValorResposta
+        );
+        
+        // pula para proxima campo
+        var nextRespostaTarget = function(opt){
+            if(opt){
+                var $valorResposta = $('#valorResposta');        
+                $valorResposta.closest('.form-group').parent().hide().appendTo(fields.ret);  
+                oldTdValorResposta.html($valorResposta.val());
+            }
+
+            var $auxTdOld = oldTdValorResposta; 
+            oldTdValorResposta = '';
+            idEditedCell = '';
+            
+            var ap = $auxTdOld.data('ap');
+            switch(opt){
+            case 'le': 
+                $auxTdOld.prev('TD').click();   
+                break;
+            case null: 
+            case 'ri': 
+                var $next = $auxTdOld.next('TD');   
+                if($next.length){
+                    $next.click();
+                }else{
+                    $auxTdOld.parent().next('TR').find('.inputVlr').eq(0).click();                       
+                }
+                break;
+            case 'dow': 
+                $auxTdOld.parent().next('TR').find('td[data-ap="'+ap+'"]').click();   
+                break;
+            case 'up': 
+                $auxTdOld.parent().prev('TR').find('td[data-ap="'+ap+'"]').click();   
+                break;
+            }      
+        };
+    
+    });
+</script>

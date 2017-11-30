@@ -1,0 +1,76 @@
+<?php
+/* @var $table \Application\View\Helper\Table
+ * @author Allan Davini */
+$table = $this->table();
+$controller = 'funcaoApelidos';
+$route = 'tcmed/default';
+/* @var $fh \Application\View\Helper\FormHelp
+ * 
+ */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1>Funcao Apelidos</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+    <?php $fh->renderInputCheckbox("showInativo", [], ["id" => "show-inativo"]) ?> <br>
+</p>
+<?php
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Apelido', 'Descrição', 'Função', 'Status','Ação']);
+/* @var $entity \Tcmed\Entity\FuncaoApelido */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getApelido(),
+        $entity->getDescricaofuncao()->getDescricao(),
+        $entity->getFuncao()->getFuncao(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    
+    $(function () {
+       
+        /**
+         *  Traz os dados inativos na tela
+         *  @author Danilo Dorotheu
+         */
+        $("#show-inativo").change(function () {
+            var teste = $(this).is(":checked");
+            action.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'FuncaoApelidos', 'action' => 'index'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage: false,
+                data: {
+                    "showInativo": ($(this).is(":checked")) ? "1" : "0",
+                },
+            });
+        });
+    });
+</script>

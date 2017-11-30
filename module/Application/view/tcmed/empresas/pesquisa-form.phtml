@@ -1,0 +1,184 @@
+<?php
+/** ============================================================================
+ * Gera Formulário de Empresas p/ filtra-los na action pesquisaEmpresa
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 15-04-2016
+ * @see Tcmed\Controller\EmpresasController::pesquisaEmpresaAction()
+ *  ========================================================================== */
+//
+/* @var $form \Tcmed\Form\Empresa */
+$form = $this->form;
+
+$controller = "empresas";
+$route = "tcmed/default";
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+$partialObject = $this->partialObj('tcmed');
+?>
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-8"><h2>Pesquisar Empresas</h2></div>
+    </div>
+</div>
+<br>
+<?php
+$fh->formInit('Dados da Empresa', ["noPreFormInit" => TRUE]);
+
+$fh->openCol(2)->buildButton(["id" => "limpar", "class" => "btn-block"], '<i class="fa fa-eraser"></i> Limpar', "primary", TRUE)->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(12);
+$fh->setPreFix('empresa');
+$idEmpresa = $fh->getIdFor('idEmpresa');
+$fh->removePreFix('empresa');
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'maskCpf' => FALSE, 'maskCnpj' => FALSE]);
+$fh->closeCol();
+
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setPreFix("empresa");   
+$fh->setPreFix("endereco");  
+$fh->setPreFix("logradouro");
+
+$fh->openCol(9)->text("nomeLogradouro")->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(3)->text("cep")->closeCol();
+
+$fh->setPreFix("bairro");
+$fh->setPreFix("cidade");
+
+$fh->openCol(6)->text("nomeCidade")->closeCol();
+
+$fh->removePreFix(); // - FIM Cidade 
+$fh->removePreFix(); // - FIM Bairro
+$fh->removePreFix(); // - FIM Logradouro
+$fh->removePreFix(); // - FIM Endereco
+$fh->removePreFix(); // - FIM Empresa 
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+// Pesquisa pela quantidade de vidas na empresa
+$fh->openCol(3)->text("filtro1", [], ["label" => "Vidas"])->closeCol();
+$fh->openCol(3)->text("filtro2", [], ["label" => "Até"])->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+// Pesquisa pela data de cadastro
+$fh->openCol(3)->calend("filtro3", [], ["label" => "Data de Cadastro"])->closeCol();
+$fh->openCol(3)->calend("filtro4", [], ["label" => "Até"])->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+// Pesquisa pela data de alteração
+$fh->openCol(3)->calend("filtro5", [], ["label" => "Data de Alteração"])->closeCol();
+$fh->openCol(3)->calend("filtro6", [], ["label" => "Até"])->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setPreFix("empresa");   
+
+$fh->openCol(3)->select("tipoPeriodico")->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setHorizontal(TRUE);
+$fh->openCol(12);
+$fh->renderInputMultiCheckbox('checkMes', ['noClean' => true]);
+$fh->closeCol();
+$fh->setHorizontal(FALSE);
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setHorizontal(FALSE);
+$fh->openCol(12);
+$fh->renderInputMultiCheckbox('checkRegiao', ['noClean' => true]);
+$fh->closeCol();
+$fh->setHorizontal(TRUE);
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setHorizontal(FALSE);
+$fh->openCol(12);
+$fh->renderInputMultiCheckbox('checkEmpresa', ['noClean' => true]);
+$fh->closeCol();
+$fh->setHorizontal(TRUE);
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->removePreFix();
+$fh->openCol(4, 4)->buildButton(["id" => "pesquisar", "class" => "btn-block"], "<i class='fa fa-search'></i> Pesquisar", "success", TRUE)->closeCol();
+$fh->jumpLine(2);  // --------------------------------------| PULA LINHA |--
+
+$fh->formEnd();
+$fieldsEntity = [
+    "idEmpresa" => $idEmpresa,
+];
+?>
+<script type="text/javascript">
+    $(function () {
+        var fields = <?php echo json_encode($fieldsEntity) ?>;
+
+        $("#pesquisar").click(function () {
+            $(this).closest("form").processa({
+                type: "POST",
+                url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'pesquisaEmpresa'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        $("#limpar").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'pesquisaEmpresa'), [], FALSE, FALSE); ?>",
+            });
+        });
+
+        /**
+         * Simula um checkbox como sendo um radioBox
+         * OBS: Recebe um array como parametro contendo array[[campo1,campo2],...];
+         * 
+         * @param {type} $fields
+         * @returns {undefined}         
+         */
+        function simulateRadio(fields) {
+            $.each(fields, function (key, campos) {
+                if (2 < campos.length)
+                    return false;
+
+                var $even = $("input[value='" + campos[0] + "']");
+                var $odd = $("input[value='" + campos[1] + "']");
+
+                $even.click(function () {
+                    var isCheck = $(this).prop("checked");
+                    $(this).prop("checked", isCheck);
+                    $odd.prop("checked", false);
+                });
+
+                $odd.click(function () {
+                    var isCheck = $(this).prop("checked");
+                    $(this).prop("checked", isCheck);
+                    $even.prop("checked", false);
+                });
+            });
+        }
+
+        simulateRadio([
+            ["TRUE_BAIXADA", "FALSE_BAIXADA"],
+            ["TRUE_ABC", "FALSE_ABC"],
+            ["TRUE_BAIXADA", "TRUE_ABC"],
+            ["TRUE_ABC", "FALSE_BAIXADA"],
+            ["TRUE_BAIXADA", "FALSE_ABC"],
+        ]);
+        /*
+         * Altera a funcao padrão do callback run do partial form de empresas
+         * @returns {nothing}         
+         */
+        window.funcaoCallBackPartialEmpresa.run = function(){
+            $.processa({
+                url  : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + $$(fields.idEmpresa).val()
+            });
+        };  
+    });
+</script>

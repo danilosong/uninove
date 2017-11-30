@@ -1,0 +1,78 @@
+<?php
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$entity     = $this->entity;
+$form       = $this->form;
+$partial    = $this->partialObj('application');
+$form->setAttribute('id', 'formTitulo');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+    'controller' => $controller,
+    'action'     => $action,
+    'id'         => ($entity) ? $entity->getId() : 0,
+), [], FALSE, $this->dataView['ajax']));
+
+echo '<h3>', $title, '</h3>';
+
+$fh->formInit();
+
+if($entity->getTitulo()) {
+    $idTitulo   = $fh->getIdFor('titulo');
+    $nomeTitulo = $fh->getIdFor('nomeTitulo');
+    $fh->openCol(6)->text('nomeTitulo', [
+        'dt-clear' => $idTitulo,
+        "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+    ])->closeCol();
+
+    $fh->lineDown();
+}
+
+$fh->openCol(6)->text('nome')->closeCol();
+$fh->openCol(4)->text('ordem')->closeCol();
+
+$fh->formEnd();
+
+// Var de transferencia PHP to JS
+$transp = [
+    'idTitulo'     => ($idTitulo)   ?? '',
+    'nomeTitulo'   => ($nomeTitulo) ?? '',
+    'ppraVigencia' => ($entity)     ? $entity->getPpraVigencia() : ''
+];
+
+?>
+<script lang="javascript">
+
+    function isValid(){
+        return true;
+    }
+
+
+    $(function(){
+        var transp = <?php echo json_encode($transp) ?>;
+
+        /**
+         *  Autocompleta o titulo
+         */
+        $$(transp.nomeTitulo).auto({
+            serviceUrl: "<?= $this->url($route, array('controller' => $controller, 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            primary: "nome",
+            noCache: true,
+            filters: function (query) {
+                query["ppraVigencia"] = $$(transp.ppraVigencia).val();
+            },
+            filters: function (query) {
+                query["rules"] = {
+                    inicial: 1
+                };
+            },
+            responseTo: {
+                id   : [transp.idTitulo],
+            },
+            showCols: ['nome', 'ordem']
+        });
+    });
+
+</script>

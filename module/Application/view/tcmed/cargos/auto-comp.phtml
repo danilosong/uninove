@@ -1,0 +1,137 @@
+<?php
+/* @var $entity \Tcmed\Entity\Cargo */
+if($this->resultSet){
+
+    switch ($this->subOpcao){
+        /**
+         * Utilizao para trazer dados de cargo e CargoApelido
+         * mesclados. OBS: Se encontrar cargoApelido, então
+         * deve-se assumir em cargo, o apelido. Caso contrario,
+         * o cargo deve assumir o valor de cargo
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since 17/12/2015
+         */
+        case "pesquisarCargos":
+            $array[] = [
+                "menu_idCargo"        => "ID",
+                'menu_cargo'          => "Cargo",
+                'menu_tipo'           => "Tipo",
+                "menu_idCargoApelido" => "ID Apelido",
+                "menu_descricao"      => "Descrição",
+            ];
+
+            /*@var $cargo \Tcmed\Entity\Cargo*/
+            $cargos = $this->resultSet["cargo"];
+            /*@var $cargoApelido \Tcmed\Entity\CargoApelido*/
+            $cargoApelidos = $this->resultSet["cargoApelido"];
+
+            foreach ($cargoApelidos as $cargoApelido){
+                $array[] = [
+                    "idCargo"          => $cargoApelido->getCargo()->getId(),
+                    "cargo"            => $cargoApelido->getApelido(),
+                    "tipo"             => "cargoApelido",
+                    "idCargoApelido"   => $cargoApelido->getId(),
+                    "descricao"        => $cargoApelido->getCargo('descricaoCargo', ['descricao'])
+                ];
+            }
+
+            foreach ($cargos as $cargo){
+                $array[] = [
+                    "idCargo"          => $cargo->getId(),
+                    "cargo"            => $cargo->getCargo(),
+                    "tipo"             => "cargo",
+                    "idCargoApelido"   => '',
+                    "descricao"        => $cargo->getDescricaoCargo('descricao')
+                ];
+            }
+            break;
+
+        case "simple":
+
+            $array[] = [
+                "menu_idCargo" => "ID Cargo",
+                'menu_cargo' => "Cargo",
+                "menu_idDescricao" => "ID Descricao",
+                'menu_descricao' => "Descricao"
+            ];
+
+            foreach ($this->resultSet as $entity){
+                 $array[] =[
+                    "idCargo" => $entity->getId(),
+                    "cargo" => $entity->getCargo(),
+                    "idDescricao" => $entity->getDescricaoCargo('id'),
+                    "descricao" => $entity->getDescricaoCargo('descricao'),
+                ];
+            }
+
+            break;
+        case "withFilters":
+
+            $array[] = [
+                'menu_idOcupacao' => "ID Ocupacao",
+                "menu_idCargo" => "ID Cargo",
+                'menu_cargo' => "Cargo",
+                "menu_idSetor" => "ID Setor",
+                'menu_setor' => "Setor"
+            ];
+
+            foreach ($this->resultSet as $entity){
+                $array[] =[
+                    "idOcupacao" => $entity->getId(),
+                    "idCargi" => $entity->getCargo(TRUE)->getId(),
+                    "cargo" => $entity->getCargo(TRUE)->getApelido(),
+                    "idSetor" => $entity->getSetor()->getId(),
+                    "setor" => $entity->getSetor()->getNomeSetor(),
+                ];
+            }
+
+            break;
+        case "getApelido":
+
+            $array[] = [
+                'menu_idCargo' => "ID",
+                'menu_cargo' => "Cargo",
+                'menu_flag' => "Flag",
+            ];
+
+            foreach ($this->resultSet["cargo"] as $entity) {
+                $array[] = [
+                    'idCargo' => $entity->getIdCargo(),
+                    'cargo' => $entity->getCargo(),
+                    'flag' => "Cargo"
+                ];
+            }
+            foreach ($this->resultSet["apelido"] as $entity) {
+                $array[] = [
+                    'idCargo' => $entity->getIdCargoApelido(),
+                    'cargo' => $entity->getApelido(),
+                    'flag' => "CargoApelido"
+                ];
+            }
+
+            break;
+        default:
+            $array[] = [
+                "menu_idCargo" => "ID Cargo",
+                'menu_cargo' => "Cargo",
+                "menu_idDescricao" => "ID Descricao",
+                'menu_descricao' => "Descricao",
+                'menu_cbo' => "CBO"
+            ];
+
+            foreach ($this->resultSet as $entity){
+                 $array[] =[
+                    "idCargo" => $entity->getId(),
+                    "cargo" => $entity->getCargo(),
+                    "idDescricao" => $entity->getDescricaoCargo('id'),
+                    "descricao" => $entity->getDescricaoCargo('descricao'),
+                    "cbo" => $entity->getCbo()
+                ];
+            }
+            break;
+    }
+
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

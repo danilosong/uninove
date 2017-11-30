@@ -1,0 +1,87 @@
+<?php
+
+/* @var $entity \Tcmed\Entity\Funcionario */
+if ($this->resultSet) {
+
+    $array[] = [
+        'menu_idFunc' => 'idFunc',
+        'menu_nomeFuncionario' => 'nomeFuncionario',
+        'menu_referenciaFun' => 'referenciaFun',
+        'menu_rg' => 'rg',
+        'menu_cpf' => 'cpf',
+        'menu_dtNascimento' => 'dtNascimento',
+        'menu_sexo' => 'sexo',
+        'menu_pis' => 'pis',
+        'menu_matricula' => 'matricula',
+        'menu_dataCad' => 'dataCad',
+        'menu_carteiraProfissional' => 'carteiraProfissional',
+        'menu_idAdministradora' => 'idAdministradora',
+        'menu_fantasiaAdm' => 'fantasiaAdm',
+        'menu_idHold' => 'idHold',
+        'menu_nomeHold' => 'nomeHold',
+        'menu_idEmpresa' => 'idEmpresa',
+        'menu_fantasiaEmpresa' => 'fantasiaEmpresa',
+        'menu_referenciaEmp' => 'referenciaEmp',
+        'menu_referenciaHold' => 'referenciaHold',
+        'menu_referenciaAdm' => 'referenciaAdm',
+        'menu_cnpj' => 'cnpj',
+        'menu_dtAdmissao' => 'dtAdmissao',
+        'menu_funcao' => 'funcao',
+        'menu_idFuncao' => 'idFuncao',
+        'menu_idFuncaoApelido' => 'idFuncaoApelido',
+        'menu_apelido' => 'apelido',
+        'menu_idOcupacao' => 'idOcupacao',
+        'menu_cargo' => 'cargo',
+        'menu_idCargo' => 'idCargo',
+        'menu_cbo' => 'cbo',
+        'menu_nomeSetor' => 'nomeSetor',
+        'menu_idSetor' => 'idSetor'
+    ];
+    foreach ($this->resultSet as $entity) {
+        $lastHistOcupacional = ($entity->getHistOcupacional("DESC", 1)) ? $entity->getHistOcupacional("DESC", 1)[0] : FALSE;
+        $histFuncao = ($lastHistOcupacional) ? $lastHistOcupacional->getHistoricoFuncao()[0] : FALSE;
+        
+//        $historicoOcupacional[] = [
+//            'dtAdmissao' => $lastHistOcupacional->getDtIni(),
+//            'funcao' => ($histFuncao) ? (($funcaoApelido) ? $funcaoApelido->getApelido() : $histFuncao->getFuncao()->getFuncao()) : "",
+//            'idFuncao' => ($histFuncao) ? $histFuncao->getFuncao()->getId() : FALSE,
+//            'idFuncaoApelido' => ($funcaoApelido) ? $funcaoApelido->getId() : FALSE,
+//            'idOcupacao' => $lastHistOcupacional->getOcupacao()->getId(),
+//            'cargo' => $lastHistOcupacional->getOcupacao()->getCargo()->getCargo(),
+//            'idCargo' => $lastHistOcupacional->getOcupacao()->getCargo()->getId(),
+//            'cbo' => $lastHistOcupacional->getOcupacao()->getCargo()->getCbo(),
+//            'nomeSetor' => $lastHistOcupacional->getOcupacao()->getSetor()->getNomeSetor(),
+//            'idSetor' => $lastHistOcupacional->getOcupacao()->getSetor()->getId(),
+//        ];
+        
+        $funcaoApelido = ($histFuncao) ? $histFuncao->getFuncaoApelido() : FAlSE;
+
+        $array[] = [
+            'idFunc' => $entity->getId(),
+            'nomeFuncionario' => $entity->getNomeFuncionario(),
+            'referenciaFun' => $entity->getReferenciaFun(),
+            'rg' => $entity->getRg(),
+            'cpf' => $entity->getCpf(),
+            'dtNascimento' => $entity->getDtNascimento(),
+            'sexo' => $entity->getSexo(),
+            'pis' => $entity->getPis(),
+            'matricula' => $entity->getMatricula(),
+            'dataCad' => $entity->getDataCad(),
+            'carteiraProfissional' => $entity->getCarteiraProfissional(),
+            'idAdministradora' => $entity->getEmpresa()->getAdministradora()->getId(),
+            'fantasiaAdm' => $entity->getEmpresa()->getAdministradora()->getFantasiaAdm(),
+            'idHold' => $entity->getEmpresa()->getAdministradora()->getHold()->getIdHold(),
+            'nomeHold' => $entity->getEmpresa()->getAdministradora()->getHold()->getFantasiaHold(),
+            'idEmpresa' => $entity->getEmpresa()->getId(),
+            'fantasiaEmpresa' => $entity->getEmpresa()->getFantasiaEmpresa(),
+            'referenciaEmp' => $entity->getEmpresa()->getReferenciaEmp(),
+            'referenciaHold' => $entity->getEmpresa()->getAdministradora()->getHold()->getReferenciaHold(),
+            'referenciaAdm' => $entity->getEmpresa()->getAdministradora()->getReferenciaAdm(),
+            'cnpj' => $entity->getEmpresa()->getCnpj(),
+        ];
+    }
+
+    echo json_encode($array);
+} else {
+    echo '{}';
+}

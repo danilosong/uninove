@@ -1,0 +1,90 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$fh->closeLine()->renderFieldsetIni('Ocupações')->setPreFix('ocupacao');
+$idOcupacao = $fh->getIdFor('idOcupacao');
+
+$fh->setPreFix('setor');
+    $idSetor = $fh->getIdFor('idSetor');
+    $fh->openCol('4')->text('nomeSetor')->closeCol();
+    $nomeSetor = $fh->getLastId();
+    $fh->lineDown();
+$fh->removePreFix();
+
+$fh->setPreFix('cargo');
+    $idCargo = $fh->getIdFor('idCargo');
+    $fh->openCol('4')->text('cargo')->closeCol();
+    $cargo = $fh->getLastId();
+    
+    $fh->openCol('4')->text('cbo', ['dt-clear' => $cargo])->closeCol();
+    $cboCargo = $fh->getLastId();
+    $fh->lineDown();
+$fh->removePreFix();
+
+$fh->setPreFix('funcao');
+    $idFuncao = $fh->getIdFor('idFuncao');
+    $fh->openCol('4')->text('funcao')->closeCol();
+    $funcao = $fh->getLastId();
+
+    $fh->openCol('4')->text('cbo')->closeCol();
+    $cboFuncao = $fh->getLastId();
+$fh->removePreFix();
+
+$fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
+?>
+
+<script lang="javascript">
+
+    $(function () {
+        var fields = {
+            idOcupacao: "<?php echo $idOcupacao ?>",
+            idSetor: "<?php echo $idSetor ?>",
+            idCargo: "<?php echo $idCargo ?>",
+            cargo: "<?php echo $cargo ?>",
+            nomeSetor: "<?php echo $nomeSetor ?>",
+            cboCargo: "<?php echo $cboCargo ?>",
+        };
+        
+        /* AUTOCOMPLETE: Setor */
+        $$(fields.nomeSetor).keypress(function () {
+            $(this).autocomp({
+                primary: "nomeSetor",
+                width: 300,
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+                responseTo: {
+                    "idSetor": [fields.idSetor],
+                },
+                showCols:["nomeSetor"]
+            });
+        });
+        /* AUTOCOMPLETE: Cargo */
+        $$(fields.cargo).keypress(function () {
+            $(this).autocomp({
+                primary: "cargo",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+                responseTo: {
+                    "idCargo": [fields.idCargo],
+                    "cbo": [fields.cboCargo]
+                },
+                showCols:["cargo"]
+            });
+        });
+        
+        /* AUTOCOMPLETE: CBO Cargo */
+        $$(fields.cboCargo).keypress(function () {
+            $(this).autocomp({
+                primary: "cbo",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+                responseTo: {
+                    "idCargo": [fields.idCargo],
+                    "cargo": [fields.cargo],
+                },
+            });
+        });
+
+    });
+</script>

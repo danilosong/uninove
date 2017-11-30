@@ -1,0 +1,59 @@
+<?php
+
+/* @var $entity \Tcmed\Entity\Cid */
+
+if ($this->resultSet) {
+    $array = [];
+
+    if ($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idCid' => "ID CID",
+            'menu_numeroCid' => "Codigo",
+            'menu_descricaoCid' => "Descrição",
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idCid' => $entity->getId(),
+                'numeroCid' => $entity->getNumeroCid(),
+                'descricaoCid' => $entity->getDescricaoCid(),
+            ];
+        }
+    }
+    /**
+     * retorna dados encontrados através da coluna numeroCid e descricaoCid, e 
+     * é utilizado no index de Cid
+     */
+    if ("multiplosCampos" == $this->subOpcao) {
+        $entities = $this->resultSet;
+
+        $array[] = [
+            'menu_idCid' => "ID CID",
+            'menu_numeroCid' => "Codigo",
+            'menu_descricaoCid' => "Descrição",
+        ];
+        /**
+         * Dados encontrados em numeroCid
+         */
+        foreach ($entities["numeroCid"] as $entity) {
+            $array[] = [
+                'idCid' => $entity->getId(),
+                'numeroCid' => $entity->getNumeroCid(),
+                'descricaoCid' => $entity->getDescricaoCid(),
+            ];
+        }
+        /**
+         * Dados encontrados em descricaoCid
+         */
+        foreach ($entities["descricaoCid"] as $entity) {
+            $array[] = [
+                'idCid' => $entity->getId(),
+                'numeroCid' => $entity->getNumeroCid(),
+                'descricaoCid' => $entity->getDescricaoCid(),
+            ];
+        }
+    }
+
+    echo json_encode($array);
+} else {
+    echo '{}';
+}

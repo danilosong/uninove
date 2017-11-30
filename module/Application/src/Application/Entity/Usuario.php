@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Zend\Math\Rand,
     Zend\Crypt\Key\Derivation\Pbkdf2;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Zend\Stdlib\Hydrator;
 
 /**
@@ -173,9 +172,7 @@ class Usuario extends AbstractEntity
         
         $this->salt = base64_encode(Rand::getBytes(8, true));
         $this->activationKey = md5($this->emailUsuario . $this->salt);
-        
-        $this->usuarioParam = new ArrayCollection();
-        
+                
         (new Hydrator\ClassMethods)->hydrate($options, $this);
     }  
     
@@ -600,58 +597,7 @@ class Usuario extends AbstractEntity
      */
     public function getUpdatedAt($obj = FALSE, $full = FALSE) {
         return $this->dateToStr($this->updatedAt, $full, $obj);
-    }
-    
-    /**
-     * 
-     * @author Danilo Dorotheu <danilo.dorotheu@live.com>
-     * @since 26-01-2017
-     * @param \Tcmed\Entity\UsuarioParam $usuarioParam
-     * @return \Application\Entity\Usuario
-     */
-    public function addUsuarioParam(\Tcmed\Entity\UsuarioParam $usuarioParam = NULL) {
-        if(!$this->usuarioParam->contains($usuarioParam)) {
-            $this->usuarioParam->add($usuarioParam);
-        }
-
-        return $this;
-    }
-    
-    /**
-     * 
-     * @author Danilo Dorotheu <danilo.dorotheu@live.com>
-     * @since 26-01-2017
-     * @param \Tcmed\Entity\UsuarioParam $usuarioParam
-     * @return \Application\Entity\Usuario
-     */
-    public function rmvUsuarioParam(\Tcmed\Entity\UsuarioParam $usuarioParam = NULL) {
-        if($this->usuarioParam->contains($usuarioParam)) {
-            $this->usuarioParam->removeElement($usuarioParam);
-        }
-
-        return $this;
-    }
-    
-    /**
-     * @author Danilo Dorotheu <danilo.dorotheu@live.com>
-     * @since 26-01-2017
-     * @return \Tcmed\Entity\UsuarioParam
-     */
-    public function usuarioParam($get='', Array $params=[]) {
-        if(empty($get)){
-            return $this->usuarioParam->first();
-        }
-        if(is_null($this->usuarioParam)){
-            return '-';
-        }
-        $method = !method_exists($this->usuarioParam, $get) ? 'get' . ucfirst($get) : $get;
-        if(empty($params)){
-            return $this->usuarioParam->$method();
-        }
-        return call_user_func_array([$this->usuarioParam, $method], $params);
-            
-    }
-    
+    }    
 
     /**
      * 

@@ -1,0 +1,73 @@
+<?php 
+/* @var $fh    \Application\View\Helper\FormHelp */
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$ajax       = $this->dataView['ajax'];
+
+$ret       = $form->getValue('ret', '#inter');
+$form->setAttribute('name', 'formConsultaAnexo');
+$formId    = $form->getAttribute('name');
+$form->setAttribute('id', $formId);
+$_POST['formId'] = $formId;
+$form->setAttribute('target', $ret);
+?>
+<p>
+    <button type="button" class="btn btn-primary" id="btn-list-consultaAnexo">Listagem</button>
+</p>
+<?php
+if(is_array($this->resul)){
+    foreach ($this->resul[1] as $key => $vlr){
+        if ($this->resul[0] === FALSE){
+            echo '<h4 class="alert alert-danger">', $vlr , '</h4>';
+        }else{
+            echo '<h4 class="alert alert-success">', $vlr , '</h4>';
+        }
+    }
+}
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this,$this->form,$this->url($route,array('controller'=>$controller,'action'=>$action),[],FALSE,$ajax));
+$partial = $this->partialObj('tcmed');
+$fh->setHorizontal(false);
+$fh->formInit();
+    $fh->openCol(4)->renderInputSelect('tipo')->closeCol();
+    $fh->openCol(8)->renderInputFile('uploadAnexo')->closeCol();
+$fh->closeLine()->formEnd();
+//
+// === TRANSPORTE ==============================================================
+$fields = [
+    'ret' => $ret
+];
+// ===================================================================== FIM ===
+?>
+
+<script lang="javascritp">   
+    
+    var isValid = function(){
+        return true;
+    };
+    
+    $(function(){
+        // =====================================================================
+        /**
+         * @property {Object} fields Campos de transferencia do PHP, que serão
+         * utilizados no javascript
+         */
+        var fields = <?php echo json_encode($fields) ?>;
+        
+        $('#btn-list-consultaAnexo').click(function(){
+            var key = $('#agendaAmbul').val();
+            $.processa({
+                url       : "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>"
+                ,savePage : false  
+                ,type     : 'POST'
+                ,ret      : fields.ret
+                ,data     : {
+                    ret      : fields.ret
+                    ,agendaAmbul : key
+                }
+            });
+        });
+        
+    });
+</script>

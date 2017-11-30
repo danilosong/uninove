@@ -1,0 +1,102 @@
+<?php
+/** ============================================================================
+ * Gera Formulário de ProgramaPcmso
+ * 
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 09-05-2016
+ * @see Tcmed\Controller\ProgramaPcmsosController::newAction()
+ *  ========================================================================== */
+/* @var $form \Tcmed\Form\Funcionario */
+$form = $this->form;
+
+$controller = "programaPcmsos";
+$route = "tcmed/default";
+$id           = $form->getValue('id', 0);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller), [], FALSE));
+
+$partialObject = $this->partialObj('tcmed');
+?>
+<div class="row">
+    <div class="col-md-12"><h2>Programa PCMSO</h2></div>
+</div>
+<br>
+<?php
+//Printa as mensagens do servidor diretamente no form
+if ($this->resul and is_array($this->resul) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+$fh->formInit('Dados do Funcionario', ["noPreFormInit" => TRUE]);
+
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this]);
+$fh->closeCol();
+
+$fh->openCol(3)->calend('ini')->closeCol();
+$ini = $fh->getLastId();
+
+$fh->lineDown();
+
+    $fh->openCol(2,1);
+    $fh->buildButton(["id" => "limparTela", "class" => "btn-block"], "Limpar Tela", "primary", TRUE);
+    $fh->closeCol();
+
+    $fh->openCol(2, 2);
+    $fh->buildButton(["id" => "pesquisaPrograma", "class" => "btn-block"], "Pesquisa", "primary", TRUE);
+    $fh->closeCol();
+    
+    $fh->openCol(2, 2);
+    $fh->buildButton(["id" => "gerarPrograma", "class" => "btn-block"], "Gerar Relatorio", "success", TRUE);
+    $fh->closeCol();
+
+$fh->formEnd();
+
+if (isset($this->route)) {
+    echo '<iframe hidden="true" id="iframeAso" src="' . $this->url('tcmed/default', $this->route, [], FALSE, FALSE) . '"></iframe>';
+}
+
+?>
+<div id="show-index-prog"></div>
+
+<script type="text/javascript">
+    $(function () {
+        
+        $('#limparTela').click(function() {
+            $.processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+                type : 'POST',
+                data : {
+                    subOpcao : 'loadCad'
+                }        
+            });
+        });
+        
+        /**
+         * Gera o relatório (SUBMIT)
+         */
+        $("#gerarPrograma").click(function () {
+            $(this).closest("form").processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new'), [], FALSE, FALSE); ?>",
+            });
+        });
+        
+        var lambda = function(){
+            $.processa({
+                url  : '<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>'
+                ,ret : '#show-index-prog'
+                ,frm : true
+                ,type : 'POST'
+                ,savePage : false
+                ,data : {
+                    ret : '#show-index-prog'
+                }
+            });
+        };
+        
+        $('#pesquisaPrograma').click(lambda).click();
+    });
+</script>

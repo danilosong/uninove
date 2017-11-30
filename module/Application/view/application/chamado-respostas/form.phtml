@@ -1,0 +1,269 @@
+<style>
+    #status {
+        background: #eee; /*Simular campo inativo */
+        pointer-events: none;
+        touch-action: none;
+    }
+</style>
+<?php
+$controller     = $this->dataView['controller'];
+$action         = $this->dataView['action'];
+$route          = $this->dataView['route'];
+$tcmedPartial   = $this->partialObj('tcmed');
+$id             = $form->getValue('id', 0);
+$partial        = $this->partialObj('application');
+
+/* @var $table \Application\View\Helper\Table */
+$table          = $this->table();
+
+/* @var $entity \Application\Entity\Chamado */
+$entity         = $this->resul;
+$chamado        = $entity->getId();
+
+/* @var $param \Application\View\Helper\Param */
+$param          = $this->Param();
+
+/* @var $form \Application\Form\ChamadoResposta */
+$form           = $this->form;
+
+//------------------------------------------------------------------------------
+$situacao   = "";
+$prioridade = "";
+$situacao   = $param($entity->getSituacao(), "select_chamado_situacao");
+$setor      = $param($entity->getSetor(), "select_chamado_setor");
+$prioridade = $param($entity->getPrioridade(), "select_chamado_prioridade");
+$categoria  = '<ul><li>'.implode("<li>" , $entity->getCategoria()). '</li></ul>';
+$copiaPara  = '<ul><li>'.implode("<li>" , $entity->getCopiaPara()). '</ul></li>';
+$anexoPath  = implode("<br/>"  , $entity->getAnexoPath());
+
+/* switch de troca de cores na tabela */
+$class      = "";
+switch ($situacao){
+    case "ABERTO":
+        $class = "active";
+        break;
+    case "EM ANDAMENTO":
+        $class = "info";
+        break;
+    case "SOLUCIONADO":
+        $class = "success";
+        break;
+    case "CANCELADO":
+        $class = "danger";
+        break;
+}
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $form, $this->url($route, array(
+            'controller' => $controller,
+            'action' => $action,
+                ), [], FALSE, $this->dataView['ajax']));
+$fh->openCol(14);
+?>
+    <h3>Chamado a ser atendido</h3>
+    <table class="table table-striped table-bordered">
+        <tr>
+            <th>Id                  </th>
+            <th>Titulo              </th>
+            <th>Descrição           </th>
+            <th>Arquivo anexado     </th>
+            <th>Prioridade          </th>
+            <th>Setor               </th>
+            <th>Categoria da C.I    </th>
+            <th>Cópia para          </th>
+            <th>Criado em           </th>
+            <th colspan='2'>Situação</th>
+        </tr>
+        <tr>
+           <?= '<td>', $entity->getId(),                                    '</td>'; ?>
+           <?= '<td>', $entity->getTitulo(),                                '</td>'; ?>
+           <?= '<td>', $entity->getDesc(),                                  '</td>'; ?>
+           <?= '<td>', $anexoPath,                                          '</td>'; ?>
+           <?= '<td>', $prioridade,                                         '</td>'; ?> 
+           <?= '<td>', $setor,                                              '</td>'; ?>
+           <?= '<td>', $categoria,                                          '</td>'; ?>
+           <?= '<td>', $copiaPara,                                          '</td>'; ?>
+           <?= '<td>', $entity->getCreatedAt('full'),                       '</td>'; ?>
+           <?= "<td colspan='2' class='$class'><b>", $situacao,             '</b></td>'; ?>
+        </tr>
+    </table>
+<?
+$fh->closeCol();
+$inpNomeUsuarios = FALSE;
+if ($entity) {
+    foreach ($entity->getCopiaPara() as $id => $email) {
+        $inpNomeUsuarios[$id] = $email;
+    }
+}
+echo "<h3> Responder chamado: </h3><br />";
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+$fh->formInit();
+$fh->openCol(12)->renderInputTextArea('texto')->closeCol();
+$fh->lineDown();
+
+$fh->openCol(4)->renderInputFile('anexoPath')->closeCol();
+$fh->openCol(4)->renderInputSelect('situacao')->closeCol();
+$fh->openCol(4)->renderInputSelect('status')->closeCol();
+$fh->lineDown();
+
+$inpUsuario = $fh->getIdFor('id');
+$fh->openCol(6)->text('copiaPara', [
+    'dt-clear' => $inpUsuario,
+    "extra" => [
+        ["icon" => "arrow-right", "id" => "btn-join-user", "title" => "Incluir na lista de cópia"]
+        , ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+    ]
+])->closeCol();
+$inpNomeUsuario = $fh->getLastId();
+
+$fh->openCol(6);
+echo "<center><strong>Lista de cópia para</strong></center>";
+$inpDivUsuario = 'email-list';
+$fh->openLine(['id' => $inpDivUsuario, 'class' => 'border-bottom border-right', 'style' => 'margin : 2px;']);
+$fh->closeLine();
+echo '<br>';
+$fh->closeCol();
+
+$fh->openCol(10,['class' => 'text-center']); echo $fh->buildButton(['id' => 'btn-chamado-resposta'], 'Enviar','success'); $fh->closeCol();
+$fh->openCol(2)->closeCol();
+$fh->lineDown();
+
+$fh->formEnd();
+
+echo $this->partial('partials/modal');
+
+// Var de transferencia PHP to JS
+$transp = compact(
+        'id'
+        , 'action'
+        , 'controller'
+        , 'inpUsuario'
+        , 'inpNomeUsuario'
+        , 'inpDivUsuario'
+        , 'chamado'
+);
+
+?>
+<h3>Exibindo a resposta do chamado</h3>
+<!--div que renderiza a tabela de index2 do chamado resposta-->
+<div id="index-chamado-resposta"></div>
+<br/>
+<script lang="javascript">
+//Função do auto-complete
+    function isValid() {
+        return true;
+    }
+    $(function () {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        $.processa({
+            url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'tabela-resposta'), [], FALSE, FALSE); ?>",
+            type: "POST",
+            ret : '#index-chamado-resposta',
+            savePage : false,
+            data: {
+                ret        : '#index-chamado-resposta'
+                ,subOpcao  : 'minima'
+                ,chamado   : transp.chamado
+            },
+        });
+
+        $$(transp.inpNomeUsuario).auto({
+            primary: "emailUsuario",
+            width: 800,
+            serviceUrl: "<?php echo $this->url($route, array('controller' => 'usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            noCache: true,
+            responseTo: {
+                idUsuario: [transp.inpUsuario]
+            },
+            showCols: ["nomeUsuario", "emailUsuario", "idUsuario"]
+        });
+
+        //reseta o valor que foi carregado na memória do nome usuario
+        $$(transp.inpNomeUsuario).change(function () {
+            $$(transp.inpUsuario).val("");
+        });
+
+  
+
+        $('#btn-join-user').click(function () {
+            var $idUser = $$(transp.inpUsuario);
+            var $emailUser = $$(transp.inpNomeUsuario);
+            if ($idUser.val() == '' && $emailUser.val() != '') {
+                gModal2.alert('O usuário deve estar cadastrado no sistema!!!', 1);
+            }
+            if ($idUser.val() == '') {
+                return;
+            }
+            var list = action.getPublic('all', 'listCopiaUser');
+            var has = false;
+            if (list) {
+                $.each(list, function (k, v) {
+                    if (k == $idUser.val()) {
+                        has = true;
+                    }
+                });
+            } else {
+                list = {};
+            }
+            if (!has) {
+                list[$idUser.val()] = $emailUser.val();
+            }
+            action.setPublic(list, 'listCopiaUser');
+            $$(transp.inpDivUsuario).click();
+            $idUser.val('');
+            $emailUser.val('');
+        });
+
+        if (transp.inpNomeUsuarios) {
+            action.setPublic(transp.inpNomeUsuarios, 'listCopiaUser');
+        }
+
+        $$(transp.inpDivUsuario).click(function () {
+            var list = action.getPublic('all', 'listCopiaUser');
+            var tb = '';
+            tb += '<div class="col-md-2 text-center border-top border-left"><label>ID</label></div>';
+            tb += '<div class="col-md-8 text-center border-top border-left"><label>E-mail</label></div>';
+            tb += '<div class="col-md-2 text-center border-top border-left"><label>Ação</label></div>';
+            if (list) {
+                $.each(list, function (k, v) {
+                    tb += '<div class="border-top border-left col-md-2 text-center">' + k + '</div>';
+                    tb += '<div class="border-top border-left col-md-8">' + v + '</div>';
+                    tb += '<div class="border-top border-left col-md-2 text-center">';
+                    tb += '<i title="Excluir este da item da lista" class="fa fa-trash hand btn-rm-nomeUsuario" data-id="' + k + '"></i>';
+                    tb += '</div>';
+                });
+            }
+            $(this).html(tb);
+            $('.btn-rm-nomeUsuario').click(function () {
+                var list = action.getPublic('all', 'listCopiaUser');
+                var user = $(this).data('id');
+                var newlist = {};
+                $.each(list, function (k, v) {
+                    if (k != user) {
+                        newlist[k] = v;
+                    }
+                });
+                action.setPublic(newlist, 'listCopiaUser');
+                $$(transp.inpDivUsuario).click();
+            });
+        }).click();
+        
+        $('#btn-chamado-resposta').click(function(){
+            var copiaDePara = action.getPublic('all','listCopiaUser');
+            $.processa({
+                url : "<?php echo $this->url($route, array('controller' => $controller, 'action' => $action), [], FALSE, FALSE); ?>",
+                frm : true,
+                type: "POST",
+                savePage: false,
+                ret : transp.ret,
+                data: {
+                    ret               : transp.ret,
+                    copiaPara       : JSON.stringify(copiaDePara)
+                }
+            });
+        });
+    });
+
+</script>

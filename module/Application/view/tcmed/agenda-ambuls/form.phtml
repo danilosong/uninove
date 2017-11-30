@@ -1,0 +1,346 @@
+<?php
+
+$controller     = 'agendaAmbuls';
+$route          = 'tcmed/default';
+$agendaAmbul    = $this->entity;
+$id             = $form->getValue('id', 0);
+/* @var $acl \Application\View\Helper\Acl */
+$acl            = $this->Acl();
+/* @var $user \Application\View\Helper\UserIdentity */
+$user           = $this->UserIdentity();
+$role           = $user['role'];
+$medRole = substr($role, 0,4);
+?>
+<div class="row">
+    <div class="col-md-7"><h1>Agenda Ambulatório <small id="codigo-aut-view"></small></h1></div>
+    <div class="col-md-1"><button id="reload" class="btn btn-success btn-block"><i class="fa fa-refresh"></i></button></div>
+    <div class="col-md-4">
+        <div class="input-group">
+            <label class="input-group-addon"><i class="fa fa-barcode"></i> Cod. Autenticidade</label>
+            <input id="codAutenticidade-input" type="text" class="form-control">
+            <span class="input-group-btn">
+                <button id="codAutenticidade-button" class="btn btn-default"><i class="fa fa-search"></i></button>
+            </span>
+        </div>
+    </div>
+</div>
+
+<?php
+//Printa as mensagens do servidor diretamente no form
+if (is_array($this->resul) and isset($this->resul[0]) and $this->resul[0] === FALSE) {
+    foreach ($this->resul[1] as $key => $vlr) {
+        echo '<h4 id="erro', $key, '" class="alert alert-danger">', $vlr, '</h4>';
+    }
+}
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+/**
+ * @var Object Partials (pedacos) de outras entidades presentes neste form
+ */
+$partialObject = $this->partialObj('tcmed');
+
+/**
+ * Inicializa formulario
+ */
+$fh->formInit();
+if($medRole != "med_"):
+    $date = $fh->getIdFor("date");
+    $fh->openCol(12, ["class" => "form-resize"]);
+
+    $fh->setHorizontal(true);
+    
+    $fh->renderFieldsetIni('Dados do Funcionário');
+    $fh->openCol(9);
+    $partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'hideCnpj' => TRUE]);
+
+    $fh->openLine();
+
+    $fh->setPreFix('funcionario');     // -----------------| OPEN PREFIX |--
+    $idFuncionario = $fh->getIdFor("idFuncionario");
+
+    $fh->openCol('3')->text('referenciaFun', [], ['label' => 'Referencia'])->closeCol();
+    $referenciaFun = $fh->getLastId();
+
+    $fh->openCol('9')->text('nomeFuncionario', [])->closeCol();
+    $nomeFuncionario = $fh->getLastId();
+    $fh->removePreFix('funcionario');  //------------| CLOSE PREFIX |--
+
+    $fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+    $fh->openCol(9, 3)->select('tipoConsulta', [], ['options' => ['label' => '*Tipo da Consulta'], "disabled" => !$agendaAmbul])->closeCol();
+    $tipoConsulta = $fh->getLastId();
+
+    $fh->closeLine();   // --------------------------------------| PULA LINHA |--
+    $fh->setHorizontal(TRUE);
+    $fh->closeCol();
+
+    $fh->openCol(3);
+    ECHO '<div class="col-md-4 col-md-offset-1"><div id="calendar" style="position: absolute; top: 0px"></div></div>';
+    $fh->closeCol();
+
+    $fh->closeCol();   // --------------------------------------| 
+
+    $temAcesso = $acl('tcmed:agendaAmbuls:new', 'allow');
+    if ($agendaAmbul and $temAcesso) {
+        $fh->openCol(3, 4);
+        echo $fh->buildButton(["class" => "btn-block", "id" => "incluirFunc"], "Incluir na agenda", "success");
+        $fh->closeCol();
+    } else {
+        ECHO <<<EOF
+    <div class="col-md-9 col-md-offset-3">
+        <i>* Para inserir um novo funcionário na agenda, insira o código de autênticidade</i>
+    </div>
+EOF;
+    }
+endif;
+if($medRole == "med_"){
+    $tipoConsulta   = '';
+    $idFuncionario  = '';
+    $date           = '';
+$fh->openCol(5);
+echo "<button class='btn btn-info' id='btn-cont' type='button'><spam class='glyphicon glyphicon-calendar'></spam> Calendário</button>";
+$fh->closeCol();
+$fh->lineDown();
+echo "<div id='calenConteudo'>";
+$fh->openCol(3);
+ECHO '<div class="col-md-4 col-md-offset-1"><div id="calendar"></div></div>';
+$fh->closeCol();
+echo "</div>";
+}
+    $idCalend = $fh->renderInputHidden('calend');
+    $fh->renderFieldsetFim();
+
+
+echo '<div id="index-container"></div>';
+$fh->closeCol();
+$fh->formEnd();
+
+$fieldsAgenda = [
+    "tipoConsulta"      => $tipoConsulta,
+    "idFuncionario"     => $idFuncionario,
+    "date"              => $date,
+    "idCalend"          => $idCalend,
+];
+?>
+
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        /**+====================================================================
+         * | Área de conversão de dados do PHP para Javascript
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         */
+        var fields = <?php echo json_encode($fieldsAgenda) ?>;
+
+        /**+====================================================================
+         * | Busca no servidor, a listagem contendo os registros baseados na data
+         * | definida pelo calendar
+         * | OBS: foi reaproveitado a action index do controller de agendaAmbuls
+         * | para montar listagem
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         */
+        function buildListagem() {            
+            action.setPublic({data:$("#calendar").datepicker('getFormattedDate')}, 'agendaAmbulsData');
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'index'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    date: $("#calendar").datepicker('getFormattedDate'),
+                },
+                callback: function (data) {
+                    $("#index-container").html(data);
+                }
+            });
+        }
+
+
+        /**+====================================================================
+         * | Gera o calendário na tela e quando uma data for escolhida, será
+         * | executado o $.processa para montar a lista de funcionários 
+         * | encontrados baseados nesta mesma data
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         * @returns {undefined}
+         */
+        function buildCalendar() {
+            $("#calendar").html("");
+            var cache = action.getPublic('data','agendaAmbulsData');
+            if(cache != ''){
+                var currentDate = cache;
+            }else{
+                var currentDate = $("#date").val();
+            }
+            // Monta o calendário inline
+            $("#calendar").datepicker({
+                isDefault        : true
+                ,format          : 'dd/mm/yyyy'
+                ,language        : 'pt-BR'
+//                ,forceParse      : false
+//                ,autoclose       : true
+                ,todayHighlight  : true
+//                ,maxViewMode     : 2
+            });
+        
+            // Seta a data do calendar
+            $("#calendar").datepicker("update", currentDate);
+        }
+
+        
+        buildCalendar();      
+        
+        if(action.getPublic('notShowIndex','agendaAmbuls') == ''){
+            buildListagem();
+        }else{
+            action.setPublic({notShowIndex:''}, 'agendaAmbuls');
+        }
+
+        /**+====================================================================
+         * | Ao mudar a data do calendar, reexecutar buildListagem para trazer
+         * | tabela contendo todos os registros encontrados a partir da data
+         * | definida pelo calendar
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         */
+        $("#calendar").on("changeDate", function () {
+            buildListagem();
+        });
+
+        /**+====================================================================
+         * | Atualiza a página
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         */
+        $("#reload").click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => "new"), [], FALSE, FALSE); ?>",
+                savePage: false,
+            });
+        });
+        
+        /**+====================================================================
+         * | Adiciona um novo registro na agenda
+         * | OBS: Caso o campo tipoConsulta não esteja preenchido, então disparar
+         * | erro. Do contrario, processar requisição
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         */
+        $("#incluirFunc").click(function () {
+            if ("" == $$(fields.tipoConsulta).find("option:selected").val()) {
+                $.notify({
+                    message: "Campo 'Tipo da Consulta' deve ser preenchido",
+                    type: "danger"
+                });
+            } else {
+                $.processa({
+                    url: "<?php echo $this->url($route, array('controller' => "AgendaAmbuls", 'action' => "new"), [], FALSE, FALSE); ?>",
+                    type: "POST",
+                    savePage: false,
+                    data: {
+                        idFuncionario: $$(fields.idFuncionario).val(),
+                        tipoConsulta : $$(fields.tipoConsulta).val(),
+                        idGuia       : $$("#codAutenticidade-input").val(),
+                    }
+                });
+            }
+
+        });
+
+        /**+====================================================================
+         * | Localiza a Guia ou a GuiaSemCadastro através do campo Cod. Autenticidade.
+         * | OBS: Para diferenciar GuiaSemCadastro de Guia, foi utilizada a 
+         * | estratégia de ler o campo 'Cod. Autenticidade' e ler o primeiro
+         * | valor do campo (que deve ser um char) e então, separar a requisição
+         * | pela Action contida no atributo url da variável obj.
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+         * @since ?
+         * @version 2 23/02/2016
+         */
+        $("#codAutenticidade-button").click(function () {
+            var text = $.trim($("#codAutenticidade-input").val());
+            var cod  = text.toUpperCase();
+
+            // Valida o campo contendo o numero do cod. autenticidade
+            var regex = /((A)|(C)|(S)){1}\d+/;
+
+            if (!regex.test(cod)) {
+                $.notify({
+                    message: "Código de Autenticidade errado!!",
+                    type: "danger"
+                });
+                return false;
+            }
+            
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'Funcionarios', 'action' => 'getFuncGuia'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    codigo: cod
+                },
+                callback: function(data) {
+                    if("noEntity" != data) {
+                        $('#inter').html(data);
+                        return false;
+                    }
+                    
+                    $.notify({
+                        message: "Guia inexistente!",
+                        type: "danger"
+                    });
+                }
+            });
+            
+            return false;
+        });
+
+        /**+====================================================================
+         * | Remove o atributo 'onKeyDown' do campo e adiciona o evento
+         * | keyPress. Quando este campo for clicado com a tecla enter,
+         * | uma trigger será acionada clicando o botao #icon_idGuia,
+         * | e então será executada a funcao referente a este botão
+         * +--------------------------------------------------------------------
+         * 
+         * @author Danilo Dorotheu 
+         */
+        $("#codAutenticidade-input").removeAttr("onkeydown").keyup(function (e) {
+            if (e.which == 13) {
+                $("#codAutenticidade-button").click();
+                return false;
+            }
+        });
+        $('#codAutenticidade-input').val($('#idGuia').val());
+        
+       /*
+        * Feito funcao para botao hide ou tougle no calendario
+        * @author Danilo Song
+        */
+        $(document).ready(function (e) {
+            $("#calenConteudo").hide();
+            
+            $("#btn-cont").click(function (e) {
+                $("#calenConteudo").toggle();
+            });
+        });
+    });
+
+</script>

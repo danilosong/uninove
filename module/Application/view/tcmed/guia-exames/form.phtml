@@ -1,0 +1,278 @@
+<h3><?php
+    echo $this->dataView['titulo'];
+    $controller = 'guiaExames';
+    $route = 'tcmed/default';
+    ?></h3>
+<br />
+<?php
+/**
+ * Partial
+ */
+$partialObject = $this->partialObj('tcmed');
+
+/**
+ * Partial de mensagens
+ */
+$partialObject->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp(
+        $this, $this->form, $this->url(
+                $route, array(
+            'controller' => $controller,
+            'action' => $this->dataView['action'],
+            'id' => ($this->entity) ? $this->entity->getId() : 0,
+                ), [], FALSE, $this->dataView['ajax']
+        )
+);
+if(is_array($this->resul)){
+    foreach ($this->resul[1] as $key => $vlr){
+        echo '<h4 class="alert alert-danger">', $vlr , '</h4>';
+    }
+}
+$fh->setHorizontal(FALSE);
+$fh->formInit('Dados da Guia de Exame:');
+
+$fh->openCol(12);
+$partialObject->partial('empresas/partial-form-all', $fh, ['this' => &$this, 'hideCnpj' => TRUE]);
+$fh->closeCol();
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setPreFix('funcionario'); // ============================================== ||
+
+$idFuncionario = $fh->getIdFor('idFuncionario');
+
+$fh->openCol(3)->number('referenciaFun')->closeCol();
+$referenciaFun = $fh->getLastId();
+
+$fh->openCol(9)->text('nomeFuncionario', [
+    "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"],
+    "dt-clear" => join(",", array($idFuncionario, $referenciaFun)),
+])->closeCol();
+$nomeFuncionario = $fh->getLastId();
+
+$fh->removePreFix('funcionario'); // =========================================== || 
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->setPreFix('cargo'); // ==================================================== || ---
+
+$idCargo = $fh->getIdFor('idCargo');
+
+$fh->openCol(3)->text("cbo")->closeCol();
+$cbo = $fh->getLastId();
+
+$fh->openCol(7)->text("cargo", [
+    'dt-clear' => $idCargo,
+])->closeCol();
+$cargo = $fh->getLastId();
+
+
+$fh->removePreFix('cargo'); // ================================================= || ---
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(3)->calend('dataExame')->closeCol();
+$dataExame = $fh->getLastId();
+
+$fh->openCol(3)->text('horaExame', ['mask' => '99:99'])->closeCol();
+
+$fh->setPreFix('clinica'); // ============================================== ||
+
+$idClinica = $fh->getIdFor('idClinica');
+
+$fh->openCol(4)->text('fantasiaClinica', [
+    "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+        ], ['label' => 'Clinica para o Exame:'])->closeCol();
+$fantasiaClinica = $fh->getLastId();
+
+$fh->removePreFix('clinica'); // =========================================== || 
+
+
+$fh->setPreFix('exameCompl'); // ============================================== ||
+
+$idExamecompl = $fh->getIdFor('idExamecompl');
+
+$fh->openCol(6)->text('exame', [
+    "extra" => ["icon" => "search", "class" => "list-all-autocomp", "title" => "buscar todos"]
+])->closeCol();
+$exameCompl = $fh->getLastId();
+
+$fh->removePreFix('exameCompl'); // =========================================== || 
+
+$fh->lineDown();   // --------------------------------------| PULA LINHA |--
+
+$fh->openCol(10,["id" => "listagem"])->closeCol();
+
+$fh->renderFieldsetFim();
+$fh->openCol('12')->Submit('submit')->closeCol();
+
+$fh->closeLine()->formEnd();
+
+
+$fieldsEntity = [
+    'nomeFuncionario' => $nomeFuncionario,
+    'referenciaFun' => $referenciaFun,
+    'dataExame' => $dataExame,
+    'fantasiaClinica' => $fantasiaClinica,
+    'idClinica' => $idClinica,
+    'exameCompl' => $exameCompl,
+    'idExamecompl' => $idExamecompl,
+    'cargo' => $cargo,
+    'idCargo' => $idCargo,
+    'cbo' => $cbo
+];
+$fieldsEntity = array_merge($partialObject->fieldsEmpresa, $fieldsEntity);
+?>
+<br>
+<br>
+<br>
+
+<script lang="javascript">
+
+    // Modulo de gerencia de usuários em multiplos forms
+    var gerExames = (function () {
+
+        var $public = {};
+
+        var $private = {
+            field: "id",
+            idList: "#listagem"
+        };
+
+        $public.getExames = function () {
+            var data = $$($private.field).val();
+            if (!data) {
+                return [];
+            }
+
+            var aux = JSON.parse(data);
+
+            // Obriga o retorno dos itens do array ser do tipo INT
+            return $.map(aux, function (val) {
+                return parseInt(val);
+            });
+        };
+
+        $private.setExames = function (data) {
+            $$($private.field).val(JSON.stringify(data));
+        };
+
+        $public.atualizaLista = function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getListExameCompl'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    listaExameCompl: JSON.stringify($public.getExames())
+                },
+                ret: $private.idList,
+                savePage: false,
+            });
+        };
+
+        $public.addExame = function (id) {
+            var lista = $public.getExames(); //transforma string em array
+            if (-1 < $.inArray(id, lista)) {
+                $.notify({message: "Exame Complementar já está na lista!", type: "danger"})
+                return false;
+            }
+
+            lista.push(id);
+            $private.setExames(lista);
+            $public.atualizaLista();
+        };
+
+        $public.removeExame = function (id) {
+            if (confirm("Deseja realmente remover este Exame Complementar da lista?")) {
+                var lista = $public.getExames(); //transforma string em array
+                var index = $.inArray(parseInt(id), lista);
+                lista.splice(index, 1);
+                $private.setExames(lista);
+                $public.atualizaLista();
+            }
+        };
+
+        $public.init = function (params) {
+            $.extend($private, params, $private);
+            $public.atualizaLista(); // Atualiza a lista de dados
+        };
+
+        return $public;
+    })();
+
+    function isValid() {
+        return true;
+    }
+
+    $(function () {
+        var fields = <?php echo json_encode($fieldsEntity) ?>;
+
+        // Inicializa módulo de gerencia de listagem de exames
+        gerExames.init({field: "#listaExameCompl"});
+
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.nomeFuncionario).auto({
+            primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            filters: function (data) {
+                data.rules = {
+                    "empresa": $$(fields.idEmpresa).val()
+                };
+                return data;
+            },
+            callback: function (data) {
+                $.processa({
+                    url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, FALSE); ?>",
+                    type: 'POST',
+                    data: {
+                        subOpcao: 'loadCad',
+                        funcionario: data["idFuncionario"]
+                    }
+                });
+            },
+            showCols: ["nomeFuncionario", "rg"]
+        });
+        
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.cargo).auto({
+            primary: "cargo",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                "idCargo": [fields.idCargo],
+                "cbo": [fields.cbo]
+            },
+            showCols: ["cargo", "cbo"]
+        });
+
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.fantasiaClinica).auto({
+            primary: "fantasiaClinica",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Clinicas', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+                "idClinica": [fields.idClinica],
+            },
+            showCols: ["fantasiaClinica"]
+        });
+
+        /*
+         * Autocomp de Funcionario
+         */
+        $$(fields.exameCompl).auto({
+            primary: "exame",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'ExameCompls', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            callback: function (exameCompl) {
+                gerExames.addExame(exameCompl.idExame);
+                $$(fields.exameCompl).val("").focus();
+            },
+            showCols: ["exame"]
+        });
+    });
+
+</script>

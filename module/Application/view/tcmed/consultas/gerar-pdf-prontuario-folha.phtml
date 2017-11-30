@@ -1,0 +1,313 @@
+<? 
+/**
+ * layout do prontuario
+ * @author Paulo Watakabe <watakabe05@gmail.com>
+ * @version 1.0  
+ * @since 19-05-2016 
+ */
+    // Exibe um prontuarios baseado no ID da consulta
+    /* @var $em    \Doctrine\ORM\EntityManager */
+    /* @var $param \Application\View\Helper\Param */
+    /* @var $rp \Tcmed\Entity\Repository\ConsultaRepository */
+    /* @var $consulta \Tcmed\Entity\Consulta */
+    /* @var $pergunta \Tcmed\Entity\Pergunta */
+    /* @var $resposta \Tcmed\Entity\Resposta */
+    $logo = $param('all','asoDirImage') . 'logoGuia.jpg';
+    
+    
+    /**
+     * Identificação  funcionario parte dos riscos e seus epis
+     */
+    /* @var $listRisco \Tcmed\Entity\RiscoOcupacao */
+    $listRiscos = $consulta->getHistOcupacional()->getOcupacao()->listOfCargoRiscos();
+    $riscosHtml = '';
+    $separador = '';
+    foreach ($listRiscos as $listRisco) {
+        $riscosHtml .= $separador . $listRisco->getRisco()->getRisco();
+        $separador = ', ';
+    }
+    
+    /* @var $listEpi \Tcmed\Entity\EpiRiscoOcupacao */
+    $listEpis = $consulta->getHistOcupacional()->getOcupacao()->listOfCargoRiscosEpis();
+    $epiHtml = '';
+    $separador = '';
+    foreach ($listEpis as $listEpi) {
+        $epiHtml .= $separador . $listEpi->getEpi()->getDescricao();
+        $separador = ', ';
+    }
+    if(empty($epiHtml)){
+        $epiHtml = 'Nenhum';
+    }
+    /**
+     * Relacionado ao interrogatorio parte 1
+     */
+    $interrogatorio1 = $rp->getPerguntaAndRespostaOfQuestionario($consulta, 'Interrogatorio');
+    $interrogatorio1Html = '<table class="interrogatorio"><caption class="sublinha">Interrogatorio</caption>';
+    foreach ($interrogatorio1[0] as $pergunta) {
+        $resposta = $pergunta->getOneResposta();
+        $interrogatorio1Html .= '<tr>';
+        $interrogatorio1Html .= '<td' . (empty($resposta->getResposta()) ? ' class="sublinha">' : '>') . $pergunta->getPergunta() . '</td>';
+        $interrogatorio1Html .= '<td>' . $resposta->getRespostaCheck() . '</td>';
+        $interrogatorio1Html .= '</tr>';
+        if(!empty($resposta->getResposta())){
+            $interrogatorio1Html .= '<tr><td colspan="2" class="sublinha">' . $resposta->getResposta() . '</td></tr>';
+        }
+    }
+    $interrogatorio1Html .= '</table><br>';
+    
+    /**
+     * Relacionado ao interrogatorio parte 2
+     */
+    $interrogatorio2 = $rp->getPerguntaAndRespostaOfQuestionario($consulta, 'Interrogatorio 2');
+    $interrogatorio2Html = '<table class="interrogatorio"><caption class="sublinha">Interrogatorio 2</caption>';
+    foreach ($interrogatorio2[0] as $pergunta) {
+        $resposta = $pergunta->getOneResposta();
+        $interrogatorio2Html .= '<tr>';
+        $interrogatorio2Html .= '<td' . (empty($resposta->getResposta()) ? ' class="sublinha">' : '>') . $pergunta->getPergunta() . '</td>';
+        $interrogatorio2Html .= '<td>' . $resposta->getRespostaCheck() . '</td>';
+        $interrogatorio2Html .= '</tr>';
+        if(!empty($resposta->getResposta())){
+            $interrogatorio2Html .= '<tr><td colspan="2" class="sublinha">' . $resposta->getResposta() . '</td></tr>';
+        }
+    }
+    $interrogatorio2Html .= '</table><br>';
+    
+    /**
+     * Relacionado ao antecedentes 
+     */
+    $antecedentes = $rp->getPerguntaAndRespostaOfQuestionario($consulta, 'Antecedentes');
+    $antecedenteHtml = '<table class="interrogatorio small-f"><caption class="sublinha">Antecedentes</caption>';
+    foreach ($antecedentes[0] as $pergunta) {
+        //Verificar se funcionario é masculino para nao incluir antecedentes feminino
+        if($consulta->getFuncionario()->getSexo() == 'MASCULINO' AND strpos($pergunta->getTipoPerg(), 'Feminino') !== FALSE){
+            continue;
+        }
+        $resposta = $pergunta->getOneResposta();
+        $antecedenteHtml .= '<tr>';
+        $antecedenteHtml .= '<td' . (empty($resposta->getResposta()) ? ' class="sublinha">' : '>') . $pergunta->getPergunta() . '</td>';
+        $antecedenteHtml .= '</tr>';
+        if(!empty($resposta->getResposta())){
+            $antecedenteHtml .= '<tr><td class="sublinha">' . $resposta->getResposta() . '</td></tr>';
+        }
+    }
+    $antecedenteHtml .= '</table>';
+    
+    /**
+     * Relacionado ao historico familiar
+     */
+    $historicos = $rp->getPerguntaAndRespostaOfQuestionario($consulta, 'Doenças Familiares');
+    $historicoHtml = '<table class="interrogatorio small-f"><tr><td>Doençãs Familiares</td><td>Pai</td><td>Mãe</td></tr>';
+    foreach ($historicos[0] as $pergunta) {
+        $resposta = $pergunta->getOneResposta();
+        $historicoHtml .= '<tr>';
+        if(strpos($pergunta->getTipoPerg(), 'check') !== FALSE){
+            $respArray = $resposta->getRespostaCheck();
+            if(!is_array($respArray)){
+                $respArray = [];
+            }
+            $historicoHtml .= '<td class="sublinha">' . $pergunta->getPergunta() . '</td>';
+            $historicoHtml .= '<td class="sublinha">' . (in_array('p', $respArray) ? 'sim' : 'não') . '</td>';
+            $historicoHtml .= '<td class="sublinha">' . (in_array('m', $respArray) ? 'sim' : 'não') . '</td>';
+        }else{    
+            $historicoHtml .= '<td colspan="3">Obs: ' . $resposta->getResposta() . '</td>';
+        }
+        $historicoHtml .= '</tr>';
+    }
+    $historicoHtml .= '</table>';
+    
+    /**
+     * Relacionado a mediçoes feitas
+     */
+    $medicoes = $rp->getPerguntaAndRespostaOfQuestionario($consulta, 'Medições');
+    $medicoesHtml = '<table class="interrogatorio"><caption class="sublinha">Medições</caption>';
+    foreach ($medicoes[0] as $pergunta) {
+        $resposta = $pergunta->getOneResposta();
+        $medicoesHtml .= '<tr>';
+        $medicoesHtml .= '<td class="sublinha">' . $pergunta->getPergunta() . '</td>';
+        if(strpos($pergunta->getTipoPerg(), 'textDuplo') !== FALSE){
+            $medicoesHtml .= '<td class="sublinha" align="right">' . $resposta->getResposta()[0]. '/' . $resposta->getResposta()[1] . '</td>';
+        }else{
+            $medicoesHtml .= '<td class="sublinha" align="right">' . str_replace('.', ',', $resposta->getResposta()) . '</td>';
+        }
+        $medicoesHtml .= '</tr>';
+    }
+    $medicoesHtml .= '</table>';  
+    
+    /**
+     * Relacionado a exame fisico
+     */
+    $exameFisico = $rp->getPerguntaAndRespostaOfQuestionario($consulta, 'Exame Fisico');
+    $exameFisicoHtml = '<table><caption class="sublinha">Exame Fisico</caption>';
+    $exameFisicoHtml .= '</table>';
+    foreach ($exameFisico[0] as $pergunta) {
+        $resposta = $pergunta->getOneResposta();
+        $exameFisicoHtml .= '<div class="metade sublinha ajustaText"><div class="pergLabel">' . $pergunta->getPergunta() . '</div>' . $resposta->getResposta() . '</div>';
+    }
+     
+    /**
+     * Relacionado a exames complementares
+     */
+    /* @var $exameCompl \Tcmed\Entity\ConsultaExameCompl */
+    $exameCompls = $consulta->listExameCompls();
+    $exameComplHtml = '<table class="interrogatorio"><caption class="sublinha">Exames Complementares Realizados</caption>';
+    $exameComplHtml .= '<tr>';
+    $exameComplHtml .= '<td class="sublinha">Exame</td>';
+    $exameComplHtml .= '<td class="sublinha">Resultados Obs.</td>';
+    $exameComplHtml .= '<td class="sublinha">Alt/Nor</td>';
+    $exameComplHtml .= '</tr>';
+    foreach ($exameCompls as $exameCompl) {
+        $exameComplHtml .= '<tr>';
+        $exameComplHtml .= '<td class="sublinha">' . $exameCompl->getExameCompl()->getExame() . '</td>';
+        $exameComplHtml .= '<td class="sublinha">' . $exameCompl->getObservacao() . '</td>';
+        $exameComplHtml .= '<td class="sublinha">' . (($exameCompl->getResultado())? 'Normal' : 'Alterado') . '</td>';
+        $exameComplHtml .= '</tr>';
+        $separador = '(Secundario)';
+    }
+    $exameComplHtml .= '</table>';  
+    
+    /**
+     * Relacionado a exibicao dos CIDs
+     */
+    /* @var $cid \Tcmed\Entity\Cid */
+    $cids = $consulta->listCid();
+    $cidHtml = '<table class="interrogatorio"><caption class="sublinha">CID 10</caption>';
+    $separador = '(Principal)';
+    foreach ($cids as $cid) {
+        $cidHtml .= '<tr>';
+        $cidHtml .= '<td class="sublinha">' . $cid->getNumeroCid() . '</td>';
+        $cidHtml .= '<td class="sublinha">' . $cid->getDescricaoCid() . $separador . '</td>';
+        $cidHtml .= '</tr>';
+        $separador = '(Secundario)';
+    }
+    $cidHtml .= '</table>';  
+    
+    /**
+     * Relacionado a exibicao dos CATs
+     */
+    /* @var $rpCat \Tcmed\Entity\Repository\CatRepository */
+    /* @var $cat   \Tcmed\Entity\Cat */
+    $cats = $rpCat->findListOfFun($consulta->getFuncionario()->getId());
+    $catHtml = '<table class="interrogatorio"><caption class="sublinha">C.A.T. Cadastrados para este funcionário.</caption>';
+    $catHtml .= '<tr>';
+    $catHtml .= '<td class="sublinha">Data</td>';
+    $catHtml .= '<td class="sublinha">Numero</td>';
+    $catHtml .= '<td class="sublinha">Obs.</td>';
+    $catHtml .= '<td class="sublinha">Origem.</td>';
+    $catHtml .= '</tr>';
+    foreach ($cats as $cat) {
+        $catHtml .= '<tr>';
+        $catHtml .= '<td class="sublinha">' . $cat->getDtCat() . '</td>';
+        $catHtml .= '<td class="sublinha">' . $cat->getCatNumero() . '</td>';
+        $catHtml .= '<td class="sublinha">' . $cat->getCatObservacao() . '</td>';
+        $catHtml .= '<td class="sublinha">' . $cat->getOrigem() . '</td>';
+        $catHtml .= '</tr>';
+    }
+    if(empty($cats)){
+        $catHtml .= '<tr><td colspan="4">Não existe CAT cadastrado.</td></tr>';
+    }
+    $catHtml .= '</table>';    
+    
+    
+    /**
+     * Relacionado a Conclusão Médica Ocupacional
+     */
+    $conclusaoHtml = '<table class="interrogatorio"><caption class="sublinha">Conclusão Médica Ocupacional.</caption>';
+    $conclusaoHtml .= '<tr>';
+    $conclusaoHtml .= '<td class="sublinha">' . $param($consulta->getNormal(),'FC_normal') . '</td>';
+    $conclusaoHtml .= '<td class="sublinha">' . $param($consulta->getOcupacional(),'FC_Ocupacional') . '</td>';
+    $conclusaoHtml .= '<td class="sublinha">' . $param($consulta->getResultado(), "FC_Resultado") . '</td>';
+    $conclusaoHtml .= '<td class="sublinha">Valido ' . $param($consulta->getValidade(),'FC_validade') . '</td>';
+    $conclusaoHtml .= '</tr>';
+    $conclusaoHtml .= '</table>';  
+    
+    if(!empty($consulta->getObservacaoCid())){
+        $conclusaoHtml .= '<div class="ajustaText">Orientação e Conduta: ' . $consulta->getObservacaoCid() . '</div>';  
+    }
+    
+    $conclusaoHtml .= '<div class="ajustaText">Obs. ASO: ' . $consulta->getObservacaoFinal() . '</div>';  
+    
+echo <<<END
+<div class='folha'>
+    <div class='topo'>
+        <img src="{$logo}" class='topologo'>
+        <div class='topot1'>Prontuário Médico</div>
+    </div>
+    <div class="bordaRadius">
+        <table class="identificacao">
+            <tr>
+                <td colspan="4">
+                    Data da Consulta: <span class="bold-t sublinha">{$consulta->getDtConsulta()}</span> | 
+                    Tipo: <span class="bold-t sublinha">{$param($consulta->getTipo(), "FC_tipo_exame")}</span> |
+                    Ano: {$consulta->getDtConsulta('Y')} |
+                    Numero: {$consulta->getId()} 
+                    Nascimento: {$consulta->getFuncionario()->getDtNascimento()} 
+                </td>
+            </tr>
+            <tr>
+                <td>Hold</td>
+                <td>{$consulta->getAdministradora()->getHold()->getNomeHold()}</td>
+                <td>Sexo</td>
+                <td>{$consulta->getFuncionario()->getSexo()}</td>
+            </tr>
+            <tr>
+                <td>Administradora</td>
+                <td>{$consulta->getAdministradora()->getFantasiaAdm()}</td>
+                <td>Setor</td>
+                <td>{$consulta->getHistOcupacional()->getOcupacao()->getSetor()}</td>
+            </tr>
+            <tr>
+                <td>Empresa</td>
+                <td>{$consulta->getEmpresa()->getFantasiaEmpresa()}</td>
+                <td>Cargo</td>
+                <td>{$consulta->getHistOcupacional()->getOcupacao()->getCargo()}</td>
+            </tr>
+            <tr>
+                <td>Funcionario</td>
+                <td><span class="bold-t sublinha">{$consulta->getFuncionario()->getNomeFuncionario()}</span></td>
+                <td>Riscos</td>
+                <td>{$riscosHtml}</td>
+            </tr>
+            <tr>
+                <td>Medico</td>
+                <td>{$consulta->getMedico()->getNomeMedico()} CRM:{$consulta->getMedico()->getCrm()}</td>
+                <td>EPI</td>
+                <td>{$epiHtml}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="bordaRadius">
+        &nbsp;&nbsp;Queixa Duração: {$consulta->getQueixa()}
+    </div>
+    <div class="quest">
+        {$interrogatorio1Html}
+    </div>
+    <div class="quest">
+        {$interrogatorio2Html}
+    </div>
+    <div class="antecedente">
+        {$antecedenteHtml}
+    </div>
+    <div class="historico">
+        {$historicoHtml}
+    </div>
+    <div class="medicoes">
+        {$medicoesHtml}
+    </div>
+    <div class="bordaRadius small-f">
+        {$exameFisicoHtml}
+    </div>
+    <div class="quest">
+        {$exameComplHtml}
+    </div>
+    <div class="quest">
+        {$cidHtml}
+    </div>
+    <div class="bordaRadius">
+        {$catHtml}
+    </div>
+    <div class="bordaRadius">
+        {$conclusaoHtml}
+    </div>
+</div>
+END;
+    

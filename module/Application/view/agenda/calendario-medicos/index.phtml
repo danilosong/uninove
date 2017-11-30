@@ -1,0 +1,384 @@
+<?php
+/** ===========================================================================|
+ * FORM - Calendario
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @since 26-08-2016
+ * 
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$partial = $this->partialObj('application');
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<style>
+    #calendario thead th{
+        text-align: center;
+    }
+
+    .table td{
+        font-size: 10px;
+    }
+
+    .day:hover{
+        background-color: #eee;
+    }
+
+    .weekend{
+        background-color: #f88;
+    }
+
+    .dayOff{
+        background-color: #888;
+    }
+
+    .num-date {
+        text-align: center;
+        font-size: 22px;
+        color: #444;
+    }
+    .calendario-data.success{
+        background-color: #9dd884;
+    }
+    .calendario-data.warning{
+        background-color: #ffef99;
+    }
+</style>
+
+<h3 class="text-center"><?php echo $title ?></h3>
+<nav aria-label="...">
+    <ul class="pager">
+        <li class="previous prev-calend hand"><a><span aria-hidden="true">&larr;</span> Mês Anterior</a></li>
+        <li class="next next-calend hand"><a>Próximo Mês <span aria-hidden="true">&rarr;</span></a></li>
+    </ul>
+</nav>
+<h4 class="text-center"><?php echo $this->dateRef ?></h4>
+
+<table id="calendario" class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Domingo</th>
+            <th>Segunda</th>
+            <th>Terça</th>
+            <th>Quarta</th>
+            <th>Quinta</th>
+            <th>Sexta</th>
+            <th>Sábado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        list($mes, $ano) = explode("/", $this->dateRef);
+        $date = new \DateTime($mes . "/01/" . $ano);
+        $totalDias = $date->format("t");
+        $diaSemana = $date->format("w");
+
+        $results = $this->results;
+        echo '<tr>';
+
+        if (0 < $diaSemana) {
+            echo '<td colspan="' . $diaSemana . '"></td>';
+        }
+
+        for ($i = 0; $i < $totalDias; $i++) {
+            $dia = $i + 1;
+            
+            if (0 == $diaSemana) {
+                $diaSemana++;
+                echo '<td class="weekend"><p class="num-date">' . $dia . '<p></td>';
+                continue;
+            }
+            
+            if (6 == $diaSemana) {
+                $diaSemana = 0;
+                echo '<td class="weekend"><p class="num-date">' . $dia . '<p></td>';
+                echo '</tr><tr>';
+                continue;
+            }
+
+            echo '<td class="day">';
+            echo '<p class="num-date">' . $dia . '</p>';
+            if (isset($results[$dia])) {
+                /* +============================================================
+                 * | TABELA DE MEDICO-DIA P/ CADASTRO E VISUALIZAÇÃO DE BLOCOS
+                 * +============================================================
+                 * Abaixo, um perform para cada dia será executado, exibindo assim 
+                 * então os horários-médicos-blocos;
+                 * 
+                 */
+                echo '<table class="calendario-data table table-striped table-condensed table-bordered">';
+                foreach ($results[$dia] as $value) {
+                    echo '<tr>';
+
+                    /* +--------------------------------------------------------
+                     * | COLUNA 1: MÉDICO
+                     * +--------------------------------------------------------
+                     * Exibe o nome do médico
+                     * 
+                     */
+                    echo '<td>' . $value["nomeMedico"] . '</td>';
+
+                    /* +--------------------------------------------------------
+                     * | COLUNA 2: TOTAL DE HORAS
+                     * +--------------------------------------------------------
+                     * Exibe o total de horas trabalhadas ou disponíveis pelo
+                     * médico
+                     * 
+                     */
+                    echo '<td>' . $value["totalHoras"] . '</td>';
+
+                    /* +--------------------------------------------------------
+                     * | COLUNA 3: STATUS DO MÉDICO-DIA (FREE, FOLGA e USED)
+                     * +--------------------------------------------------------
+                     * $classeAction possui as classes do td de cada médico.
+                     * quando desejar trocar as cores dos dias USED, FOLGA e FREE
+                     * trocar os respectivos parametros WARNING, DEFAULT e SUCCESS
+                     * 
+                     */
+                    switch ($value['status']) {
+                        case "USED":
+                            $classeAction = "warning hand show-used";
+                            $title = "Já existe bloco agendado para este dia";
+                            break;
+                        case "FOLGA":
+                            $classeAction = "default";
+                            $title = "Médico indisponível neste dia";
+                            break;
+                        default:
+                            $classeAction = "success hand insert-free";
+                            $title = "Livre para inserir blocos";
+                            break;
+                    }
+                    echo '<td title="' . $title . '" data-id="' . $value['idHoraMedDia'] . '" class="' . $classeAction . ' ">' . $value['status'] . '</td>';
+
+                    /* +--------------------------------------------------------
+                     * | COLUNA 4: OBSERVAÇÕES
+                     * +--------------------------------------------------------
+                     * Exibe coluna de cadastro/visualização de observações
+                     * do médico-dia
+                     * 
+                     */
+                    $classObs = 'fa fa-plus';
+                    $classTdObs = 'success';
+                    $titleObs = 'Adicionar observação';
+
+                    if ($value['observacao']) {
+                        $classObs = 'fa fa-pencil';
+                        $classTdObs = 'warning';
+                        $titleObs = 'Ver/deletar observação';
+                    }
+
+                    echo '<td title="' . $titleObs . '" class="' . $classTdObs . '"><i class="callmodal hand ' . $classObs . '" data-value="' . $value['observacao'] . '" data-id="' . $value["idHoraMedDia"] . '"></i></td>';
+                    echo '</tr>';
+                }
+                echo '</table>';
+                // =================== FIM DA TABELA DE BLOCOS =================
+            }
+            echo '</td>';
+
+            
+            $diaSemana++;
+        }
+
+        echo '</tr>';
+        ?>
+
+    </tbody>
+</table>
+
+<?php
+/* +----------------------------------------------------------------------------
+ * | MODAL OBSERVACAO
+ * +----------------------------------------------------------------------------
+ *  Estrutura do modal, para utilização no cadastro/visualização das observações
+ * de cada horarioMedicoDia.
+ * 
+ */
+$this->partialObj('agenda')->partial('calendario-medicos/modal-observacao', null, ['this' => &$this]);
+?>
+
+<script type="text/javascript">
+    $(function () {
+        /**
+         * @var
+         * @type String
+         * @description Data de referencia do calendario
+         */
+        var dateRef = "<?php echo $this->dateRef ?>";
+
+        /**
+         * @var
+         * @type jQuery Element
+         * @description Modal para inclusão/visualização/exclusão de observações
+         */
+        var $modal = $("#modal-observacao");
+
+        /**
+         * @function
+         * @description Busca os dados do calendario no servidor
+         * @param {string} param Previous, para carregar o mes anterior e next, para o próximo
+         * @returns {void}
+         */
+        function atualizaCalendario(param) {
+            $.processa({
+                url: "<?php echo $this->url("agenda/default", array('controller' => "calendarioMedicos", 'action' => 'index'), [], FALSE, FALSE); ?>",
+                ret: "#show-calendario",
+            });
+        }
+
+        /**
+         * @event 
+         * @description Seta os atributos do modal e exibe-o
+         */
+        $('.callmodal').click(function () {
+            var id = $(this).attr("data-id");
+            var value = $(this).attr('data-value');
+
+            $modal.attr('data-id', id);
+            $modal.find('textarea').val(value);
+            $modal.modal();
+        });
+        
+        /**
+         * @function 
+         * @description Abstração utilizada para persistir dados (observação) no servidor 
+         * @param {string} obs
+         * @param {string|int} id
+         * @returns {boolean} Status do envio
+         */
+        function gravarObservacao(obs, id) {
+            var status = false;
+            $.processa({
+                url: "<?php echo $this->url("agenda/default", array('controller' => "HorarioMedicoDias", 'action' => 'edit'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    observacao: obs,
+                    id: id,
+                    subOpcao: "noIndexReturn"
+                },
+                callback: function () {
+                    $modal.modal("hide");
+                    status = true;
+                    atualizaCalendario();
+                }
+            });
+            return status;
+        }
+        
+        /**
+         * @event
+         * @description Salva a observacao no horarioMedicoDia definido no modal (data-id)
+         */
+        $('#salvar-modal').click(function () {
+            var id = $modal.attr('data-id');
+            var obs = $modal.find("textarea").val()
+            gravarObservacao(obs, id);
+        });
+        
+        /**
+         * @event 
+         * @description Exclui a observacao no horarioMedicoDia definido no modal (data-id)
+         */
+        $('#excluir-modal').click(function () {
+            var id = $modal.attr('data-id');
+            var obs = "";
+            gravarObservacao(obs, id);
+        });
+
+        /**
+         * @event
+         * @description Busca os registros do mes anterior ao dateRef
+         */
+        $('.prev-calend').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'prev'), [], FALSE, FALSE); ?>",
+                ret: "#show-calendario"
+            });
+        });
+
+        /**
+         * @event
+         * @description Busca os registros do mes seguinte ao dateRef 
+         */
+        $('.next-calend').click(function () {
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'next'), [], FALSE, FALSE); ?>",
+                ret: "#show-calendario"
+            });
+        });
+        
+        /**
+         * @function
+         * @description  Atualiza a listagem de blocos na view
+         * @returns {void}         
+         */
+        function atualizaListaBlocos() {
+            $.processa({
+                url: "<?php echo $this->url("agenda/default", array('controller' => "Blocos", 'action' => 'indexCalendario'), [], FALSE, FALSE); ?>",
+                ret: "#show-blocos",
+                savePage: false,
+                type: "POST",
+                data: {
+                    dateRef: $('#show-blocos').find('#dateRef').html(),
+                }
+            });
+        }
+        
+        /** 
+         * @function
+         * @description Exibe mensagem de erro na tela
+         * @param {string} erro
+         * @returns {Boolean}         
+         */
+        function disparaErro(erro) {
+            $.notify({
+                message: erro,
+                type: "danger"
+            });
+            return false;
+        }
+
+        /** 
+         * @event
+         * @description Insere o bloco no horarioMedicoDia e além disso, 
+         * atualiza a listagem de blocos
+         */
+        $('.insert-free').click(function () {
+            var idHoraMedDia = $(this).attr('data-id');
+            var idBloco = $('#show-blocos').find('input[name=addBloco]:checked').val();
+
+            if (!idBloco) {
+                return disparaErro("É necessário selecionar o bloco antes!")
+            }
+
+            $.processa({
+                url: "<?php echo $this->url('agenda/default', array('controller' => "HorarioMedicoDias", 'action' => 'includeBloco'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                data: {
+                    idBloco: idBloco,
+                    idHoraMedDia: idHoraMedDia,
+                },
+            });
+        });
+
+        $('.show-used').click(function () {
+            var idBloco = $('#show-blocos').find('input[name=addBloco]:checked').val();
+            if(idBloco){
+                $.notify({
+                    message: "Não é possível agendar para um dia que já possui um bloco agendado!",
+                    type: "danger"
+                });
+                return false;
+            }
+        
+            var id = $(this).attr('data-id');
+            $.processa({
+                url: "<?php echo $this->url('agenda/default', array('controller' => "HorarioMedicoDias", 'action' => 'showBlocoDia'), [], FALSE, FALSE); ?>/" + id,
+            });
+        });
+    });
+</script>

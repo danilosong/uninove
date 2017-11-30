@@ -1,0 +1,143 @@
+<?php
+
+$controller    = $this->dataView['controller'];
+$action        = $this->dataView['action'];
+$route         = $this->dataView['route'];
+$title         = $this->dataView['titulo'];
+$dataRequest   = $this->data;
+
+$headers     = array(
+    "Exames"     ,
+    "Cod. Ref."  ,
+    "Condominio" ,
+    "Funcionário",
+    "CPF"        ,
+    "Função"     ,
+    "Tipo"       ,
+    "Dt.Exame"   ,
+    "Médico"     ,
+    "ASO"
+);
+
+$bodies = [];
+
+$totalEmps     = 0; // Contador de Empresas exibidos
+$totalSemExame = 0;
+$totalGeralFun = 0; // Contador geral de Funcionarios
+$totalGeralExm = 0; // Contador geral de Exames
+$lastEmpresa   = FALSE;
+foreach ($this->result as $data) {
+
+    /* @var $empresa \Tcmed\Entity\Empresa */
+    /* @var $clinica \Tcmed\Entity\Clinica */
+    $empresa        = $data['empresa'];
+    $clinica        = $data['clinica'];
+    $listaConsultas = $data['listaConsulta'];
+
+    $totalEmps++;
+    $totalFunc   = 0; // Contador de Funcionarios exibidos
+    $totalExames = 0; // Contador de Exames exibidos
+
+    $lastFuncionario = null;
+
+    if(empty($listaConsultas)) {
+        continue;
+    }
+
+    /* @var $consulta \Tcmed\Entity\Consulta */
+    /* @var $funcionario \Tcmed\Entity\Funcionario */
+    foreach ($listaConsultas as $consulta) {
+
+        /*
+         * Vars booleanas para verificar se o funcionario possui consulta e se o
+         * usuário deseja exibir estes funcionarios sem consulta
+         */
+        $isFuncionario = ($consulta instanceof Tcmed\Entity\Funcionario);
+
+        /*
+         * Irá exibir os funcionários pendentes apenas se 'examesPendentes'
+         * estiver selecionado na view
+         */
+        if ($isFuncionario AND ! isset($dataRequest['examesPendentes'])) {
+            continue;
+        }
+
+        /*
+         * Se consulta for na verdade um funcionário, então atribuir este Funcionario
+         * em $funcionario. Se não, ler o funcionario da consulta
+         */
+        $funcionario = ($isFuncionario) ? $consulta : $consulta->getFuncionario();
+
+        if ($lastFuncionario !== $funcionario->getId()) {
+            $totalFunc++;
+            $lastFuncionario = $funcionario->getId();
+        }
+
+        /*
+         * Somente se o funcionário possuir consulta que $totalExames será
+         * incrementado com +1
+         */
+        !$isFuncionario && $totalExames++;
+        $isFuncionario  && $totalSemExame++;
+
+        //                           |     Funcionario sem exames     |         Funcionário com exame     |
+        $exameDescr = $isFuncionario ? "Exame Vencido"                : "Exame Clínico";
+        $dtConsulta = $isFuncionario ? $funcionario->getUltimoExame() : $consulta->getDtConsulta();
+        $tipo       = $isFuncionario ? ""                             : $consulta->getTipo();
+        $medico     = $isFuncionario ? ""                             : $consulta->getMedico('nomeMedico');
+        $resultado  = $isFuncionario ? ""                             : $this->Param($consulta->getResultado()  ,'FC_Resultado');
+
+        $bodies[] = [
+            $exameDescr,
+            $funcionario->getEmpresa('referenciaEmp'),
+            $funcionario->getEmpresa('razaoSocial'),
+            $funcionario->getNomeFuncionario(),
+            $funcionario->getCpf(),
+            $funcionario->getOcupacao('cargo', [TRUE])->getCargo(),
+            $tipo,
+            $dtConsulta,
+            $medico,
+            $resultado
+        ];
+    }
+
+    $bodies[] = [
+        "Exame Clínico",
+        $empresa->getRazaoSocial() . " ZA",
+        "Total de Funcionarios:",
+        $totalFunc
+    ];
+
+    $bodies[] = [
+        "Exame Clínico",
+        $empresa->getRazaoSocial() . " ZB",
+        "Total de Exames:",
+        $totalExames
+    ];
+
+    $bodies[] = [];
+}
+
+
+
+ob_start();
+$file = fopen("php://output", "w");
+fputcsv($file, $headers);
+
+foreach ($bodies as $row) {
+    fputcsv($file, $row);
+}
+
+fclose($file);
+$csvdata = ob_get_clean();
+
+//Nome do arquivo
+$filename = "Relatorio_Controle_" . date('d-m-Y_H-i-s');
+////XLS - exibe a tabela pronta em html para XLS
+header("Content-Type:  application/vnd.ms-excel; charset=UTF-8; encoding=UTF-8");
+header("Expires: 0");
+header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+header("Content-Disposition: attachment; filename=\"".$filename.".csv\"" );
+//
+echo utf8_decode(str_replace(',', ';', $csvdata));
+die;

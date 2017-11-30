@@ -1,0 +1,283 @@
+<?
+
+$controller  = $this->dataView['controller'];
+$action      = $this->dataView['action'    ];
+$route       = $this->dataView['route'     ];
+$title       = $this->dataView['titulo'    ];
+$orderBy     = $this->dataView['orderBy'   ];
+$ajax        = $this->dataView['ajax'      ];
+$id          = ($this->entity)? $this->entity->getId() : 0;
+$partial     = $this->partialObj('application');
+$dataRequest = $this->dataRequest;
+
+/* @var $form \Tcmed\Form\Empresa */
+$form = $this->form;
+$form->setAttribute('target', "#listagem-empresas");
+$form->setAttribute('id'    , "formIndexBloco");
+
+// Notificador
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+/* @var $table \Application\View\Helper\Table */
+$table      = $this->table();
+
+/* @var $fh \Application\View\Helper\FormHelp */
+$url = $this->url($route, compact('controller', 'action', 'id'), [], FALSE, $ajax);
+$fh  = $this->formHelp($this, $form, $url);
+
+
+$fh->formInit(); // ============================================================
+
+$checkPageValues    = $fh->getIdFor('checkPageValues'   );
+$empresasCandidatas = $fh->getIdFor('empresasCandidatas');
+
+$fh->openCol(12);
+    $fh->openCol(12, ["class" => "alert alert-info"]);
+        $fh->openLine();
+            $fh->openCol(3)->checkbox('noShowYear', ['position' => 'right'], ['label' => 'Não Exibir Feitos em ' . $dataRequest['anoAgendamento']])->closeCol();
+            $fh->openCol(3)->checkbox('noLifeZero', ['position' => 'right'])->closeCol();
+            $fh->openCol(3)->checkbox('noEmpList' , ['position' => 'right'])->closeCol();
+            $fh->openCol(3)->checkbox('noTcmed'   , ['position' => 'right'])->closeCol();
+
+            $fh->lineDown();
+
+            $fh->openCol(3)->checkbox('noLower3', ['position' => 'right'])->closeCol();
+            $fh->setHorizontal(TRUE)->openCol(6)->select('untilMonth')->closeCol()->setHorizontal(FALSE);
+            $fh->openCol(2)->buildButton(['id' => 'refresh-list', 'class' => 'btn-block'], '<i class="fa fa-refresh"></i> Atualizar', 'primary', TRUE)->closeCol();
+
+            $fh->lineDown();
+
+            $fh->openCol(12);
+            echo '<hr>';
+            $fh->closeCol();
+
+            $fh->lineDown();
+
+            $fh->openCol(1);
+            echo '<strong>Páginas</strong>';
+            $fh->closeCol();
+
+            $fh->openCol(9, ['id' => 'pageValues'])->closeCol();
+
+            $fh->openCol(2)->text('numPag', [
+                "extra" => ["icon" => "plus", "id" => "add-paginaFiltro", "title" => "Incluir Página"],
+                "noLabel" => TRUE
+            ])->closeCol();
+            $numPag = $fh->getLastId();
+
+        $fh->closeLine();
+    $fh->closeLine();
+$fh->closeCol();
+    
+
+
+
+
+$fh->openCol(12);
+$table->openTable(TRUE);
+$table->setOrderList($orderBy);
+
+$table->setLambda(function($value, $data) {
+    
+    $checked = "";
+    
+    if(is_object($value)) {
+        $value   = $value->getId();
+        $checked = "checked";
+    }
+    
+    echo '<td nowrap>';
+    echo "<input class='pre-candidate' type='checkbox' {$checked} value={$value}><span class='check-cand hand'> Topo</span>&nbsp;&nbsp;";
+    echo "<span data-id='{$value}' class='incluir-empresa hand'><i class='fa fa-plus' title='Incluir na listagem'></i> Incluir<span>";
+    echo '</td>', PHP_EOL;
+});
+
+$table->renderThead([
+    ['label' => 'Cód Emp',        'order' => 'referenciaEmp',    'options' => ' title="Código da Empresa"'],
+    ['label' => 'Administradora'  ],
+    ['label' => 'Razão Social',   'order' => 'razaoSocial'       ],
+    ['label' => 'Periódico',      'order' => 'dtPeriodico'       ],
+    ['label' => 'Endereço',       ],
+    ['label' => 'CEP',            ],
+    ['label' => 'Cod Rua',        'order' => 'codigoRua',        'options' => ' title="Código da Rua"'],
+    ['label' => 'vidas',          'order' => 'qtdFunc',          'options' => ' title="Funcionários na empresa"'],
+    ['label' => 'Ação'            ]
+]);
+
+/* @var $candidata \Tcmed\Entity\Empresa */
+foreach ($this->candidatas as $candidata) {
+    
+    $statusRow = "warning";
+    
+     $table->renderLine([
+        $candidata->getReferenciaEmp(),
+        $candidata->getAdministradora('razaoSocial'),
+        $candidata->getRazaoSocial(),
+        $candidata->getDtPeriodico(),
+        $candidata->getEndereco()->format('l, n'), // logradouro, numero
+        $candidata->getEndereco()->format('k'),    //k = CEP
+        $candidata->getCodigoRua(),
+        $candidata->getQtdFunc(),
+        $candidata
+    ],"class='{$statusRow}'");
+}
+
+/* @var $entity \Tcmed\Entity\Empresa */
+foreach ($this->data as $entity) {
+    
+    $statusRow = "default";
+    $entity->getStatus() == "INATIVO"   && $statusRow = "danger";
+    $entity->getStatus() == "CANCELADO" && $statusRow = "danger";
+    $entity->getStatus() == "BLOQUEADO" && $statusRow = "warning";
+    
+    $table->setTdopt([
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'nowrap'
+    ]);
+    
+    $table->renderLine([
+        $entity->getReferenciaEmp(),
+        $entity->getAdministradora('razaoSocial'),
+        $entity->getRazaoSocial(),
+        $entity->getDtPeriodico(),
+        $entity->getEndereco()->format('l, n'), // logradouro, numero
+        $entity->getEndereco()->format('k'),    //k = CEP
+        $entity->getCodigoRua(),
+        $entity->getQtdFunc(),
+        $entity->getId()
+    ],"class='{$statusRow}'");
+}
+$table->renderCloseTable();
+$fh->closeCol();
+
+echo "<br>";
+echo "<center>{$this->paginationControl($this->data, 'Sliding', 'partials/paginator')}</center>";
+$fh->formEnd(); // =============================================================
+
+
+$transp = compact('numPag', "checkPageValues", "empresasCandidatas");
+
+?>
+
+<script type="text/javascript">
+
+    $(function() {
+        var transp = <?php echo json_encode($transp) ?>;
+        
+        /**
+         * Caso o botão atualizar seja clicado, então recarregar a listagem
+         */
+        $('#refresh-list').click(function () {
+            $('#formIndexBloco').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'indexBloco'), [], FALSE, FALSE); ?>",
+                type: 'POST',
+                ret: "#listagem-empresas",
+                savePage: false,
+            });
+        });
+
+        /**
+         * Cria os checkbox .choosePage para exibir as paginas que serão filtradas
+         * na lista
+         */
+        var lista    = JSON.parse($$(transp.checkPageValues).val());
+        $.each(lista, function(page, opt) {
+            opt = (1 == opt) ? "checked": "";
+            $("#pageValues").append(" <input class='choosePage' type='checkbox' data-id='" + page + "' " + opt + "> "+page+" <i class='fa fa-times hand rmv-paginaFiltro' data-id='"+ page +"'></i> |");
+        });
+        
+        /**
+         *  Adiciona filtro de Cod Rua
+         */
+        $('#add-paginaFiltro').click(function () {
+            // Converte a lista em objeto
+            var lista = JSON.parse($$(transp.checkPageValues).val());
+            // Cria um novo index (numero da pagina) e define value 1 à ele
+            lista[$$(transp.numPag).val()] = true;
+            // Converte a lista em string e armazena result no campo de origem
+            $$(transp.checkPageValues).val(JSON.stringify(lista));
+            // Atualiza a pagina
+            $('#refresh-list').click();
+        });
+        
+        /**
+         *  Remove filtro de Cod Rua
+         */
+        $('.rmv-paginaFiltro').click(function () {
+            // Converte a lista em objeto
+            var lista = JSON.parse($$(transp.checkPageValues).val());
+            // Remove o index (numero da pagina) da listagem
+            delete lista[$(this).data('id')];
+            // Converte a lista em string e armazena result no campo de origem
+            $$(transp.checkPageValues).val(JSON.stringify(lista));
+            // Atualiza a pagina
+            $('#refresh-list').click();
+        });
+        
+        /**
+         * Eventos para o checkbox das paginas
+         */
+        $('.choosePage').click(function() {
+            // Converte a lista em objeto
+            var lista = JSON.parse($$(transp.checkPageValues).val());
+            // Se :checked, então o value do index em questão será true. se não, false
+            lista[$(this).data('id')] = $(this).is(':checked');
+            // Converte a lista em string e armazena result no campo de origem
+            $$(transp.checkPageValues).val(JSON.stringify(lista));
+            // Atualiza a pagina
+            $('#refresh-list').click();
+        });
+        
+        /**
+         * @todo FALTA REPARAR
+         */
+        $('.incluir-empresa').click(function () {
+            if($('#hide-show').hasClass('fa-eye-slash')){
+                $('#hide-show').click();
+            }
+            
+            $(this).processa({
+                url: "<?php echo $this->url('agenda/default', array('controller' => 'blocoItems', 'action' => 'getListaBlocoItem'), [], FALSE, FALSE); ?>",
+                savePage: false,
+                ret: "#listagem-itens",
+                type: "POST",
+                data: {
+                    subOpcao: "addEmpresa",
+                    idEmpresa: $(this).attr('data-id')
+                }
+            });
+        });
+        
+        /**
+         * Quando o usuário clicar em 'topo', então executar click no checkbox
+         * .check-cand
+         */
+        $('.check-cand').click(function(){
+            $(this).prev('.pre-candidate').click();
+        });
+        
+        /**
+         *  ao clicar no checkbox, caso for um check, então adicionar o ID contido
+         *  no value do input na listagem de empresas a serem promovidas. Caso
+         *  for uncheck, então remover este ID da mesma lista
+         */
+        $('.pre-candidate').click(function() {
+            var list = JSON.parse($$(transp.empresasCandidatas).val());
+            var id   = $(this).val();
+            
+            if($(this).is(':checked')) {
+                list[id] = id;
+            }else{
+                delete list[id];
+            }
+            $$(transp.empresasCandidatas).val(JSON.stringify(list));
+        });
+    });
+
+</script>
+

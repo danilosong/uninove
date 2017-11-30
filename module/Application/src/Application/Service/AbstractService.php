@@ -380,9 +380,9 @@ abstract class AbstractService {
     }
 
     /**
-     * Se a opcao forceRemove for TRUE e se
-     * a entidade não possuir o metodo 'setStatus',
-     * então o registro da entidade será removido permanentemente
+     * Se a opcao forceRemove for false e se
+     * a entidade possuir o metodo 'setStatus',
+     * então o registro da entidade o campo Status será alterado para inativo
      * da base de dados. Caso contrario, o status da entidade
      * é setada como 'inativo'
      * @author Paulo Watakabe <watakabe05@gmail.com>

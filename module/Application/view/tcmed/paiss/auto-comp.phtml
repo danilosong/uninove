@@ -1,0 +1,22 @@
+<?php
+
+/* @var $entity \Tcmed\Entity\Paiss */
+if ($this->resultSet) {
+    $ret = [];
+    if ($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $ret[] = [
+            "id" => 'ID',
+            "pais" => 'Pais',
+        ];
+        foreach ($this->resultSet as $entity) {
+            $ret[] = [
+                "id" => $entity->getId(),
+                "nomePais" => $entity->getNomePais(),
+            ];
+        }
+    }
+
+    echo json_encode($ret);
+} else {
+    echo '{}';
+}

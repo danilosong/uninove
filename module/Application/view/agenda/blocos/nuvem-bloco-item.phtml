@@ -1,0 +1,91 @@
+<?php
+/* =============================================================================
+ * CONTAINER DA NUVEM DE BLOCO ITEM
+ * =============================================================================
+ * 
+ */
+?>
+
+<!-- ----------------------------------------------------------------------- ---
+Estilos
+---- ----------------------------------------------------------------------- -->
+<style type="text/css">
+    #nuvem-bloco-item {
+        /* width: Ver seção javascript */
+        background-color: #ffffee;
+        position: fixed;
+        margin: 0;
+        margin-top: -15px;
+        padding: 0;
+        padding-top: 30px;
+        padding-bottom: 5px;
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-left: -10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        border-bottom: 3px solid #ccc;
+        z-index: 999;
+    }
+</style>
+
+<!-- ----------------------------------------------------------------------- ---
+HTML
+---- ----------------------------------------------------------------------- -->
+<div id="nuvem-bloco-item" class="container-fluid">
+    <i id="hide-show" class="fa fa-eye pull-right hand" aria-hidden="true"></i>
+
+</div>
+
+<!-- ----------------------------------------------------------------------- ---
+Script
+---- ----------------------------------------------------------------------- -->
+<script type="text/javascript">
+    $(function () {
+
+        var $nuvem = $('#nuvem-bloco-item');
+        var $container = $("#container-listagem");
+
+        var $table = $("#listagem-itens");
+        $table.after('<div id="referencia"></div>');
+
+        $("#inter").prepend($nuvem);
+        var wdtInter = $("#inter").width();
+        $nuvem.width(wdtInter);
+        $nuvem.hide();
+
+
+        $("#page-wrapper").scroll(function () {
+            var dist = $container.offset().top;
+            if (100 > dist) {
+                $table.prependTo($nuvem);
+                $nuvem.show("slow");
+            } else {
+                if ($('#hide-show').hasClass('fa-eye-slash')) {
+                    $('#hide-show').click();
+                }
+                
+                $table.prependTo($container);
+                $nuvem.hide("slow");
+            }
+        });
+
+        /**
+         * Exibe e oculta a listagem de itens do bloco
+         */
+        $('#hide-show').click(function () {
+            var $lista = $(this).parent().find('#listagem-itens');
+
+            if ($(this).hasClass('fa-eye')) {
+                $(this).removeClass('fa-eye');
+                $(this).addClass('fa-eye-slash');
+                $lista.hide();
+            } else {
+                $(this).removeClass('fa-eye-slash');
+                $(this).addClass('fa-eye');
+                $lista.show();
+            }
+        });
+
+    });
+</script>

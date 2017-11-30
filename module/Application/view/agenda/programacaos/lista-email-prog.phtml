@@ -1,0 +1,183 @@
+<?php
+/* @var $table \Application\View\Helper\Table */
+
+$controller = $this->dataView['controller'];
+$action     = $this->dataView['action'];
+$route      = $this->dataView['route'];
+$title      = $this->dataView['titulo'];
+$entity     = $this->entity;
+$form       = $this->form;
+$partial    = $this->partialObj('application');
+$table      = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+echo $this->partial('partials/modal');
+
+/* @var $fh \Application\View\Helper\FormHelp */
+echo "<h3>{$title}</h3><br />";
+echo "<button class='btn btn-primary sendmail-alladm'>Enviar para todas as Administradoras</button>&nbsp;";
+echo "<button class='btn btn-primary sendmail-allemp'>Enviar para todas as Empresas</button><br /><br />";
+
+$table->openTable(TRUE);
+$table->renderThead([
+    ['label' => ""  ],
+    ['label' => ""  ],
+    ['label' => ""  ],
+    ['label' => "Ação"],
+]);
+
+$table->setLambda(function($value, $data) {
+    if($value instanceof \Tcmed\Entity\Administradora) {
+        echo "<td><span class='hand sendmail-adm' data-id='{$value->getId()}'><i class='fa fa-envelope'></i></span></td>";
+        return;
+    }
+
+    if($value instanceof \Tcmed\Entity\Empresa) {
+        echo "<td><span class='hand sendmail-emp' data-id='{$value->getId()}'><i class='fa fa-envelope-o'></i></span></td>";
+        return;
+    }
+    echo "<td></td>";
+});
+
+foreach ($entities as $blocoItem) {
+    foreach ($blocoItem->getBloco('listHorarioMedicoDia') as $horaMedDia) {
+        $agendadoEm        = $horaMedDia->getDateHoramed();
+        $nomeMedico        = $blocoItem->getBloco('medico', ['nomeMedico']);
+        $horaInicio        = $blocoItem->getHoraIni();
+        $razaoSocial       = $blocoItem->getEmpresa('razaoSocial');
+        $razaoSocialAdm    = $blocoItem->getEmpresa('administradora', ['razaoSocial']);
+        $showDate          = FALSE;
+
+        if ($blocoItem->getBloco('manyDays')) {
+            $horaInicio = $horaMedDia->getIni();
+        }
+
+        if ($ultimaAdm != $razaoSocialAdm) {
+            $table->renderLine([
+                "{$razaoSocialAdm} Cod.: {$blocoItem->getEmpresa('administradora', ['referenciaSubhold'])}",
+                "",
+                "",
+                $blocoItem->getEmpresa('administradora')
+            ], "style='background-color: #cdcdcd; border-top: 5px solid #888'");
+
+            $ultimaAdm    = $razaoSocialAdm;
+            $ultimoMedico = FALSE;
+            $showDate     = TRUE;
+        }
+
+        if ($ultimoMedico != $nomeMedico) {
+            $table->renderLine([
+                "<b>Dr(a). {$nomeMedico}</b>",
+                "",
+                "",
+                ""
+            ], "style='background-color: #dfdfdf'");
+            $ultimoMedico = $nomeMedico;
+            $showDate     = TRUE;
+        }
+
+        if ($ultimaData != $agendadoEm) {
+            $showDate     = TRUE;
+        }
+
+        if($showDate) {
+            $table->renderLine([
+                "<i><b>No dia {$agendadoEm}</b></i>",
+                "",
+                "",
+                ""
+            ]);
+            $ultimaData = $agendadoEm;
+        }
+
+        $table->renderLine([
+            "{$horaInicio} hs",
+            "{$razaoSocial} ({$blocoItem->getEmpresa('referenciaEmp')})",
+            "{$blocoItem->getEmpresa('endereco', ['exibeEnderecoSimples'])}",
+            $blocoItem->getEmpresa()
+        ]);
+    }
+}
+
+$table->renderCloseTable();
+?>
+
+<script type="text/javascript">
+    $(function() {
+        var datasend = [];
+
+
+
+        function send(subOpcao) {
+            $(this).closest('form').processa({
+                url: "<?= $this->url($route, array('controller' => $controller, 'action' => 'sendEmailProg'), [], FALSE, FALSE); ?>",
+                type: "POST",
+                savePage: false,
+                data: {
+                    ids     : JSON.stringify(datasend),
+                    subOpcao: subOpcao
+                }
+            });
+
+            datasend = [];
+        }
+
+        $('.sendmail-adm').click(function() {
+            datasend.push($(this).data('id'));
+
+            send("1");
+
+            return false;
+        });
+
+        $('.sendmail-emp').click(function() {
+            datasend.push($(this).data('id'));
+
+            send("2");
+
+            return false;
+        });
+
+        $('.sendmail-alladm').click(function() {
+            gModal.reset("confirm", 1)
+                    .setClickOk(function () {
+                        $('.sendmail-adm').each(function() {
+                            datasend.push($(this).data('id'));
+                        });
+
+                        send("1");
+
+                        return false;
+                    })
+                    .setClickNg(function () {
+                        return false;
+                    })
+                    .setLabelOk("SIM")
+                    .setLabelNg("NÃO")
+                    .setMsg('Deseja realmente enviar o email para todas as administradoras abaixo?')
+                    .showModal();
+        });
+
+        $('.sendmail-allemp').click(function() {
+            gModal.reset("confirm", 1)
+                    .setClickNg(function () {
+                        return false;
+                    })
+                    .setClickOk(function () {
+                        $('.sendmail-emp').each(function() {
+                            datasend.push($(this).data('id'));
+                        });
+
+                        send("2");
+
+                        return false;
+                    })
+                    .setLabelOk("SIM")
+                    .setLabelNg("NÃO")
+                    .setMsg('Deseja realmente enviar o email para todas as empresas abaixo?')
+                    .showModal();
+        });
+
+    });
+</script>

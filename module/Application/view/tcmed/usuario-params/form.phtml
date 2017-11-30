@@ -1,0 +1,170 @@
+<h3><?php
+    echo $this->dataView['titulo'];
+    $controller = 'usuarioParams';
+    $route = 'tcmed/default';
+    ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro de UsuarioParam:');
+
+$fh->setPreFix('usuario');
+$idUsuario = $fh->getIdFor('idusuario');
+$fh->openCol('6')->text("nomeUsuario", ['dt-clear' => $idUsuario], ['placeholder' => "Digite o Usuario", 'options' => ['label' => "Usuario"]])->closeCol();
+$nomeUsuario = $fh->getLastId();
+$fh->removePreFix('usuario');
+
+$fh->setPreFix('hold');
+$idHold = $fh->getIdFor('idHold');
+$fh->openCol('6')->text("fantasiaHold", ['dt-clear' => $idHold], ['options' => ['label' => "Hold"]])->closeCol();
+$fantasiaHold = $fh->getLastId();
+$fh->removePreFix('hold');
+
+$fh->setPreFix('administradora');
+$idAdministradora = $fh->getIdFor('idAdministradora');
+$fh->openCol('6')->text("fantasiaAdm", ['dt-clear' => $idAdministradora], ['options' => ['label' => "Administradora"]])->closeCol();
+$fantasiaAdm = $fh->getLastId();
+$fh->removePreFix('administradora');
+
+$fh->setPreFix('empresa');
+$idEmpresa = $fh->getIdFor('idEmpresa');
+$fh->openCol('6')->text("fantasiaEmpresa", ['dt-clear' => $idEmpresa], ['options' => ['label' => "Empresa"]])->closeCol();
+$fantasiaEmpresa = $fh->getLastId();
+$fh->removePreFix('empresa');
+
+$fh->setPreFix('funcionario');
+$idFuncionario = $fh->getIdFor('idFuncionario');
+$fh->openCol('6')->text("nomeFuncionario", ['dt-clear' => $idFuncionario], ['options' => ['label' => "Nome do Funcionario"]])->closeCol();
+$nomeFuncionario = $fh->getLastId();
+$fh->removePreFix('funcionario');
+
+$fh->setPreFix('clinica');
+$idClinica = $fh->getIdFor('idClinica');
+$fh->openCol('6')->text("fantasiaClinica", ['dt-clear' => $idClinica], ['options' => ['label' => "Clinica"]])->closeCol();
+$fantasiaClinica = $fh->getLastId();
+$fh->removePreFix('clinica');
+
+$fh->setPreFix('medico');
+$idMedico = $fh->getIdFor('idMedico');
+$fh->openCol('6')->text("nomeMedico", ['dt-clear' => $idMedico], ['options' => ['label' => "Medico"]])->closeCol();
+$nomeMedico = $fh->getLastId();
+$fh->removePreFix('medico');
+
+$fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+
+$fieldsEntity = [
+    "idEntity" => ($this->entity) ? $this->entity->getId() : FALSE,
+    "idHold" => $idHold,
+    "fantasiaHold" => $fantasiaHold,
+    "idAdministradora" => $idAdministradora,
+    "fantasiaAdm" => $fantasiaAdm,
+    "idEmpresa" => $idEmpresa,
+    "fantasiaEmpresa" => $fantasiaEmpresa,
+    "idClinica" => $idClinica,
+    "fantasiaClinica" => $fantasiaClinica,
+    "idFuncionario" => $idFuncionario,
+    "nomeFuncionario" => $nomeFuncionario,
+    "idMedico" => $idMedico,
+    "nomeMedico" => $nomeMedico,
+    "idUsuario" => $idUsuario,
+    "nomeUsuario" => $nomeUsuario,
+];
+?>
+
+<script lang="javascript">
+
+    function isValid() {
+    return true;
+    }
+
+    $(function () {
+    var fields = <?php echo json_encode($fieldsEntity) ?>;
+    console.log(fields.fantasiaAdm);
+    console.log(fields.fantasiaEmpresa);
+    console.log(fields.nomeUsuario);
+    console.log(fields.fantasiaHold);
+    console.log(fields.fantasiaClinica);
+    console.log(fields.nomeFuncionario);
+    console.log(fields.nomeMedico);
+    /**
+     * @depends getFantasiaAdm
+     * @author Allan Davini
+     */
+    $$(fields.fantasiaAdm).auto({
+    primary: "fantasiaAdm",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Administradoras', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "fantasiaAdm": [fields.fantasiaAdm],
+                    "idAdministradora": [fields.idAdministradora]
+            },
+            showCols: ["fantasiaAdm"]
+    });
+    $$(fields.fantasiaEmpresa).auto({
+    primary: "fantasiaEmpresa",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Empresas', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "fantasiaEmpresa": [fields.fantasiaEmpresa],
+                    "idEmpresa": [fields.idEmpresa]
+            },
+            showCols: ["fantasiaEmpresa"]
+    });
+    $$(fields.fantasiaHold).auto({
+    primary: "fantasiaHold",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Holds', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "fantasiaHold": [fields.fantasiaHold],
+                    "idHold": [fields.idHold]
+            },
+            showCols: ["fantasiaHold"]
+    });
+    $$(fields.fantasiaClinica).auto({
+    primary: "fantasiaClinica",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Clinicas', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "fantasiaClinica": [fields.fantasiaClinica],
+                    "idClinica": [fields.idClinica]
+            },
+            showCols: ["fantasiaClinica"]
+    });
+    $$(fields.nomeFuncionario).auto({
+    primary: "nomeFuncionario",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Funcionarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "nomeFuncionario": [fields.nomeFuncionario],
+                    "idFuncionario": [fields.idFuncionario]
+            },
+            showCols: ["nomeFuncionario"]
+    });
+    $$(fields.nomeMedico).auto({
+    primary: "nomeMedico",
+            serviceUrl: "<?php echo $this->url('tcmed/default', array('controller' => 'Medicos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "nomeMedico": [fields.nomeMedico],
+                    "idMedico": [fields.idMedico]
+            },
+            showCols: ["nomeMedico"]
+    });
+    $$(fields.nomeUsuario).auto({
+    primary: "nomeUsuario",
+            serviceUrl: "<?php echo $this->url('app/default', array('controller' => 'Usuarios', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            responseTo: {
+            "nomeUsuario": [fields.nomeUsuario],
+                    "idUsuario": [fields.idUsuario]
+            },
+            callback: function (data) {
+            $.processa({
+                    url: "<?php echo $this->url('tcmed/default', array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>",
+                    type: "POST",
+                    data: {
+                    idUsuario: data.idUsuario
+                    }
+            });
+            },
+            showCols: ["nomeUsuario"]
+    });
+    });
+
+</script>

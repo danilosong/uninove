@@ -1,0 +1,85 @@
+<?php
+/* @var $fh \Application\View\Helper\FormHelp */
+$fh = &$obj;
+
+$fh->closeLine()->renderFieldsetIni('Ocupações');
+    /*OCUPACAO - CARGO - SETOR*/
+    $fh->setPreFix('histOcupacional');
+    $fh->setHorizontal(false);
+        
+        $idHistOcupacional = $fh->getIdFor('idHistOcupacional');
+        
+        $fh->openCol('3')->calend('dtIni')->closeCol();
+        $dtIni = $fh->getLastId();
+        $fh->openCol('3')->calend('dtFim')->closeCol();
+        $dtFim = $fh->getLastId();
+    
+        $fh->setPreFix('ocupacao');
+            $idOcupacao = $fh->getIdFor('idOcupacao');
+
+            $fh->openCol('6')->text('setor')->closeCol();
+            $setor = $fh->getLastId();
+            
+            $fh->lineDown();
+
+            $fh->openCol('6')->text('cargo')->closeCol();
+            $cargo = $fh->getLastId();
+            
+        $fh->removePreFix();
+        
+        $fh->setPreFix('historicoFuncao');
+            $idHistoricoFuncao = $fh->getIdFor('idHistoricoFuncao');
+            
+            $fh->openCol('6')->text('funcao')->closeCol();
+            $funcao = $fh->getLastId();
+        
+        $fh->removePreFix();
+        
+        
+    $fh->setHorizontal(true);
+    $fh->removePreFix();
+    
+    $fh->openCol()->button(["class"=>"cancel"], "Cancelar","danger")->closeCol();
+    $fh->openCol()->button(["class"=>"include"], "Incluir","success")->closeCol();
+
+    $fh->jumpLine(2);
+$fh->closeLine()->renderFieldsetFim();
+?>
+
+<script lang="javascript">
+    
+    $(function(){
+        var fields = {
+            setor: "<?php echo $setor ?>",
+            cargo: "<?php echo $cargo ?>",
+            funcao: "<?php echo $funcao ?>"
+        };
+        
+        /* AUTOCOMPLETE: Setor */
+        action.getEl(fields.setor).keypress(function () {
+            action.auto($(this), {
+                primary: "nomeSetor",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'Setors', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+            });
+        });
+        
+        /* AUTOCOMPLETE: Funcao */
+        action.getEl(fields.funcao).keypress(function () {
+            action.auto($(this), {
+                primary: "funcao",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'Funcaos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+            });
+        });
+        
+        /* AUTOCOMPLETE: Cargo */
+        action.getEl(fields.cargo).keypress(function () {
+            action.auto($(this), {
+                primary: "cargo",
+                serviceUrl: "<?php echo $d['this']->url('tcmed/default', array('controller' => 'Cargos', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+                noCache: true,
+            });
+        });
+    });
+</script>

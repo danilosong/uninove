@@ -1,0 +1,332 @@
+<?php
+/**
+ * +===========================================================================+
+ * | VIEW INDEX - v1.5
+ * +===========================================================================+
+ * @author Danilo Dorotheu <danilo.dorotheu@live.com>
+ * @version 1.5
+ * @since
+ *
+ */
+$controller = $this->dataView['controller'];
+$action = $this->dataView['action'];
+$route = $this->dataView['route'];
+$title = $this->dataView['titulo'];
+$dataRequest = $this->data;
+
+$partial = $this->partialObj('application');
+
+/* @var $table \Application\View\Helper\Table */
+$table = $this->table();
+
+$partial->partial('index/partial-form-messenger', null, ['this' => &$this]);
+
+
+$headers = array(
+    ['label' => "Exames"],
+    ['label' => "Funcionário"],
+    ['label' => "Função"],
+    ['label' => "Tipo"],
+    ['label' => "Dt. Exame"],
+    ['label' => "Médico"],
+    ['label' => "ASO"],
+    ['label' => "Ação"],
+);
+
+$totalEmps     = 0; // Contador de Empresas exibidos
+$totalGeralFun = 0; // Contador geral de Funcionarios
+$totalGeralExm = 0; // Contador geral de Exames
+$dataAtual     = (new \DateTime('now'))->format('d/m/Y');
+$imageHold     = '';
+$totalSemExame = 0;
+
+$buttonsExport = <<<BTNEXP
+    <button class='btn btn-primary exportaPdf'><i class='fa fa-file-pdf-o'></i> Exportar para PDF</button>
+    <button class='btn btn-primary exportaXls pull-right'><i class='fa fa-file-excel-o'></i>  Exportar para XLS</button>
+    <br><br>
+BTNEXP;
+
+echo $buttonsExport;
+
+foreach ($this->result as $data) {
+
+    /* @var $empresa \Tcmed\Entity\Empresa */
+    /* @var $clinica \Tcmed\Entity\Clinica */
+    $empresa        = $data['empresa'];
+    $clinica        = $data['clinica'];
+    $listaConsultas = $data['listaConsulta'];
+
+    $totalEmps++;
+    $totalFunc = 0; // Contador de Funcionarios exibidos
+    $totalExames = 0; // Contador de Exames exibidos
+
+    if(empty($imageHold)) {
+        $path = $empresa->getAdministradora('hold', ['pathLogo']);
+
+        if (file_exists($path)) {
+            $path = $this->Image($path);
+            $imageHold = "<img id='imagemLogoHold' src='{$path}'>";
+        }
+
+    }
+
+
+    echo <<<TOPO
+        <table style="width: 100%; background-color: #efefef; border: 1px solid #ddd;">
+            <tbody>
+                <tr class="bg0">
+                    <td rowspan="3" style='width: 30%;'>{$imageHold}</td>
+                    <td align="center" style='width: 40%;'><h3>EXAMES REALIZADOS</h3></td>
+                    <td rowspan="3" align="center" style='width: 30%;'><font class="f3c"><b>{$dataAtual}</b></font></td>
+                </tr>
+                <tr>
+                    <td class="tdb" align="center"><font class="f1c">Cod: {$empresa->getAdministradora('referenciaSubhold')} {$empresa->getAdministradora('razaoSocial')}</font></td>
+                </tr>
+                <tr>
+                    <td class="tdb" align="center">
+                        Cod: {$empresa->getReferenciaEmp()} {$empresa->getRazaoSocial()}<br><br>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+TOPO;
+
+    $table->openTable(['noScrool' => TRUE, 'default' => ""]);
+    $table->renderThead($headers);
+
+    /**
+     * Trata a coluna 'Ação' de cada linha da tabela
+     */
+    $table->setLambda(function($consulta, $data) {
+
+        $idGuia = ($consulta) ? $consulta->getGuia('id'): '';
+
+        echo "<td>";
+        /* @var $consulta \Tcmed\Entity\Consulta */
+        echo "<span class='hand openGuia' title='Abrir a Guia deste exame' data-name='{$data[5]}' data-id='{$idGuia}'><i class='fa fa-external-link'></i> Guia</span> &nbsp;&nbsp;";
+
+        // Quando $value não for vazio, então este funcionário possui Exame
+        if($consulta) {
+            echo "<span class='hand openAso'  title='Abrir a ASO deste exame'   data-id='{$consulta->getId()}'><i class='fa fa-external-link'></i> ASO &nbsp;</span>";
+        }
+        echo "</td>", PHP_EOL;
+    });
+
+    $quant = count($headers);
+    $tdVazio = "<tr><td colspan={$quant}>Não existem exames para esta empresa no período escolhido</td></tr>";
+
+    $lastFuncionario = null;
+
+    /* @var $consulta \Tcmed\Entity\Consulta */
+    /* @var $funcionario \Tcmed\Entity\Funcionario */
+    foreach ($listaConsultas as $consulta) {
+
+        /*
+         * Vars booleanas para verificar se o funcionario possui consulta e se o
+         * usuário deseja exibir estes funcionarios sem consulta
+         */
+        $isFuncionario = ($consulta instanceof Tcmed\Entity\Funcionario);
+
+        /*
+         * Irá exibir os funcionários pendentes apenas se 'examesPendentes'
+         * estiver selecionado na view
+         */
+        if ($isFuncionario AND ! isset($dataRequest['examesPendentes'])) {
+            continue;
+        }
+
+        /*
+         * Se consulta for na verdade um funcionário, então atribuir este Funcionario
+         * em $funcionario. Se não, ler o funcionario da consulta
+         */
+        $funcionario = ($isFuncionario) ? $consulta : $consulta->getFuncionario();
+
+        if ($lastFuncionario !== $funcionario) {
+            $totalFunc++;
+            $lastFuncionario = $funcionario;
+        }
+
+        /*
+         * Somente se o funcionário possuir consulta que $totalExames será
+         * incrementado com +1
+         */
+        !$isFuncionario && $totalExames++;
+        $isFuncionario  && $totalSemExame++;
+
+        //                           |     Funcionario sem exames     |         Funcionário com exame     |
+        $exameDescr = $isFuncionario ? "Exame Vencido"                : "Exame Clínico";
+        $dtConsulta = $isFuncionario ? $funcionario->getUltimoExame() : $consulta->getDtConsulta();
+        $tipo       = $isFuncionario ? ""                             : $consulta->getTipo();
+        $medico     = $isFuncionario ? ""                             : $consulta->getMedico('nomeMedico');
+        $resultado  = $isFuncionario ? ""                             : $this->Param($consulta->getResultado()  ,'FC_Resultado');
+        $cons       = $isFuncionario ? FALSE                          : $consulta;
+
+        $table->renderLine([
+            $exameDescr,
+            $funcionario->getNomeFuncionario(),
+            $funcionario->getOcupacao('cargo', [TRUE])->getCargo(),
+            $tipo,
+            $dtConsulta,
+            $medico,
+            $resultado,
+            $cons
+        ]);
+    }
+
+    if (0 == $totalFunc) {
+        echo $tdVazio;
+    }
+
+    echo <<<TOTAIS_EMPRESA
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan='7' style='text-align: right; background-color: #ddd'>
+                    Total de Funcionarios
+                </td>
+                <td style='background-color: #ddd'>
+                    {$totalFunc}
+                </td>
+            </tr>
+            <tr>
+                <td colspan='7' style='text-align: right; background-color: #ddd'>
+                    Total de Exames
+                </td>
+                <td style='background-color: #ddd'>
+                    {$totalExames}
+                </td>
+            </tr>
+            <tr>
+                <td colspan='7' style='text-align: right; background-color: #ddd'>
+                    Total de Funcionários que não realizaram Exames
+                </td>
+                <td style='background-color: #ddd'>
+                    {$totalSemExame}
+                </td>
+            </tr>
+        </tfoot>
+TOTAIS_EMPRESA;
+
+    $table->renderCloseTable();
+
+
+    $path = $clinica->getPathLogo();
+    $img = '';
+    if (file_exists($path)) {
+        $path = $this->Image($path);
+        $img = "<img style='width: 250px; margin-right: 10px;'  id='imagemLogo' src='{$path}'>";
+    }
+
+    echo <<<TOPO
+
+        <table style="width: 100%; background-color: #fff; border: 2px solid #ddd; margin-top: -20px;">
+            <tr>
+                <td style='padding: 20px;'>
+                    {$clinica->getFantasiaClinica()}<br>
+                    Endereco: {$empresa->getEndereco('enderecoFormatado')}<br>
+                    Fone: {$clinica->contatoPrincipal('meioDeContatoPrincipal', ['telefone'])}
+                    Site: {$clinica->contatoPrincipal('meioDeContatoPrincipal', ['website'])}
+                </td>
+                <td style='text-align: right'>
+                    {$img}
+                </td>
+            </tr>
+        </table>
+        <hr>
+TOPO;
+
+    $totalGeralFun += $totalFunc;
+    $totalGeralExm += $totalExames;
+}
+
+echo <<<TOPO
+        <table class='table table-striped table-bordered'>
+            <thead>
+                <tr>
+                    <th colspan='2'>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Total de Funcionários:</td>
+                    <td>{$totalGeralFun}</td>
+                </tr>
+                <tr>
+                    <td>Total de Exames:</td>
+                    <td>{$totalGeralExm}</td>
+                </tr>
+                <tr>
+                    <td>Total de Condomínios</td>
+                    <td>{$totalEmps}</td>
+                </tr>
+            </tbody>
+        </table>
+        <hr>
+TOPO;
+
+
+echo $buttonsExport;
+
+
+// Var de transferencia PHP to JS
+$transp = array(
+);
+?>
+
+<iframe id="iframe-exp" hidden="true" width='100%' height='500' frameborder='0'></iframe>
+<script type="text/javascript">
+    $(function () {
+        var transp     = <?php echo json_encode($transp) ?>;
+
+        var guiaParams = {
+            url: "<?php echo $this->url($route, array('controller' => 'Guias', 'action' => 'new'), [], FALSE, FALSE); ?>",
+        };
+
+        $('.exportaPdf').click(function() {
+            var src = "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getPdfExmRealiz'), [], FALSE, FALSE)?>";
+            $('#iframe-exp').attr('src', src);
+        });
+
+        $('.exportaXls').click(function() {
+            var src = "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'getCsvExmRealiz'), [], FALSE, FALSE)?>";
+            $('#iframe-exp').attr('src', src);
+        });
+
+        /**
+         * Abre a ASO do funcionario
+         */
+        $('.openAso').click(function() {
+            var id = $(this).data('id');
+            $.processa({
+                url: "<?php echo $this->url($route, array('controller' => 'FichaClinicas', 'action' => 'showAso'), [], FALSE, FALSE); ?>/" + id,
+            });
+        });
+
+        /**
+         * Abre uma nova Guia para o funcionário (ou uma guia existente caso
+         * este funcionário já possua guia)
+         */
+        $('.openGuia').click(function() {
+            var id = $(this).data('id');
+            var nome = $(this).data('name');
+
+            if($.isNumeric(id)) {
+                guiaParams = {
+                    url: "<?php echo $this->url($route, array('controller' => 'Guias', 'action' => 'edit'), [], FALSE, FALSE); ?>/" + id,
+                };
+
+                $.notify({
+                    message: "Abrindo a guia do funcionario " + nome,
+                    type: "success"
+                });
+            }else{
+                $.notify({
+                    message: "Abrindo nova guia para o funcionario " + nome,
+                    type: "success"
+                });
+            }
+
+            $.processa(guiaParams);
+        });
+    });
+</script>

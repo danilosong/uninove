@@ -1,0 +1,64 @@
+<legend>Ocorrências
+    <button id="fechar" class="btn btn-danger btn-sm pull-right">
+        <i class="fa fa-times"></i>
+        &nbsp;Fechar
+    </button>
+    <button id="incluirOcorrencia" class="btn btn-primary btn-sm pull-right">
+        <i class="fa fa-plus"></i>
+        &nbsp;Incluir
+    </button>
+</legend>
+
+<?php
+if ($this->ocorrencias) {
+    /* @var $table \Application\View\Helper\Table */
+    $table = $this->table();
+    $controller = 'exibirOcorrencia';
+    $route = 'tcmed/default';
+
+    $table->openTable(TRUE);
+    $table->renderThead(['Assunto', 'Descricao', 'Opções']);
+
+    $lambda = function($value, $data) {
+        echo '<td>',
+        '<span class="hand edit-oco" data-id="'.$value.'"><i class="fa fa-eye"></i> Ver</span>',
+        //'&nbsp;',
+        //'<span class="hand" id="del-oco" data-id="'.$value.'"><i class="fa fa-trash"></i> Deletar</span>',
+        '</td>';
+    };
+
+    $table->setLambda($lambda);
+
+    /* @var $entity \Tcmed\Entity\Ocorrencia */
+    foreach ($this->ocorrencias as $entity) {
+        $table->renderLine([
+            $entity->getAssunto(),
+            $entity->getDescricao(),
+            $entity->getId(),
+        ]);
+    }
+} else {
+    echo "<p>Este funcionário não possui ocorrências<p>";
+}
+?>
+<script>
+    $(function () {
+        $("#incluirOcorrencia").click(function () {
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocorrencias', 'action' => 'getFuncionarioFromOcorrencia'), [], FALSE, FALSE); ?>" + "/" + <?php echo $this->funcionario->getId() ?>,
+            });
+            return false;
+        });
+        
+        $(".edit-oco").click(function(){
+            $.processa({
+                url: "<?php echo $this->url('tcmed/default', array('controller' => 'Ocorrencias', 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + $(this).attr("data-id"),
+            });
+        });
+        
+        $("#fechar").click(function(){
+            $("#container-data").hide();
+            return false;
+        });
+    });
+</script>
