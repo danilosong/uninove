@@ -1,0 +1,51 @@
+<h3><?php
+    echo $this->dataView['titulo'];
+    $controller = 'paiss';
+    $route = 'adm/default';
+    ?></h3>
+<br />
+<?php
+/* @var $fh \Application\View\Helper\FormHelp
+ * @author Allan Davini */
+$fh = $this->formHelp($this, $this->form, $this->url($route, array('controller' => $controller, 'action' => $this->dataView['action']), [], FALSE, $this->dataView['ajax']));
+$fh->setHorizontal(true);
+$fh->formInit('Cadastro de Paises:');
+$fh->openCol('12')->text('nomePais')->closeCol();
+$nomePais = $fh->getLastId();
+$fh->lineDown();
+$fh->openCol('12')->text('codigo')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->text('sigla')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->select('status')->closeCol();
+$fh->lineDown();
+$fh->openCol('12')->Submit('submit')->closeCol();
+$fh->closeLine()->formEnd();
+?>
+
+<script lang="javascript">
+
+    function isValid() {
+        return true;
+    }
+    /*
+    $(function () {
+        action.auto("#nomePais", {
+            primary: "nomePais",
+            serviceUrl:"/adm/paiss/autoComp",
+            responseTo: {
+                
+            },
+            params:{
+                "teste":"jjj"
+            },
+            callback: {
+                teste: function(){
+                    alert("mundo");
+                }
+            }
+        });
+    });
+    */
+
+</script>

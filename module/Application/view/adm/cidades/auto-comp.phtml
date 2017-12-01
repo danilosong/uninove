@@ -1,0 +1,30 @@
+<?php 
+/* @var $entity \Adm\Entity\Cidade */
+if($this->resultSet){
+    $array = [];
+
+    if($this->subOpcao == '' || !isset($this->subOpcao)) {
+        $array[] = [
+            'menu_idCidade' => 'ID' ,
+            'menu_nomeCidade' => 'Cidade' ,
+            'menu_idEstado' => 'ID' ,
+            'menu_uf' => 'Estado' ,
+            'menu_idPais' => 'ID' ,
+            'menu_nomePais' => 'Pais' ,
+        ];
+        foreach ($this->resultSet as $entity) {
+            $array[] = [
+                'idCidade' => $entity->getId(),
+                'nomeCidade' => $entity->getNomeCidade(),
+                'idEstado' => $entity->getEstado()->getId(),
+                'uf' => $entity->getEstado()->getUf(),
+                'nomePais' => $entity->getEstado()->getPais()->getNomePais(),
+                'idPais' => $entity->getEstado()->getPais()->getId(),
+            ];
+        }
+    }
+
+    echo json_encode($array);
+}else{
+    echo '{}';
+}

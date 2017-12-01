@@ -1,0 +1,54 @@
+<?php
+/* @var $table \Application\View\Helper\Table
+ * @author Allan Davini */
+$table = $this->table();
+$controller = 'estados';
+$route = 'adm/default';
+
+// Lê as mensagens do servidor através do flashMessenger
+$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+?>
+<h1>Estados</h1>
+<br />
+<p>
+    <button class="btn btn-primary" onclick="<?php echo $this->url($route, array('controller' => $controller, 'action' => 'new')); ?>">Novo</button>
+</p>
+<?php
+$table->openTable(TRUE);
+$table->renderThead(['ID', 'Estado','UF','Pais', 'Status', 'Ação']);
+/* @var $entity \Tcmed\Entity\Estado */
+foreach ($this->data as $entity) {
+    $table->renderLine([
+        $entity->getId(),
+        $entity->getNomeEstado(),
+        $entity->getUf(),
+        $entity->getPais()->getNomePais(),
+        $entity->getStatus(),
+        $entity->getId(),
+    ]);
+}
+$table->renderCloseTable();
+?>
+<br />
+
+<center>
+    <?php echo $this->paginationControl($this->data, 'Sliding', 'partials/paginator'); ?>    
+</center>
+
+<script lang="javascript">
+    function edit(key) {
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'edit'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    function del(key) {
+        var msg = "Deseja mesmo excluir este registro?";
+        if (!confirm(msg)) {
+            return;
+        }
+        var data = {url: "<?php echo $this->url($route, array('controller' => $controller, 'action' => 'delete'), [], FALSE, FALSE); ?>" + "/" + key};
+        $.processa(data);
+    }
+    $(function () {
+
+    });
+</script>

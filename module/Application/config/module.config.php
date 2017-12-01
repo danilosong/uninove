@@ -235,10 +235,9 @@ return array(
             'Endereco\Controller\Ufs'                       => 'Endereco\Controller\UfsController',
             'Endereco\Controller\Cidades'                   => 'Endereco\Controller\CidadesController',
             'Endereco\Controller\Enderecos'                 => 'Endereco\Controller\EnderecosController',
-            'Endereco\Controller\Cats'                      => 'Endereco\Controller\CatsController',
+            'Endereco\Controller\Completes'                 => 'Endereco\Controller\CompletesController',
 
             // REGISTRAR AQUI SOMENTE CONTROLLERS DE ADM
-            'Adm\Controller\Testes'                 => 'Adm\Controller\TestesController',
             'Adm\Controller\Index'                  => 'Adm\Controller\IndexController',
             'Adm\Controller\Colaboradors'           => 'Adm\Controller\ColaboradorsController',
             'Adm\Controller\ColaboradorPontos'      => 'Adm\Controller\ColaboradorPontosController',
@@ -247,6 +246,13 @@ return array(
             'Adm\Controller\Pedidos'                => 'Adm\Controller\PedidosController',
             'Adm\Controller\PedidoItems'            => 'Adm\Controller\PedidoItemsController',
             'Adm\Controller\Saidas'                 => 'Adm\Controller\SaidasController',
+            'Adm\Controller\Bairros'                => 'Adm\Controller\BairrosController',
+            'Adm\Controller\Cidades'                => 'Adm\Controller\CidadesController',
+            'Adm\Controller\Enderecos'              => 'Adm\Controller\EnderecosController',
+            'Adm\Controller\Estados'                => 'Adm\Controller\EstadosController',
+            'Adm\Controller\Logradouros'            => 'Adm\Controller\LogradourosController',
+            'Adm\Controller\Paiss'                  => 'Adm\Controller\PaissController',
+            'Adm\Controller\TipoLogradouros'        => 'Adm\Controller\TipoLogradourosController',
 
         ),
     ),

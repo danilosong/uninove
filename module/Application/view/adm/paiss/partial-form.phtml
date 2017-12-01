@@ -1,0 +1,51 @@
+<?php
+$fh = &$obj;
+
+//echo '<pre>' , var_dump(get_class_methods($fh));die;
+
+
+$fh->closeLine()->renderFieldsetIni('Pais')->setPreFix('Pais');
+$idHold = $fh->getIdFor('idPais');
+$fh->openCol('12')->text('nomePais')->closeCol();
+$nomePais = $fh->getLastId();
+$fh->lineDown();
+    $fh->openCol('12')->text('codigo')->closeCol();
+    $codigo = $fh->getLastId();
+$fh->lineDown();
+    $fh->openCol('12')->text('sigla')->closeCol();
+    $sigla = $fh->getLastId();
+$fh->lineDown();
+    $fh->openCol('12')->select('status')->closeCol();
+    $status = $fh->getLastId();
+$fh->lineDown();
+
+$fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
+
+    $fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
+?>
+
+<script lang="javascript">
+    $(function () {
+
+        var parametros = {
+            fields:{
+                idPais: ["<?php echo $idPais; ?>"],
+                nomePais: ["<?php echo $nomePais; ?>"],
+                codigo: ["<?php echo $codigo; ?>"],
+                sigla: ["<?php echo $sigla; ?>"],
+            },
+            extra:{
+                url: "<?php echo $d['this']->url('adm/default', array('controller' => 'paiss', 'action' => 'autoComp'), [], FALSE, FALSE); ?>",
+            }
+        };
+
+        $.each(parametros["fields"], function(key, value){
+            action.preAutoComp(key, parametros);
+        });
+
+
+
+    //        action.preAutoComp("fantasiaHold", parametros);
+
+    });
+    </script>
