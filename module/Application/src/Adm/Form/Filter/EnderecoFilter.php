@@ -10,7 +10,7 @@ namespace Adm\Form\Filter;
  * Validação do form da Endereco
  * @author Allan Davini
  */
-class EnderecoFilter extends \Application\Form\Filter\AbstractFilter{
+class EnderecoFilter extends AdmAbstractFilter{
     
     public function getFilters($ret) {
     }

@@ -10,7 +10,7 @@ namespace Adm\Form\Filter;
  * Validação do form da Bairro
  * @author Allan Davini
  */
-class BairroFilter extends \Application\Form\Filter\AbstractFilter{
+class BairroFilter extends AdmAbstractFilter{
     
     public function getFilters($ret) {
         if($ret){

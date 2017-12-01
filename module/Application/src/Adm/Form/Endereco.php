@@ -10,19 +10,9 @@ namespace Adm\Form;
  * Description of Endereco
  * @author Allan Davini
  */
-class Endereco extends \Application\Form\AbstractForm {
+class Endereco extends AdmAbstractForm {
 
     private $logradouro;
-
-    public function __construct($name = 'Endereco', $options = [], $ret = false) {
-        $this->redirectParams($name, $options, $ret);
-        parent::__construct('endereco', $options);
-        $this->moduloName = "Tcmed";
-        if ($this->ret == FALSE) {
-            $this->ret = TRUE;
-            $this->setAllInputs();
-        }
-    }
 
     /**
      * - Executa operacoes após form ser carregado

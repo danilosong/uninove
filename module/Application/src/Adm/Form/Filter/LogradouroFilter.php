@@ -6,7 +6,7 @@ namespace Adm\Form\Filter;
  * Validação do form da Logradouro
  * @author Danilo Dorotheu <danilo.dorotheu@live.com>
  */
-class LogradouroFilter extends \Application\Form\Filter\AbstractFilter{
+class LogradouroFilter extends AdmAbstractFilter{
     
     public function getFilters($ret) {
         $this->notEmpty('nomeLogradouro');

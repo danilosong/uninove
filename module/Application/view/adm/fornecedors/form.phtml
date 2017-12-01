@@ -4,14 +4,14 @@ $action       = $this->dataView['action'];
 $route        = $this->dataView['route'];
 $title        = $this->dataView['titulo'];
 $entity       = $this->entity;
-/* @var $form \Tcmed\Form\Fornecedor*/
+/* @var $form \Adm\Form\Fornecedor*/
 $form         = $this->form;
 $id           = $form->getValue('id', 0);
 $partial      = $this->partialObj('application');
 /**
  * @var Object Partials (pedacos) de outras entidades presentes neste form
  */
-$tcmedPartial = $this->partialObj('tcmed');
+$admPartial = $this->partialObj('adm');
 
 echo '<h3>', $title, '</h3><br />';
 
@@ -45,7 +45,7 @@ $fh->openCol(3)->renderInputSelect('status')->closeCol();
 // === ENDERECO ================================================================
 $fh->closeLine();
 $fh->renderFieldsetIni('Endereço', ['notOpenLine' => TRUE]);
-$tcmedPartial->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
+$admPartial->partial('enderecos/partial-form-all', $fh, ['this' => &$this]);
 $fh->renderFieldsetFim();
 $fh->openLine();
 // ===================================================================== FIM ===

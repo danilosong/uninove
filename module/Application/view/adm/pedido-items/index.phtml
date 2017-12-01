@@ -6,7 +6,7 @@ $action     = $this->dataView['action'    ];
 $route      = $this->dataView['route'     ];
 $title      = $this->dataView['titulo'    ];
 $orderBy    = $this->dataView['orderBy'   ];
-$partial    = $this->partialObj('tcmed');
+$partial    = $this->partialObj('adm');
 $form       = $this->form;
 
 // $ret        = $form->getValue('ret', '#inter');
@@ -14,7 +14,7 @@ $form       = $this->form;
 $table = $this->table();
 
 // Lê as mensagens do servidor através do flashMessenger
-$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
 
 /* @var $fh \Application\View\Helper\FormHelp */
 $fh = $this->formHelp($this, $form, $this->url($route, array(

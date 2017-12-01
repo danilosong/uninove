@@ -15,7 +15,7 @@ $entity     = $this->entity;
 
 /* @var $pedidoItems array of \Adm\Entity\PedidoItem */
 $pedidoItems= $entity->listPedidoItems();
-$partial    = $this->partialObj('tcmed');
+$partial    = $this->partialObj('adm');
 $user       = $this->UserIdentity();
 
 /* @var $param \Application\View\Helper\Image  */
@@ -56,7 +56,7 @@ $src        = $image($path);
 $table = $this->table();
 
 // Lê as mensagens do servidor através do flashMessenger
-$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
 
 /* @var $fh \Application\View\Helper\FormHelp */
 $fh = $this->formHelp($this, $form, $this->url($route, array(
