@@ -37,15 +37,28 @@
 ### Requisitos para executar projeto:
 1. PHP 7
 2. [Composer](https://getcomposer.org/)
+3. [ZendFramework 2.*](https://framework.zend.com/)
+4. [Doctrine 2.*](http://www.doctrine-project.org/)
 
 ### Instalação:
 Clonar o projeto com `git clone https://github.com/danilosong/uninove` em uma pasta.
 Então, deve-se incluir o arquivo * composer.phar * na pasta deste projeto e executar
-o comando `composer.phar install`. A pasta * Vendor * será incluída neste projeto.
+o comando `composer.phar install`. A pasta Vendor e Data é essencial [DOWNLOAD AQUI](https://goo.gl/Voyacn) e 
+adicione descompacte dentro da pasta uninove do projeto.
 
-É necessário que a base exista. Ao criar a base e configurá-lo no projeto
-(Necessário saber configurar o banco de dados em um projeto [Zend Framework 2](http://framework.zend.com/)
-execute os comandos:
+### Banco de dados
+
+É necessário de alguns arquivos para o funcionamento dos menus e cadastro através da conta
+de administrador baixe o [DUMP](https://goo.gl/UXTckN) antes.
+```
+Login : adm;
+Senha : 1234;
+```
+
+ou tente o procedimento a seguir:
+É necessário que a base exista. 
+Ao criar a base e configurá-lo no projeto (Necessário saber configurar o banco 
+de dados em um projeto [Zend Framework 2](https://framework.zend.com/) execute os comandos:
 ```
 php public/index.php orm:schema-tool:update --force
 php public/index.php data-fixture:import
