@@ -21,7 +21,7 @@ class Fornecedor extends AdmAbstractService{
         $this->setDataRefArray([
             'ref_createdBy'   => '\Application\Entity\Usuario',
             'ref_updatedBy'   => '\Application\Entity\Usuario',
-            'endereco'        => '\Tcmed\Entity\Endereco',
+            'endereco'        => '\Adm\Entity\Endereco',
         ]);
     }
 }

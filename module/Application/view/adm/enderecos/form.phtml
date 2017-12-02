@@ -1,6 +1,6 @@
 <h3><?php echo $this->dataView['titulo']; 
 $controller = 'enderecos';
-$route = 'adm/default';
+$route = 'tcmed/default';
 ?></h3>
 <br />
 <?php
@@ -19,7 +19,7 @@ $fh->lineDown();
 $fh->lineDown();
 //    $fh->openCol('12')->select('logradouro')->closeCol();   
 //$fh->lineDown();
-    $this->partialObj('adm')->partial('logradouros/partial-form', $fh,['this' => &$this]);  
+    $this->partialObj('tcmed')->partial('logradouros/partial-form', $fh,['this' => &$this]);  
     
 $fh->openCol('12')->Submit('submit')->closeCol();
 $fh->closeLine()->formEnd();

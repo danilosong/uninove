@@ -11,7 +11,7 @@ $fh->lineDown();
 //$fh->lineDown();
 //    $fh->openCol('12')->select('logradouro')->closeCol();   
 //$fh->lineDown();
-    $this->partialObj('adm')->partial('logradouros/partial-form', $fh,['this'=>&$d["this"]]);  
+    $this->partialObj('tcmed')->partial('logradouros/partial-form', $fh,['this'=>&$d["this"]]);  
 
 $fh->closeLine()->renderFieldsetFim()->openLine()->removePreFix();
 ?>

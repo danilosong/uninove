@@ -143,7 +143,7 @@ class Usuario extends AbstractEntity
     private $pathFoto;
 
     /**
-     * Guarda a referencia ou id do sistema anterior no tcmed por exemplo guarda lnk-operador
+     * Guarda a referencia ou id do sistema anterior no adm por exemplo guarda lnk-operador
      * @author Paulo Watakabe <watakabe05@gmail.com>
      * @version 1.0  
      * @since 18-07-2016 
@@ -517,7 +517,7 @@ class Usuario extends AbstractEntity
     }
     
     /**
-     * Guarda a referencia ou id do sistema anterior no tcmed por exemplo guarda lnk-operador
+     * Guarda a referencia ou id do sistema anterior no adm por exemplo guarda lnk-operador
      * @author Paulo Watakabe <watakabe05@gmail.com>
      * @version 1.0  
      * @since 20-07-2016 
@@ -528,7 +528,7 @@ class Usuario extends AbstractEntity
     }
 
     /**
-     * Guarda a referencia ou id do sistema anterior no tcmed por exemplo guarda lnk-operador
+     * Guarda a referencia ou id do sistema anterior no adm por exemplo guarda lnk-operador
      * @author Paulo Watakabe <watakabe05@gmail.com>
      * @version 1.0  
      * @since 20-07-2016 

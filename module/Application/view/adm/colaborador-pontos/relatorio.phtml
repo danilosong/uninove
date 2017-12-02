@@ -41,7 +41,7 @@ foreach($this->resul as $entity){
 $table = $this->table();
 
 // Lê as mensagens do servidor através do flashMessenger
-$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
 
 /* @var $fh \Application\View\Helper\FormHelp */
 $fh = $this->formHelp($this, $form, $this->url($route, array(

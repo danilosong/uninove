@@ -1,7 +1,6 @@
 <?php
 
 namespace Adm\Controller;
-use \Application\Controller\CrudController;
 
 /**
  * Description of LogradourosController

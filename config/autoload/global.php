@@ -18,10 +18,10 @@ return array(
         'connection_class' => 'login',
         'port' => 587,
         'connection_config' => array(
-            'username' => 'paulo@tcmed.com.br',
-            'password' => 'japa12!!',
+            'username' => 'danilo@tcmed.com.br',
+            'password' => '',
 //            'ssl' => 'tls',
-            'from' => 'paulo@tcmed.com.br'
+            'from' => 'danilo@tcmed.com.br'
         )
     )
 );

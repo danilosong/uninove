@@ -11,16 +11,20 @@ namespace Endereco\Form;
  *
  * @author Paulo Watakabe <email>watakabe05@gmail.com</email>
  */
-class Cidade extends \Application\Form\AbstractForm{
+class Cidade extends EnderecoAbstractForm{
     
-    
-    public function __construct($name = 'Cidade', $options = array()) {
-        if(is_object($name) AND $name instanceof \Doctrine\ORM\EntityManager){         
-            $this->em = $name;
+    /**
+     * Define os inputs padrões para o form.phtml
+     *
+     * @author Danilo Song <danilosong@outlook.com>
+     * @version 1.0  
+     * @since 02-12-2017
+     * @param   boolean $filter Busca o filtro referente a esta entidade. Setar false caso não for necessario a aplicacao de filtros
+     */
+    public function setInputs($filter = TRUE) {
+        if ($filter) {
+            $this->setInputFilter(new Filter\CidadeFilter($this->name, $this->ret, $this->getTargetForm()->prefix));
         }
-        parent::__construct('cidade', $options);
-        
-        $this->setInputFilter(new Filter\CidadeFilter);
         
         $this->setSimpleText('cidadeCodigo');
         

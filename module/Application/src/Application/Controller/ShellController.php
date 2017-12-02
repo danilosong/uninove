@@ -47,8 +47,8 @@ class ShellController extends AbstractActionController {
      * Seta todos os users offline que estão inativos no sistema por mais de 3 min
      * Adicionar esta linha no crontab do servidor
      * # m  h  dom mon dow   command
-     * 03  *    *   *   *   php /var/www/tcmed/public/index.php setOffline
-     * 03  *    *   *   *   /usr/bin/php5 /var/www/tcmed/public/index.php setOffline
+     * 03  *    *   *   *   php /var/www/uninove/public/index.php setOffline
+     * 03  *    *   *   *   /usr/bin/php5 /var/www/uninove/public/index.php setOffline
      */
     public function setofflineAction() {
         $userRep = $this->getEm()->getRepository("\Application\Entity\User");
@@ -187,7 +187,7 @@ class ShellController extends AbstractActionController {
 
     public function setGenerateAction() {
         $mysql = new Mysql();
-        $fileSQL = '/home/user/ownCloud/Projeto_tcmed_files/Modelagem Dados/Stored Procedures/storeprocedure.query';
+        $fileSQL = '/home/user/ownCloud/Projeto_uninove_files/Modelagem Dados/Stored Procedures/storeprocedure.query';
         if (file_exists($fileSQL)) {
             $q = file_get_contents($fileSQL);
             $mysql->q($q);

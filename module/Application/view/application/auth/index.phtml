@@ -32,7 +32,7 @@
                     echo '<div class="alert alert-danger"><p class="text-uppercase">Usuário ou senha inválidos</p></div>';
                     $fh->closeCol()->closeLine();
                 }
-                
+                echo "<ds>";
                 $fh->setHorizontal(false);
                 $fh->formInit('Fazer Login no Sistema');
                 $fh->lineDown();
@@ -56,7 +56,7 @@
                     echo '<span id="spn-forget-pass"><br /><br />Esqueceu a senha <a href="#" id="btn-forget-pass">Clique Aqui</a></span>';
                     $fh->closeCol(); 
                 $fh->closeLine()->formEnd();
-                
+                echo "</ds>"
                 ?>
 
                 </div>

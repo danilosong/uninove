@@ -3,10 +3,10 @@
  * @author Allan Davini */
 $table = $this->table();
 $controller = 'enderecos';
-$route = 'adm/default';
+$route = 'tcmed/default';
 
 // Lê as mensagens do servidor através do flashMessenger
-$this->partialObj('adm')->partial('index/partial-form-messenger', null, ['this' => &$this]);
+$this->partialObj('tcmed')->partial('index/partial-form-messenger', null, ['this' => &$this]);
 ?>
 <h1>Enderecos</h1>
 <br />

@@ -361,7 +361,7 @@ var action = (function ($, options, event) {
              */
             request.fail(function (msg, status, errorThrown) {
                 globalLogonUser.AllowRequest();
-                var message = 'Foi encontrado um erro no servidor quando acessado a URL "' + params.url + '".';
+                var message = '<dt>Foi encontrado um erro no servidor quando acessado a URL "' + params.url + '".</dt>';
 
                 if (false == params.showError) {
                     return false;

@@ -70,9 +70,9 @@ class LoadParametros extends AbstractFixture implements OrderedFixtureInterface 
         // Menu padrão do sistema menu a ser exibido inicialmente na tela defaul Sistema
         $this->get('defaultMenu'             ,'Sistema'                         ,'menu'  );
         // Imagem padrao para exibir quando a imagem não for encontrada
-        $this->get('APP_NO_IMAGEM'           ,'/var/www/tcmed/public/img/sem_imagem.jpg', 'ALL'  );
+        $this->get('APP_NO_IMAGEM'           ,'/var/www/uninove/public/img/sem_imagem.jpg', 'ALL'  );
         
-        $this->get('usuarioDir'             ,'/var/www/tcmed/data/usuarioDir/', 'all'  );
+        $this->get('usuarioDir'             ,'/var/www/uninove/data/usuarioDir/', 'all'  );
 
         // select para mes descrito
         $this->get('selectMes'  , 'Janeiro'               ,'01'  );

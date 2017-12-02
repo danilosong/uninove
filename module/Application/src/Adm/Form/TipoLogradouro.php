@@ -46,10 +46,8 @@ class TipoLogradouro extends AdmAbstractForm{
         $this->setInputText('tipo', 'Tipo de Logradouro', ["Placeholder" => "Tipo"]);
         $this->setInputText('sigla', 'Sigla', ["Placeholder" => "Sigla"]);
 
-        if ($this->ret == FALSE) {
-            $selectStatus = $this->getParametroChave("status_tabela");
+            $selectStatus = $this->getParametroChave("status_tabela", FALSE);
             $this->setInputSelect('status', 'Status', $selectStatus);
-        }
     }
 
 }

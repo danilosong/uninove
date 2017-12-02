@@ -46,7 +46,7 @@ class Estado extends AdmAbstractForm {
             $this->setInputFilter(new Filter\EstadoFilter($this->name, $this->ret, $this->getTargetForm()->prefix));
         }
 
-        $this->moduloName = "Tcmed";
+        $this->moduloName = "Adm";
 
         $this->setInputHidden('idEstado');
 
@@ -73,7 +73,7 @@ class Estado extends AdmAbstractForm {
     }
 
     public function getAllEstados() {
-        /* @var $repository \Tcmed\Entity\Repository\EstadoRepository */
+        /* @var $repository \Adm\Entity\Repository\EstadoRepository */
         $repository = $this->em->getRepository($this->moduloName . "\Entity\Estado");
         return $repository->fetchPairs('getNomeEstado');
     }
