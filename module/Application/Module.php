@@ -62,6 +62,7 @@ class Module {
             'Zend\Loader\StandardAutoloader' => array(
                 'namespaces' => array(
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
+                    'Endereco'    => __DIR__ . '/src/Endereco',
                     'Adm'         => __DIR__ . '/src/Adm',
                 ),
             ),
