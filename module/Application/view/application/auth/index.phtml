@@ -4,6 +4,11 @@
         background-repeat: no-repeat;
         background-image: linear-gradient(rgb(104, 145, 162), rgb(12, 71, 97));
     }
+    
+    .text{
+        text-shadow:-2px 2px 1px rgba(0,0,0,1);font-weight:normal;font-style:oblique;color:#F7FFFB;letter-spacing:1pt;word-spacing:2pt;font-size:13px;text-align:center;font-family:verdana, sans-serif;line-height:1;
+    }
+
 </style>
 <div class="container">
     <div class="row">
@@ -64,13 +69,22 @@
         </div>
     </div>
 </div>
+<br>
+<p class="text">Copyright <?= date("Y");?> Song Technologic Solutions</p>
+<div class="col-md-12 navbar">
+    <div class="col-md-5"></div>
+	<p align="center" class="col-md-1"><a class="btn btn-default" href="https://github.com/danilosong"  class="btn btn-social-icon btn-github"><span class="fa fa-github"></span></a></p>
+        <p align="center" class="col-md-1"><a class="btn btn-default" href="https://www.linkedin.com/in/danilo-song-045a8a95/" class="btn btn-social-icon btn-linkedin" ><span class="fa fa-linkedin"></span></a></p>
+    <div class="col-md-5"></div>
+</div>
 <style>
     .ft-login-name{
         font-size : 14pt;
         padding-left: 20%;
     }
 </style>
-<script lang="javascript">   
+<script lang="javascript">
+
     var login = true;
 
     var getLogin = function(){
