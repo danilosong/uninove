@@ -49,7 +49,7 @@ adicione descompacte dentro da pasta uninove do projeto.
 ### Banco de dados
 
 É necessário de alguns arquivos para o funcionamento dos menus e cadastro através da conta
-de administrador baixe o [DUMP](https://goo.gl/UXTckN) antes.
+de administrador baixe o [DUMP](https://goo.gl/nhF8fi) antes.
 ```
 Login : adm;
 Senha : 1234;
