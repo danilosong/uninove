@@ -46,6 +46,27 @@ Então, deve-se incluir o arquivo * composer.phar * na pasta deste projeto e exe
 o comando `composer.phar install`. A pasta Vendor e Data é essencial [DOWNLOAD AQUI](https://goo.gl/Voyacn) e 
 adicione descompacte dentro da pasta uninove do projeto.
 
+### Configuração do servidor apache
+
+Configurar no virtualHost as seguintes linhas:
+```
+<VirtualHost *:80>
+    ServerAdmin danilosong@outlook.com
+    DocumentRoot "C:/xampp/htdocs/uninove/public"
+    ServerName uninove.dev
+    ServerAlias www.uninove.dev
+    ErrorLog "logs/dummy-host.example.com-error.log"
+    CustomLog "logs/dummy-host.example.com-access.log" common
+</VirtualHost>
+```
+
+### No Windows
+
+Configurar C:\Windows\System32\drivers\etc
+```
+número_do_ip_da_maquina www.uninove.dev
+```
+
 ### Banco de dados
 
 É necessário de alguns arquivos para o funcionamento dos menus e cadastro através da conta
