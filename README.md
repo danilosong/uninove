@@ -43,7 +43,7 @@
 ### Instalação manual:
 Clonar o projeto com `git clone https://github.com/danilosong/uninove` em uma pasta.
 
-* vendor e data *
+### vendor e data
 Então, depois de ter instalado o composer deve-se incluir o arquivo * composer.phar * 
 na pasta deste projeto e executar o comando `composer.phar install` no terminal. 
 
@@ -56,10 +56,9 @@ adicione descompacte dentro da pasta uninove do projeto.
 OU
 
 ### Pasta do projeto completa!!!
-```
-161MB
+** 161MB **
 [Download](https://goo.gl/AGTAVm)
-```
+
 
 ### Banco de dados
 
