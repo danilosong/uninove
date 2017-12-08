@@ -43,7 +43,7 @@
 ### Instalação manual:
 Clonar o projeto com `git clone https://github.com/danilosong/uninove` em uma pasta.
 
-### vendor e data
+### Vendor e data
 Então, depois de ter instalado o composer deve-se incluir o arquivo * composer.phar * 
 na pasta deste projeto e executar o comando `composer.phar install` no terminal. 
 
@@ -67,12 +67,12 @@ de administrador baixe o [DUMP](https://goo.gl/k6vUEq) antes. Para importar o ba
 recomendo que use o [Mysql Workbench](https://dev.mysql.com/downloads/workbench/)
 
 ### EXPORTAR COM WOKRBENCH
-Você pode exportar o seu banco no Workbench em ** Management **-> ** Data Export **. 
+Você pode exportar o seu banco no Workbench em * Management *-> * Data Export *. 
 Selecionar a database, escolha o diretório e nome do arquivo e clique em ** Start 
 Export **. Será gerado um arquivo sql.
 
 ### IMPORTAR COM WOKRBENCH
-Clique em ** Management **->  ** Data Import/Restore **, 
+Clique em * Management *->  * Data Import/Restore *, 
 procure o arquivo sql gerado anteriormente e clique em ** Start Import **.
 ```
 Testado na versão 6.1 do MySQL Workbench.
