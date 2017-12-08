@@ -40,62 +40,98 @@
 3. [ZendFramework 2.*](https://framework.zend.com/)
 4. [Doctrine 2.*](http://www.doctrine-project.org/)
 
-### Instalação:
+### Instalação manual:
 Clonar o projeto com `git clone https://github.com/danilosong/uninove` em uma pasta.
-Então, deve-se incluir o arquivo * composer.phar * na pasta deste projeto e executar
-o comando `composer.phar install`. A pasta Vendor e Data é essencial [DOWNLOAD AQUI](https://goo.gl/Voyacn) e 
+
+* vendor e data *
+Então, depois de ter instalado o composer deve-se incluir o arquivo * composer.phar * 
+na pasta deste projeto e executar o comando `composer.phar install` no terminal. 
+
+OU
+
+### Download apenas do vendor e data:
+A pasta Vendor e Data é essencial [DOWNLOAD AQUI](https://goo.gl/Voyacn) e 
 adicione descompacte dentro da pasta uninove do projeto.
 
-### Configuração do servidor apache no windows
+OU
 
-Configurar no virtualHost as seguintes linhas (server):
+### Pasta do projeto completa!!!
+```
+161MB
+[Download](https://goo.gl/AGTAVm)
+```
+
+### Banco de dados
+
+É necessário de alguns arquivos para o funcionamento dos menus e cadastro através da conta
+de administrador baixe o [DUMP](https://goo.gl/k6vUEq) antes. Para importar o banco
+recomendo que use o [Mysql Workbench](https://dev.mysql.com/downloads/workbench/)
+
+### EXPORTAR COM WOKRBENCH
+Você pode exportar o seu banco no Workbench em ** Management **-> ** Data Export **. 
+Selecionar a database, escolha o diretório e nome do arquivo e clique em ** Start 
+Export **. Será gerado um arquivo sql.
+
+### IMPORTAR COM WOKRBENCH
+Clique em ** Management **->  ** Data Import/Restore **, 
+procure o arquivo sql gerado anteriormente e clique em ** Start Import **.
+```
+Testado na versão 6.1 do MySQL Workbench.
+```
+
+### Configuração do servidor apache no windows
+- Procure por virtualhost de seu servidor e configure no virtualHost do Apache:
 ```
 <VirtualHost *:80>
-    ServerAdmin danilosong@outlook.com
-    DocumentRoot "C:/xampp/htdocs/uninove/public"
+    ServerAdmin danilosong@outlook.com (SEU EMAIL)
+    DocumentRoot "C:/xampp/htdocs/uninove/public" (CAMINHO DO PROJETO NO SERVER)
     ServerName uninove.dev
     ServerAlias www.uninove.dev
     ErrorLog "logs/dummy-host.example.com-error.log"
     CustomLog "logs/dummy-host.example.com-access.log" common
 </VirtualHost>
 ```
+
 ### Hosts no client
 Configurar C:\Windows\System32\drivers\etc
 ```
 número_do_ip_da_maquina www.uninove.dev
 ```
 
-Em LINUX bastar colocar a pasta do projeto em /var/www/ e configurar o alias
-COMANDO:
+No linux depois de ter feito o clone do arquivo e instalado os complementos do
+composer ou ter baixado os complementos o ter baixado o projeto inteiro 
+via download que está citado acima segue os comandos.
+
+### COMANDO:
 ```
 sudo nano ~/.bashrc
 ```
-adicionar alias
+
+adicionar alias no bashrc para facilitar na execução de comandos no terminal.
+
 ```
 alias uninove="cd /var/www/uninove"
 alias svn="/var/www/uninove/srv.sh 8000 ip_da_maquina"
 ```
-em seguida no terminal basta executar os comandos
+Em seguida reinicie no terminal e com php, apache e mysql instalados 
+execute os comandos:
 ```
-### uninove
-### svn
+uninove
+svn
 ```
 
+### Acesso ao sistema usuario adm padrão:
 
-### Banco de dados
-
-É necessário de alguns arquivos para o funcionamento dos menus e cadastro através da conta
-de administrador baixe o [DUMP](https://goo.gl/k6vUEq) antes.
 ```
 Login : adm;
 Senha : 1234;
 ```
 
-ou tente o procedimento a seguir:
-É necessário que a base exista. 
-Ao criar a base e configurá-lo no projeto (Necessário saber configurar o banco 
-de dados em um projeto [Zend Framework 2](https://framework.zend.com/) execute os comandos:
+Para atualizar a base de dados caso mude as entity no doctrine:
 ```
 php public/index.php orm:schema-tool:update --force
 php public/index.php data-fixture:import
 ```
+Tutorial de manuseio 
+
+Segue o link: 
